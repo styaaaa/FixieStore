@@ -1,2 +1,8 @@
-// Re-export from integrations for backward compatibility
-export { supabase } from '@/integrations/supabase/client';
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
+
+export { supabase };
