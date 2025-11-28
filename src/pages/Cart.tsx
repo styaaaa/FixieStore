@@ -259,7 +259,12 @@ const Cart = () => {
               </div>
 
               <div className="space-y-2">
-                <Button className="w-full" size="lg" disabled={cartItems.length === 0 || cartLoading}>
+                <Button
+                  className="w-full"
+                  size="lg"
+                  disabled={cartItems.length === 0 || cartLoading}
+                  onClick={() => navigate("/checkout")}
+                >
                   Lanjut ke checkout
                 </Button>
                 <Button variant="outline" className="w-full" onClick={() => navigate("/")}>

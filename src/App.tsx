@@ -13,6 +13,7 @@ import Register from "./pages/Register";
 import UserDashboard from "./pages/UserDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
 
 // --- ROUTE PROTECTION ---
 import AdminRoute from "@/routes/AdminRoute";
@@ -35,6 +36,7 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/cart" element={<Cart />} />
+              <Route path="/checkout" element={<Checkout />} />
 
               {/* USER DASHBOARD (Protected) */}
               <Route
