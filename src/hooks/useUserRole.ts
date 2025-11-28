@@ -7,32 +7,44 @@ export const useUserRole = () => {
 
   useEffect(() => {
     const load = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      try {
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
 
-      if (!user) {
-        setRole(null);
-        setLoading(false);
-        return;
-      }
+        if (userError) {
+          console.error("Error fetching user:", userError);
+          setRole(null);
+          return;
+        }
 
-      const { data, error } = await supabase
-        .from("profiles" as any)
-        .select("is_admin")
-        .eq("id", user.id)
-        .single<{
-          is_admin: boolean | null;
-        }>();
+        if (!user) {
+          setRole(null);
+          return;
+        }
 
-      if (error) {
-        console.error("Error fetching role:", error);
-        setRole(null);
-      } else {
+        const { data, error } = await supabase
+          .from("profiles" as any)
+          .select("is_admin")
+          .eq("id", user.id)
+          .single<{
+            is_admin: boolean | null;
+          }>();
+
+        if (error) {
+          console.error("Error fetching role:", error);
+          setRole(null);
+          return;
+        }
+
         setRole(data?.is_admin === true ? "admin" : "user");
+      } catch (error) {
+        console.error("Unexpected error loading role:", error);
+        setRole(null);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
     load();
