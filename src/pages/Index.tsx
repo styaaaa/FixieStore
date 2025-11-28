@@ -13,6 +13,7 @@ import { MobileQuickActions } from "@/components/MobileQuickActions";
 import { MobileHome } from "@/components/MobileHome";
 import { getCategories, getProducts } from "@/lib/repositories/catalogRepository";
 import type { Category, Product } from "@/types/catalog";
+import { BrandPartners } from "@/components/BrandPartners";
 
 const Index = () => {
   const { addToCart, cartCount } = useCart();
@@ -245,6 +246,7 @@ const Index = () => {
         )}
       </section>
 
+      <BrandPartners />
       
       <Footer />
 
