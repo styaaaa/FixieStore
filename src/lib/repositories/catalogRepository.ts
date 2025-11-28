@@ -113,3 +113,28 @@ export const updateProductStock = async (
 
   return mapProduct(data);
 };
+
+export const decreaseProductStock = async (
+  productId: string,
+  quantity: number,
+): Promise<Product> => {
+  const { data: product, error: fetchError } = await supabase
+    .from("products")
+    .select("id, stock")
+    .eq("id", productId)
+    .maybeSingle();
+
+  if (fetchError) {
+    console.error("Error fetching product stock", fetchError);
+    throw fetchError;
+  }
+
+  if (!product) {
+    throw new Error("Produk tidak ditemukan saat memperbarui stok");
+  }
+
+  const currentStock = product.stock ?? 0;
+  const newStock = Math.max(currentStock - quantity, 0);
+
+  return updateProductStock(productId, newStock);
+};

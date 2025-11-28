@@ -12,8 +12,10 @@ const mapProduct = (row: Tables<"products">): Product => ({
   name: row.name,
   brand: row.brand ?? "",
   price: typeof row.price === "number" ? row.price : Number(row.price ?? 0),
+  stock: row.stock ?? 0,
   imageUrl: row.image_url ?? "",
   description: row.description ?? "",
+  longDescription: row.long_description ?? "",
   categoryId: row.category_id,
   createdAt: row.created_at,
 });
@@ -30,7 +32,7 @@ export const getCartItems = async (userId: string): Promise<CartItem[]> => {
   const { data, error } = await supabase
     .from("cart_items")
     .select(
-      "id, quantity, product_id, created_at, product:products(id, name, brand, price, image_url, description, category_id, created_at)"
+      "id, quantity, product_id, created_at, product:products(id, name, brand, price, stock, image_url, description, long_description, category_id, created_at)"
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
