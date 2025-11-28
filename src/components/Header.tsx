@@ -79,6 +79,10 @@ export const Header = ({
     navigate("/dashboard");
   }, [isAdmin, navigate]);
 
+  const handleCartClick = useCallback(() => {
+    navigate("/cart");
+  }, [navigate]);
+
   const avatarFallback = useMemo(() => {
     const initial = user?.email?.charAt(0)?.toUpperCase();
     return initial || "U";
@@ -140,7 +144,12 @@ export const Header = ({
               <ShoppingBag className="h-5 w-5" />
             </Button>
             <div className="relative">
-              <Button variant="ghost" size="icon" aria-label="Buka keranjang">
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Buka keranjang"
+                onClick={handleCartClick}
+              >
                 <ShoppingCart className="h-5 w-5" />
               </Button>
               {cartItemCount > 0 && (

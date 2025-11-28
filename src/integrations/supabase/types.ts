@@ -73,6 +73,37 @@ export type Database = {
           }
         ];
       };
+      cart_items: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          product_id: string | null;
+          quantity: number | null;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          product_id?: string | null;
+          quantity?: number | null;
+          created_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          product_id?: string | null;
+          quantity?: number | null;
+          created_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "cart_items_product_id_fkey";
+            columns: ["product_id"];
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
