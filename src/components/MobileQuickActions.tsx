@@ -1,10 +1,11 @@
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
+import type { Category } from "@/types/catalog";
 
 interface MobileQuickActionsProps {
   cartCount: number;
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  categories: any[];
+  categories: Category[];
   activeCategory: string | null;
   onCategorySelect: (categoryId?: string) => void;
   onScrollToCategories: () => void;
