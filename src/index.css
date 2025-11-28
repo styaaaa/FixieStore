@@ -102,4 +102,12 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+
+  .fixie-icon {
+    transition: filter 0.3s ease;
+  }
+
+  .dark .fixie-icon {
+    filter: invert(1);
+  }
 }

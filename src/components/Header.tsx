@@ -1,6 +1,13 @@
 import { useCallback, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Home, Search as SearchIcon, ShoppingBag, ShoppingCart } from "lucide-react";
+import {
+  Home,
+  Moon,
+  Search as SearchIcon,
+  ShoppingBag,
+  ShoppingCart,
+  Sun,
+} from "lucide-react";
 
 import type { Category } from "@/types/catalog";
 import { Button } from "./ui/button";
@@ -14,6 +21,7 @@ import {
 } from "./ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useAuth } from "@/context/auth-context";
+import { useTheme } from "@/context/theme-context";
 
 interface HeaderProps {
   cartItemCount: number;
@@ -38,6 +46,7 @@ export const Header = ({
 }: HeaderProps) => {
   const navigate = useNavigate();
   const { user, isAdmin, authLoading } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const categoryValue = useMemo(
     () => activeCategory ?? "all",
@@ -94,7 +103,7 @@ export const Header = ({
     >
       <div className="container mx-auto px-4 py-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Button
               variant="ghost"
               size="icon"
@@ -103,7 +112,14 @@ export const Header = ({
             >
               <Home className="h-5 w-5" />
             </Button>
-            <h1 className="text-2xl font-bold">FixieStore</h1>
+            <Link to="/" className="flex items-center gap-2" aria-label="FixieStore">
+              <img
+                src="/fixie-icon.svg"
+                alt="Ikon FixieStore"
+                className="h-9 w-9 rounded-full border bg-muted/60 p-1 fixie-icon"
+              />
+              <h1 className="text-2xl font-bold">FixieStore</h1>
+            </Link>
           </div>
 
           <div className="flex flex-col gap-2 md:flex-1 md:flex-row md:items-center md:justify-center">
@@ -135,6 +151,14 @@ export const Header = ({
           </div>
 
           <div className="flex items-center justify-end gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Ubah tema"
+              onClick={toggleTheme}
+            >
+              {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </Button>
             <Button
               variant="ghost"
               size="icon"
