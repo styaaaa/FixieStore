@@ -17,6 +17,15 @@ import Checkout from "./pages/Checkout";
 import OrderReviews from "./pages/OrderReviews";
 import OrderSuccess from "./pages/OrderSuccess";
 import ProductDetail from "./pages/ProductDetail";
+import Contact from "./pages/Contact";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import AllProducts from "./pages/AllProducts";
+import NewArrivals from "./pages/NewArrivals";
+import BestSellers from "./pages/BestSellers";
+import Sale from "./pages/Sale";
+import Blog from "./pages/Blog";
+import AffiliateProgram from "./pages/AffiliateProgram";
 // --- ROUTE PROTECTION ---
 import AdminRoute from "@/routes/AdminRoute";
 import UserRoute from "@/routes/UserRoute";
@@ -41,6 +50,15 @@ const App = () => (
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/order-success" element={<OrderSuccess />} />
               <Route path="/products/:productId" element={<ProductDetail />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/products" element={<AllProducts />} />
+              <Route path="/products/new" element={<NewArrivals />} />
+              <Route path="/products/best-sellers" element={<BestSellers />} />
+              <Route path="/products/sale" element={<Sale />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/affiliate" element={<AffiliateProgram />} />
 
 
               {/* USER DASHBOARD (Protected) */}
