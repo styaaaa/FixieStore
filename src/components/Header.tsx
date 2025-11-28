@@ -12,6 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { useAuth } from "@/context/auth-context";
 
 interface HeaderProps {
   cartItemCount: number;
@@ -35,6 +37,7 @@ export const Header = ({
   transparent,
 }: HeaderProps) => {
   const navigate = useNavigate();
+  const { user, isAdmin, authLoading } = useAuth();
 
   const categoryValue = useMemo(
     () => activeCategory ?? "all",
@@ -66,6 +69,20 @@ export const Header = ({
     },
     [onCategorySelect],
   );
+
+  const handleProfileClick = useCallback(() => {
+    if (isAdmin) {
+      navigate("/admin/dashboard");
+      return;
+    }
+
+    navigate("/dashboard");
+  }, [isAdmin, navigate]);
+
+  const avatarFallback = useMemo(() => {
+    const initial = user?.email?.charAt(0)?.toUpperCase();
+    return initial || "U";
+  }, [user]);
 
   return (
     <header
@@ -132,12 +149,34 @@ export const Header = ({
                 </span>
               )}
             </div>
-            <Button variant="outline" asChild size="sm">
-              <Link to="/login">Masuk</Link>
-            </Button>
-            <Button size="sm" asChild>
-              <Link to="/register">Daftar</Link>
-            </Button>
+            {authLoading ? (
+              <div className="h-10 w-10 animate-pulse rounded-full bg-muted" aria-label="Memuat status akun" />
+            ) : user ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 rounded-full border"
+                aria-label="Buka dashboard"
+                onClick={handleProfileClick}
+              >
+                <Avatar className="h-9 w-9">
+                  <AvatarImage
+                    src={(user.user_metadata as Record<string, string> | undefined)?.avatar_url}
+                    alt="Foto profil"
+                  />
+                  <AvatarFallback>{avatarFallback}</AvatarFallback>
+                </Avatar>
+              </Button>
+            ) : (
+              <>
+                <Button variant="outline" asChild size="sm">
+                  <Link to="/login">Masuk</Link>
+                </Button>
+                <Button size="sm" asChild>
+                  <Link to="/register">Daftar</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>
