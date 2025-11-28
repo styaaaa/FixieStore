@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Home, Search as SearchIcon, ShoppingBag, ShoppingCart } from "lucide-react";
 
 import type { Category } from "@/types/catalog";
@@ -132,6 +132,12 @@ export const Header = ({
                 </span>
               )}
             </div>
+            <Button variant="outline" asChild size="sm">
+              <Link to="/login">Masuk</Link>
+            </Button>
+            <Button size="sm" asChild>
+              <Link to="/register">Daftar</Link>
+            </Button>
           </div>
         </div>
       </div>
