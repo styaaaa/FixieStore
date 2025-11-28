@@ -43,19 +43,33 @@ export const Footer = () => {
           <div className="space-y-3">
             <h4 className="font-semibold">Product</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>All Products</li>
-              <li>New Arrivals</li>
-              <li>Best Sellers</li>
-              <li>Sale</li>
+              <li>
+                <Link to="/products">All Products</Link>
+              </li>
+              <li>
+                <Link to="/products/new">New Arrivals</Link>
+              </li>
+              <li>
+                <Link to="/products/best-sellers">Best Sellers</Link>
+              </li>
+              <li>
+                <Link to="/products/sale">Sale</Link>
+              </li>
             </ul>
           </div>
 
           <div className="space-y-3">
             <h4 className="font-semibold">Admin</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>Dashboard</li>
-              <li>Blog</li>
-              <li>Affiliate Program</li>
+              <li>
+                <Link to="/admin/dashboard">Dashboard</Link>
+              </li>
+              <li>
+                <Link to="/blog">Blog</Link>
+              </li>
+              <li>
+                <Link to="/affiliate">Affiliate Program</Link>
+              </li>
             </ul>
           </div>
         </div>
