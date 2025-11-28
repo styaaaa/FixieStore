@@ -26,6 +26,7 @@ import BestSellers from "./pages/BestSellers";
 import Sale from "./pages/Sale";
 import Blog from "./pages/Blog";
 import AffiliateProgram from "./pages/AffiliateProgram";
+import About from "./pages/About";
 // --- ROUTE PROTECTION ---
 import AdminRoute from "@/routes/AdminRoute";
 import UserRoute from "@/routes/UserRoute";
@@ -59,6 +60,7 @@ const App = () => (
               <Route path="/products/sale" element={<Sale />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/affiliate" element={<AffiliateProgram />} />
+              <Route path="/about" element={<About />} />
 
 
               {/* USER DASHBOARD (Protected) */}
