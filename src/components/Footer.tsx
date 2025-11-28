@@ -1,31 +1,67 @@
+import { Link } from "react-router-dom";
+
 export const Footer = () => {
   return (
     <footer className="bg-card border-t mt-16">
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div>
-            <h3 className="font-bold mb-4">FixieStore</h3>
+      <div className="container mx-auto px-4 py-10">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <img
+                src="/fixie-icon.svg"
+                alt="Ikon FixieStore"
+                className="h-10 w-10 rounded-full border bg-muted/60 p-1 fixie-icon"
+              />
+              <div>
+                <p className="text-xl font-semibold">FixieStore</p>
+                <p className="text-sm text-muted-foreground">Carefully curated for your urban rides.</p>
+              </div>
+            </div>
             <p className="text-sm text-muted-foreground">
-              Your trusted online shop for quality products
+              Toko fixie modern dengan koleksi terbaik, harga bersahabat, dan layanan pelanggan yang siap membantu.
             </p>
           </div>
-          <div>
-            <h4 className="font-semibold mb-4">Quick Links</h4>
+
+          <div className="space-y-3">
+            <h4 className="font-semibold">Links</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>About Us</li>
-              <li>Contact</li>
-              <li>Terms & Conditions</li>
+              <li>
+                <Link to="/">Home</Link>
+              </li>
+              <li>
+                <Link to="/contact">Contact</Link>
+              </li>
+              <li>
+                <Link to="/terms">Term of Service</Link>
+              </li>
+              <li>
+                <Link to="/privacy">Privacy Policy</Link>
+              </li>
             </ul>
           </div>
-          <div>
-            <h4 className="font-semibold mb-4">Contact</h4>
-            <p className="text-sm text-muted-foreground">
-              Email: info@fixiestore.com
-            </p>
+
+          <div className="space-y-3">
+            <h4 className="font-semibold">Product</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li>All Products</li>
+              <li>New Arrivals</li>
+              <li>Best Sellers</li>
+              <li>Sale</li>
+            </ul>
+          </div>
+
+          <div className="space-y-3">
+            <h4 className="font-semibold">Admin</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li>Dashboard</li>
+              <li>Blog</li>
+              <li>Affiliate Program</li>
+            </ul>
           </div>
         </div>
-        <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-          © 2024 FixieStore. All rights reserved.
+
+        <div className="mt-10 border-t pt-6 text-sm text-muted-foreground">
+          <p>© 2024 FixieStore | All Rights Reserved</p>
         </div>
       </div>
     </footer>
