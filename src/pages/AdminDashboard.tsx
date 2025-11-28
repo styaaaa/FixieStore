@@ -1,5 +1,10 @@
+// ============================
+// Admin Dashboard Refactored
+// ============================
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+
 import {
   ArrowUpRight,
   Box,
@@ -10,13 +15,7 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -30,14 +29,14 @@ import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
+
 import { useAuth } from "@/context/auth-context";
-import {
-  createProduct,
-  getCategories,
-  getProducts,
-  updateProductStock,
-} from "@/lib/repositories/catalogRepository";
+import { createProduct, getCategories, getProducts, updateProductStock } from "@/lib/repositories/catalogRepository";
 import type { Category, Product } from "@/types/catalog";
+
+// ============================
+// Initial Form State
+// ============================
 
 interface ProductFormState {
   name: string;
@@ -47,7 +46,7 @@ interface ProductFormState {
   imageUrl: string;
   description: string;
   longDescription: string;
-  categoryId: string;
+  categoryId: string | null;
 }
 
 const initialFormState: ProductFormState = {
@@ -58,8 +57,12 @@ const initialFormState: ProductFormState = {
   imageUrl: "",
   description: "",
   longDescription: "",
-  categoryId: "",
+  categoryId: null,
 };
+
+// ============================
+// Main Component
+// ============================
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -70,27 +73,13 @@ const AdminDashboard = () => {
   const [loadingInventory, setLoadingInventory] = useState(true);
   const [savingProduct, setSavingProduct] = useState(false);
   const [formState, setFormState] = useState<ProductFormState>(initialFormState);
+
   const [stockDrafts, setStockDrafts] = useState<Record<string, string>>({});
   const [updatingStock, setUpdatingStock] = useState<Record<string, boolean>>({});
 
-  const handleSignOut = useCallback(async () => {
-    try {
-      await signOut();
-      navigate("/");
-    } catch (error) {
-      console.error("Gagal keluar:", error);
-    }
-  }, [navigate, signOut]);
-
-  const syncStockDrafts = useCallback((inventory: Product[]) => {
-    setStockDrafts((prev) => {
-      const nextDrafts: Record<string, string> = { ...prev };
-      inventory.forEach((product) => {
-        nextDrafts[product.id] = String(product.stock ?? 0);
-      });
-      return nextDrafts;
-    });
-  }, []);
+  // ============================
+  // Auth + Load Data
+  // ============================
 
   const loadReferenceData = useCallback(async () => {
     try {
@@ -102,8 +91,7 @@ const AdminDashboard = () => {
       setCategories(categoryData);
       setProducts(productData);
       syncStockDrafts(productData);
-    } catch (error) {
-      console.error("Gagal memuat data awal", error);
+    } catch {
       toast({
         variant: "destructive",
         title: "Gagal memuat data",
@@ -112,7 +100,7 @@ const AdminDashboard = () => {
     } finally {
       setLoadingInventory(false);
     }
-  }, [syncStockDrafts]);
+  }, []);
 
   useEffect(() => {
     if (authLoading) return;
@@ -128,11 +116,34 @@ const AdminDashboard = () => {
     }
 
     void loadReferenceData();
-  }, [authLoading, isAdmin, loadReferenceData, navigate, user]);
+  }, [authLoading, isAdmin, user, navigate, loadReferenceData]);
 
-  const handleFormChange = (field: keyof ProductFormState, value: string) => {
+  // ============================
+  // Utilities
+  // ============================
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate("/");
+    } catch {
+      console.error("Gagal keluar");
+    }
+  };
+
+  const handleFormChange = (field: keyof ProductFormState, value: string | null) => {
     setFormState((prev) => ({ ...prev, [field]: value }));
   };
+
+  const syncStockDrafts = (inventory: Product[]) => {
+    const next: Record<string, string> = {};
+    inventory.forEach((p) => (next[p.id] = String(p.stock)));
+    setStockDrafts(next);
+  };
+
+  // ============================
+  // Create Product
+  // ============================
 
   const handleCreateProduct = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -141,7 +152,6 @@ const AdminDashboard = () => {
       toast({
         variant: "destructive",
         title: "Nama produk wajib diisi",
-        description: "Masukkan nama produk sebelum menyimpan.",
       });
       return;
     }
@@ -169,38 +179,40 @@ const AdminDashboard = () => {
         imageUrl: formState.imageUrl.trim(),
         description: formState.description.trim(),
         longDescription: formState.longDescription.trim(),
-        categoryId: formState.categoryId || null,
+        categoryId: formState.categoryId === "none" ? null : formState.categoryId,
       });
 
       setProducts((prev) => [newProduct, ...prev]);
       syncStockDrafts([newProduct, ...products]);
+
       setFormState(initialFormState);
 
       toast({
         title: "Produk ditambahkan",
-        description: `${newProduct.name} berhasil disimpan ke katalog.`,
+        description: `${newProduct.name} berhasil disimpan.`,
       });
-    } catch (error) {
-      console.error("Gagal membuat produk", error);
+    } catch {
       toast({
         variant: "destructive",
         title: "Gagal menyimpan produk",
-        description: "Periksa kembali data produk atau coba beberapa saat lagi.",
       });
     } finally {
       setSavingProduct(false);
     }
   };
 
+  // ============================
+  // Update Stock
+  // ============================
+
   const handleUpdateStock = async (productId: string) => {
-    const draftValue = stockDrafts[productId];
-    const nextStock = Number(draftValue);
+    const raw = stockDrafts[productId];
+    const nextStock = Number(raw);
 
     if (Number.isNaN(nextStock) || nextStock < 0) {
       toast({
         variant: "destructive",
         title: "Stok tidak valid",
-        description: "Masukkan angka stok yang valid dan tidak negatif.",
       });
       return;
     }
@@ -209,35 +221,42 @@ const AdminDashboard = () => {
 
     try {
       const updated = await updateProductStock(productId, nextStock);
-      setProducts((prev) => prev.map((product) => (product.id === productId ? updated : product)));
+
+      setProducts((prev) =>
+        prev.map((p) => (p.id === productId ? updated : p))
+      );
+
       toast({
         title: "Stok diperbarui",
-        description: `${updated.name} sekarang memiliki stok ${updated.stock}.`,
+        description: `${updated.name} sekarang stoknya ${updated.stock}`,
       });
-    } catch (error) {
-      console.error("Gagal memperbarui stok", error);
+    } catch {
       toast({
         variant: "destructive",
         title: "Tidak dapat memperbarui stok",
-        description: "Silakan coba lagi atau muat ulang halaman.",
       });
     } finally {
       setUpdatingStock((prev) => ({ ...prev, [productId]: false }));
     }
   };
 
+  // ============================
+  // Derived Values
+  // ============================
+
   const inventoryValue = useMemo(
-    () =>
-      products.reduce((total, product) => {
-        return total + product.price * product.stock;
-      }, 0),
-    [products],
+    () => products.reduce((sum, p) => sum + p.price * p.stock, 0),
+    [products]
   );
 
   const lowStockProducts = useMemo(
-    () => products.filter((product) => product.stock <= 5),
-    [products],
+    () => products.filter((p) => p.stock <= 5),
+    [products]
   );
+
+  // ============================
+  // RENDER
+  // ============================
 
   if (!user || !isAdmin) {
     return (
@@ -247,17 +266,20 @@ const AdminDashboard = () => {
             <CardTitle>Memuat dashboard admin</CardTitle>
             <CardDescription>Memverifikasi hak akses...</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="h-10 w-full animate-pulse rounded-md bg-muted" />
-          </CardContent>
         </Card>
       </div>
     );
   }
 
+  // ============================
+  // UI START
+  // ============================
+
   return (
     <div className="min-h-screen bg-muted/30 py-10 px-4">
       <div className="max-w-6xl mx-auto space-y-6">
+
+        {/* HEADER */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Akses admin terverifikasi</p>
@@ -269,252 +291,172 @@ const AdminDashboard = () => {
               </Badge>
             </div>
           </div>
+
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={() => navigate("/")}>Lihat toko</Button>
-            <Button variant="secondary" onClick={handleSignOut}>
-              Keluar
-            </Button>
+            <Button variant="secondary" onClick={handleSignOut}>Keluar</Button>
           </div>
         </div>
 
+        {/* CARD: Add Product */}
         <Card>
           <CardHeader>
-            <CardTitle>Ringkasan akun</CardTitle>
-            <CardDescription>Kelola data toko dan pantau aktivitas produk.</CardDescription>
+            <CardTitle>Tambah produk baru</CardTitle>
+            <CardDescription>Pastikan sesuai skema produk Supabase.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="rounded-lg border bg-background p-4 space-y-2">
-                <p className="text-sm text-muted-foreground">Email</p>
-                <p className="text-lg font-semibold">{user.email}</p>
-              </div>
-              <div className="rounded-lg border bg-background p-4 space-y-2">
-                <p className="text-sm text-muted-foreground">Peran</p>
-                <p className="text-lg font-semibold">Administrator</p>
-              </div>
-              <div className="rounded-lg border bg-background p-4 space-y-2">
-                <p className="text-sm text-muted-foreground">Status</p>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="bg-emerald-50 text-emerald-700">
-                    Aktif
-                  </Badge>
-                  <span className="text-sm text-muted-foreground">Hak akses penuh</span>
+          <CardContent>
+            <form onSubmit={handleCreateProduct} className="space-y-4">
+
+              {/* FORM GRID */}
+              <div className="grid gap-4 md:grid-cols-2">
+
+                <div className="space-y-2">
+                  <Label>Nama produk</Label>
+                  <Input value={formState.name} onChange={(e) => handleFormChange("name", e.target.value)} required />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Brand</Label>
+                  <Input value={formState.brand} onChange={(e) => handleFormChange("brand", e.target.value)} />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Harga</Label>
+                  <Input type="number" min="0" value={formState.price} onChange={(e) => handleFormChange("price", e.target.value)} required />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Stok</Label>
+                  <Input type="number" min="0" value={formState.stock} onChange={(e) => handleFormChange("stock", e.target.value)} required />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Kategori</Label>
+                  <Select
+                    value={formState.categoryId ?? "none"}
+                    onValueChange={(value) =>
+                      handleFormChange("categoryId", value === "none" ? null : value)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih kategori (opsional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Tanpa kategori</SelectItem>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>URL Gambar</Label>
+                  <Input type="url" value={formState.imageUrl} onChange={(e) => handleFormChange("imageUrl", e.target.value)} />
                 </div>
               </div>
-            </div>
-            <Separator />
-            <div className="flex flex-wrap gap-3">
-              <Button asChild>
-                <Link to="/">Kelola katalog</Link>
-              </Button>
-              <Button variant="secondary" asChild>
-                <Link to="/">Pantau pesanan</Link>
-              </Button>
-            </div>
+
+              {/* DESCRIPTION */}
+              <div className="space-y-2">
+                <Label>Deskripsi singkat</Label>
+                <Input value={formState.description} onChange={(e) => handleFormChange("description", e.target.value)} />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Deskripsi panjang</Label>
+                <Textarea rows={4} value={formState.longDescription} onChange={(e) => handleFormChange("longDescription", e.target.value)} />
+              </div>
+
+              {/* SUBMIT */}
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-muted-foreground flex items-center gap-2">
+                  <RefreshCcw className="h-4 w-4" /> Produk akan tersimpan langsung.
+                </div>
+                <Button type="submit" disabled={savingProduct}>
+                  {savingProduct ? "Menyimpan…" : "Simpan produk"}
+                </Button>
+              </div>
+            </form>
           </CardContent>
         </Card>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          <Card className="lg:col-span-2">
-            <CardHeader className="pb-2">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <CardTitle>Tambah produk baru</CardTitle>
-                  <CardDescription>Sesuaikan dengan skema produk di Supabase.</CardDescription>
-                </div>
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  <PackagePlus className="h-4 w-4" />
-                  Produk
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleCreateProduct} className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Nama produk</Label>
-                    <Input
-                      id="name"
-                      value={formState.name}
-                      onChange={(event) => handleFormChange("name", event.target.value)}
-                      placeholder="Contoh: Sneaker Supreme"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="brand">Brand</Label>
-                    <Input
-                      id="brand"
-                      value={formState.brand}
-                      onChange={(event) => handleFormChange("brand", event.target.value)}
-                      placeholder="Contoh: Supreme"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="price">Harga (Rp)</Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formState.price}
-                      onChange={(event) => handleFormChange("price", event.target.value)}
-                      placeholder="1500000"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="stock">Stok</Label>
-                    <Input
-                      id="stock"
-                      type="number"
-                      min="0"
-                      value={formState.stock}
-                      onChange={(event) => handleFormChange("stock", event.target.value)}
-                      placeholder="0"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="category">Kategori</Label>
-                    <Select
-                      value={formState.categoryId}
-                      onValueChange={(value) => handleFormChange("categoryId", value)}
-                    >
-                      <SelectTrigger id="category">
-                        <SelectValue placeholder="Pilih kategori (opsional)" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">Tanpa kategori</SelectItem>
-                        {categories.map((category) => (
-                          <SelectItem key={category.id} value={category.id}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="image">URL gambar</Label>
-                    <Input
-                      id="image"
-                      type="url"
-                      value={formState.imageUrl}
-                      onChange={(event) => handleFormChange("imageUrl", event.target.value)}
-                      placeholder="https://"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="description">Deskripsi singkat</Label>
-                  <Input
-                    id="description"
-                    value={formState.description}
-                    onChange={(event) => handleFormChange("description", event.target.value)}
-                    placeholder="Highlight fitur utama"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="longDescription">Deskripsi panjang</Label>
-                  <Textarea
-                    id="longDescription"
-                    value={formState.longDescription}
-                    onChange={(event) => handleFormChange("longDescription", event.target.value)}
-                    placeholder="Detail spesifikasi, material, ukuran, dll."
-                    rows={4}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <RefreshCcw className="h-4 w-4" />
-                    Produk akan langsung tersimpan di tabel Supabase.
-                  </div>
-                  <Button type="submit" disabled={savingProduct} className="min-w-[180px]">
-                    {savingProduct ? "Menyimpan..." : "Simpan produk"}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle>Ringkasan inventaris</CardTitle>
-              <CardDescription>Monitor performa stok dan nilai persediaan.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="rounded-lg border bg-background p-3">
-                  <p className="text-muted-foreground">Total produk</p>
-                  <p className="text-2xl font-bold">{products.length}</p>
-                </div>
-                <div className="rounded-lg border bg-background p-3">
-                  <p className="text-muted-foreground">Total stok</p>
-                  <p className="text-2xl font-bold">{products.reduce((sum, product) => sum + product.stock, 0)}</p>
-                </div>
-                <div className="rounded-lg border bg-background p-3">
-                  <p className="text-muted-foreground">Nilai inventaris</p>
-                  <p className="text-2xl font-bold">
-                    Rp {inventoryValue.toLocaleString("id-ID")}
-                  </p>
-                </div>
-                <div className="rounded-lg border bg-background p-3">
-                  <p className="text-muted-foreground">Stok rendah (&le; 5)</p>
-                  <p className="text-2xl font-bold">{lowStockProducts.length}</p>
-                </div>
-              </div>
-
-              {lowStockProducts.length > 0 && (
-                <div className="rounded-lg border bg-amber-50 p-3 text-amber-900">
-                  <div className="flex items-center gap-2 text-sm font-semibold">
-                    <ArrowUpRight className="h-4 w-4" />
-                    Produk perlu restock
-                  </div>
-                  <div className="mt-2 space-y-1 text-sm">
-                    {lowStockProducts.slice(0, 3).map((product) => (
-                      <p key={product.id} className="flex justify-between">
-                        <span>{product.name}</span>
-                        <span className="font-semibold">{product.stock} stok</span>
-                      </p>
-                    ))}
-                    {lowStockProducts.length > 3 && (
-                      <p className="text-xs text-muted-foreground">
-                        +{lowStockProducts.length - 3} produk lainnya
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
+        {/* INVENTORY SUMMARY */}
         <Card>
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Daftar produk</CardTitle>
-                <CardDescription>Update stok dan pantau detail produk.</CardDescription>
-              </div>
-              <Badge variant="secondary" className="flex items-center gap-1">
-                <Box className="h-4 w-4" />
-                Inventaris
-              </Badge>
-            </div>
+          <CardHeader>
+            <CardTitle>Ringkasan inventaris</CardTitle>
+            <CardDescription>Monitor stok dan performa katalog.</CardDescription>
           </CardHeader>
           <CardContent>
-            {loadingInventory ? (
-              <div className="space-y-2">
-                <div className="h-10 w-full animate-pulse rounded-md bg-muted" />
-                <div className="h-10 w-full animate-pulse rounded-md bg-muted" />
-                <div className="h-10 w-full animate-pulse rounded-md bg-muted" />
+            
+            {/* Inventory Metrics */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+
+              <div className="border rounded-lg p-3">
+                <p className="text-sm text-muted-foreground">Total Produk</p>
+                <p className="text-2xl font-bold">{products.length}</p>
               </div>
+
+              <div className="border rounded-lg p-3">
+                <p className="text-sm text-muted-foreground">Total Stok</p>
+                <p className="text-2xl font-bold">
+                  {products.reduce((sum, p) => sum + p.stock, 0)}
+                </p>
+              </div>
+
+              <div className="border rounded-lg p-3">
+                <p className="text-sm text-muted-foreground">Nilai Inventaris</p>
+                <p className="text-2xl font-bold">Rp {inventoryValue.toLocaleString("id-ID")}</p>
+              </div>
+
+              <div className="border rounded-lg p-3">
+                <p className="text-sm text-muted-foreground">Stok Rendah (≤ 5)</p>
+                <p className="text-2xl font-bold">{lowStockProducts.length}</p>
+              </div>
+
+            </div>
+
+            {/* Low Stock Warning */}
+            {lowStockProducts.length > 0 && (
+              <div className="rounded-lg border bg-amber-50 p-3 text-amber-900">
+                <div className="font-semibold flex items-center gap-2 text-sm">
+                  <ArrowUpRight className="h-4 w-4" />
+                  Produk stok rendah
+                </div>
+
+                <div className="mt-2 space-y-1 text-sm">
+                  {lowStockProducts.slice(0, 3).map((p) => (
+                    <p key={p.id} className="flex justify-between">
+                      <span>{p.name}</span>
+                      <span className="font-semibold">{p.stock} stok</span>
+                    </p>
+                  ))}
+
+                  {lowStockProducts.length > 3 && (
+                    <p className="text-xs text-muted-foreground">
+                      +{lowStockProducts.length - 3} produk lainnya
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* PRODUCT TABLE */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Daftar Produk</CardTitle>
+            <CardDescription>Kelola stok dan data katalog.</CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            {loadingInventory ? (
+              <p>Memuat...</p>
             ) : products.length === 0 ? (
-              <div className="rounded-lg border border-dashed bg-background p-6 text-center text-sm text-muted-foreground">
-                Belum ada produk. Tambahkan produk pertama Anda menggunakan formulir di atas.
+              <div className="border border-dashed rounded-lg p-6 text-center text-muted-foreground">
+                Belum ada produk. Tambahkan via formulir di atas.
               </div>
             ) : (
               <Table>
@@ -527,54 +469,59 @@ const AdminDashboard = () => {
                     <TableHead className="text-right">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
+
                 <TableBody>
-                  {products.map((product) => {
+                  {products.map((p) => {
                     const categoryLabel =
-                      categories.find((category) => category.id === product.categoryId)?.name ?? "-";
+                      categories.find((c) => c.id === p.categoryId)?.name ??
+                      "-";
 
                     return (
-                      <TableRow key={product.id}>
+                      <TableRow key={p.id}>
                         <TableCell>
-                          <div className="space-y-1">
-                            <div className="font-semibold">{product.name}</div>
+                          <div>
+                            <p className="font-semibold">{p.name}</p>
                             <p className="text-sm text-muted-foreground">
-                              {product.brand || "Tanpa brand"}
+                              {p.brand || "Tanpa brand"}
                             </p>
                           </div>
                         </TableCell>
-                        <TableCell className="max-w-[180px]">
-                          <div className="text-sm text-muted-foreground line-clamp-1">{categoryLabel}</div>
-                        </TableCell>
+
+                        <TableCell>{categoryLabel}</TableCell>
+
                         <TableCell>
-                          Rp {product.price.toLocaleString("id-ID")}
+                          Rp {p.price.toLocaleString("id-ID")}
                         </TableCell>
+
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Input
                               type="number"
                               min="0"
-                              value={stockDrafts[product.id] ?? product.stock}
-                              onChange={(event) =>
-                                setStockDrafts((prev) => ({ ...prev, [product.id]: event.target.value }))
+                              value={stockDrafts[p.id] ?? p.stock}
+                              onChange={(e) =>
+                                setStockDrafts((prev) => ({
+                                  ...prev,
+                                  [p.id]: e.target.value,
+                                }))
                               }
                               className="w-24"
                             />
-                            <Badge variant={product.stock <= 5 ? "destructive" : "outline"}>
-                              {product.stock <= 5 ? "Rendah" : "Aman"}
+                            <Badge variant={p.stock <= 5 ? "destructive" : "outline"}>
+                              {p.stock <= 5 ? "Rendah" : "Aman"}
                             </Badge>
                           </div>
                         </TableCell>
+
                         <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleUpdateStock(product.id)}
-                              disabled={updatingStock[product.id]}
-                            >
-                              {updatingStock[product.id] ? "Menyimpan..." : "Simpan stok"}
-                            </Button>
-                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleUpdateStock(p.id)}
+                            disabled={updatingStock[p.id]}
+                          >
+                            {updatingStock[p.id] ? "Menyimpan…" : "Simpan"}
+                          </Button>
                         </TableCell>
                       </TableRow>
                     );
@@ -584,6 +531,7 @@ const AdminDashboard = () => {
             )}
           </CardContent>
         </Card>
+
       </div>
     </div>
   );
