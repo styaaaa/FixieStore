@@ -15,7 +15,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import OrderReviews from "./pages/OrderReviews";
-
+import OrderSuccess from "./pages/OrderSuccess";
 // --- ROUTE PROTECTION ---
 import AdminRoute from "@/routes/AdminRoute";
 import UserRoute from "@/routes/UserRoute";
@@ -38,6 +38,8 @@ const App = () => (
               <Route path="/register" element={<Register />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
+              <Route path="/order-success" element={<OrderSuccess />} />
+
 
               {/* USER DASHBOARD (Protected) */}
               <Route

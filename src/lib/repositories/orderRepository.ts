@@ -1,10 +1,10 @@
-import { supabase } from "@/integrations/supabase/client";
-import type { Tables, TablesInsert } from "@/integrations/supabase/types";
-import type { Order } from "@/types/order";
+// src/lib/repositories/orderRepository.ts
+import { supabase } from "@/lib/supabaseClient";
 
-interface CreateOrderInput {
+export type OrderStatus = "pending" | "success" | "failed" | "expired";
+
+export interface CreateOrderPayload {
   userId: string;
-  status?: string;
   paymentMethod: string;
   shippingMethod: string;
   totalPrice: number;
@@ -16,54 +16,61 @@ interface CreateOrderInput {
   postalCode: string;
 }
 
-type OrderRow = Tables<"orders">;
+export interface Order {
+  id: string;
+  user_id: string;
+  status: OrderStatus;
+  total_price: number;
+  payment_method: string;
+  shipping_method: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  address: string;
+  city: string;
+  postal_code: string;
+  created_at: string;
+}
 
-const mapOrder = (row: OrderRow): Order => ({
-  id: row.id,
-  userId: row.user_id,
-  status: row.status,
-  createdAt: row.created_at,
-  paymentMethod: row.payment_method,
-  shippingMethod: row.shipping_method,
-  totalPrice: typeof row.total_price === "number" ? row.total_price : Number(row.total_price ?? 0),
-  firstName: row.first_name,
-  lastName: row.last_name,
-  phone: row.phone,
-  address: row.address,
-  city: row.city,
-  postalCode: row.postal_code,
-});
-
-export const createOrder = async (input: CreateOrderInput): Promise<Order> => {
-  const payload: TablesInsert<"orders"> = {
-    user_id: input.userId,
-    status: input.status ?? "pending",
-    payment_method: input.paymentMethod,
-    shipping_method: input.shippingMethod,
-    total_price: input.totalPrice,
-    first_name: input.firstName,
-    last_name: input.lastName,
-    phone: input.phone,
-    address: input.address,
-    city: input.city,
-    postal_code: input.postalCode,
-  };
-
+export const createOrder = async (payload: CreateOrderPayload): Promise<Order> => {
   const { data, error } = await supabase
     .from("orders")
-    .insert(payload)
-    .select()
+    .insert({
+      user_id: payload.userId,
+      status: "pending",
+      total_price: payload.totalPrice,
+      payment_method: payload.paymentMethod,
+      shipping_method: payload.shippingMethod,
+      first_name: payload.firstName,
+      last_name: payload.lastName,
+      phone: payload.phone,
+      address: payload.address,
+      city: payload.city,
+      postal_code: payload.postalCode,
+    })
+    .select("*")
     .single();
 
-  if (error) {
-    console.error("Failed to create order", error);
-    throw error;
+  if (error || !data) {
+    console.error("createOrder error", error);
+    throw new Error("Gagal membuat order");
   }
 
-  return mapOrder(data as OrderRow);
+  return data as Order;
 };
 
-export const fetchOrdersByUser = async (userId: string): Promise<Order[]> => {
+export const markOrderAsPaid = async (orderId: string) => {
+  const { error } = await supabase
+    .from("orders")
+    .update({ status: "success" })
+    .eq("id", orderId);
+
+  if (error) {
+    console.error("markOrderAsPaid error", error);
+    throw new Error("Gagal mengupdate status order");
+  }
+};
+export const fetchOrdersByUser = async (userId: string) => {
   const { data, error } = await supabase
     .from("orders")
     .select("*")
@@ -71,11 +78,9 @@ export const fetchOrdersByUser = async (userId: string): Promise<Order[]> => {
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("Failed to fetch orders", error);
-    throw error;
+    console.error("fetchOrdersByUser error:", error);
+    throw new Error("Gagal mengambil data orders");
   }
 
-  if (!data) return [];
-
-  return data.map((row) => mapOrder(row as OrderRow));
+  return data;
 };
