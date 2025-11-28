@@ -53,7 +53,7 @@ export const Footer = () => {
                 <Link to="/products/best-sellers">Best Sellers</Link>
               </li>
               <li>
-                <Link to="/products/sale">Sale</Link>
+                {/* <Link to="/products/sale">Sale</Link> */}
               </li>
             </ul>
           </div>
