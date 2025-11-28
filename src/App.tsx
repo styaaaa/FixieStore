@@ -27,6 +27,7 @@ import Sale from "./pages/Sale";
 import Blog from "./pages/Blog";
 import AffiliateProgram from "./pages/AffiliateProgram";
 import About from "./pages/About";
+import SearchPage from "./pages/Search";
 // --- ROUTE PROTECTION ---
 import AdminRoute from "@/routes/AdminRoute";
 import UserRoute from "@/routes/UserRoute";
@@ -51,6 +52,7 @@ const App = () => (
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/order-success" element={<OrderSuccess />} />
               <Route path="/products/:productId" element={<ProductDetail />} />
+              <Route path="/search" element={<SearchPage />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
