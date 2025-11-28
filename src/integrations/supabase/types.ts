@@ -38,9 +38,11 @@ export type Database = {
           id: string;
           name: string;
           brand: string | null;
-          price: number | null;
+          price: number;
+          stock: number;
           image_url: string | null;
           description: string | null;
+          long_description: string | null;
           category_id: string | null;
           created_at: string | null;
         };
@@ -48,9 +50,11 @@ export type Database = {
           id?: string;
           name: string;
           brand?: string | null;
-          price?: number | null;
+          price?: number;
+          stock?: number;
           image_url?: string | null;
           description?: string | null;
+          long_description?: string | null;
           category_id?: string | null;
           created_at?: string | null;
         };
@@ -58,9 +62,11 @@ export type Database = {
           id?: string;
           name?: string;
           brand?: string | null;
-          price?: number | null;
+          price?: number;
+          stock?: number;
           image_url?: string | null;
           description?: string | null;
+          long_description?: string | null;
           category_id?: string | null;
           created_at?: string | null;
         };

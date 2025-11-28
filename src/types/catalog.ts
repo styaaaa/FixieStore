@@ -9,8 +9,10 @@ export interface Product {
   name: string;
   brand: string;
   price: number;
+  stock: number;
   imageUrl: string;
   description: string;
+  longDescription: string;
   categoryId: string | null;
   createdAt: string | null;
 }
