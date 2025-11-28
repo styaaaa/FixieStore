@@ -99,7 +99,11 @@ export const Header = ({
 
   return (
     <header
-      className={`sticky top-0 z-50 border-b backdrop-blur-lg transition-colors ${transparent ? "bg-background/40" : "bg-background/95"}`}
+      className={`sticky top-0 z-50 transition-colors ${
+        transparent
+          ? "bg-transparent text-white"
+          : "border-b bg-background/95 backdrop-blur-lg"
+      }`}
     >
       <div className="container mx-auto px-4 py-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

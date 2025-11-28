@@ -118,7 +118,7 @@ const Index = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-32 md:pb-0">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_10%_15%,rgba(99,102,241,0.08),transparent_35%),radial-gradient(circle_at_85%_10%,rgba(16,185,129,0.08),transparent_30%),linear-gradient(to_bottom,rgba(0,0,0,0.04),transparent_22%),hsl(var(--background))] text-foreground pb-32 md:pb-0">
       <Header
         cartItemCount={cartCount}
         onSearchChange={setSearchQuery}

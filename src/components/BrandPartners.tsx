@@ -5,6 +5,8 @@ const brandLogos = [
   { name: "State Bicycle", src: "/State.png" },
   { name: "6KU", src: "/Ku.png" },
   { name: "Aventon", src: "/Aventon.png" },
+  { name: "Cry", src: "/Crystal.png" },
+  { name: "Aventon", src: "/Cinelli.png" },
 ];
 
 const scrollingLogos = [...brandLogos, ...brandLogos];
