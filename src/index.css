@@ -8,89 +8,90 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 32 19% 89%;
+    --foreground: 24 32% 18%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 36 20% 96%;
+    --card-foreground: 24 32% 18%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 36 20% 96%;
+    --popover-foreground: 24 32% 18%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 22 45% 34%;
+    --primary-foreground: 36 55% 96%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 30 14% 82%;
+    --secondary-foreground: 24 32% 20%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 28 12% 76%;
+    --muted-foreground: 22 15% 38%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 34 18% 86%;
+    --accent-foreground: 24 32% 18%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 6 66% 55%;
+    --destructive-foreground: 36 55% 96%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 28 12% 78%;
+    --input: 28 12% 78%;
+    --ring: 22 45% 34%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
+    --sidebar-background: 32 16% 88%;
+    --sidebar-foreground: 24 32% 18%;
+    --sidebar-primary: 22 45% 34%;
+    --sidebar-primary-foreground: 36 55% 96%;
+    --sidebar-accent: 28 12% 76%;
+    --sidebar-accent-foreground: 24 32% 18%;
+    --sidebar-border: 28 12% 78%;
+    --sidebar-ring: 22 45% 34%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --glow-amber: 36 60% 82%;
+    --glow-rose: 12 45% 80%;
+    --glow-olive: 90 18% 78%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 21 30% 10%;
+    --foreground: 36 40% 92%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 24 28% 13%;
+    --card-foreground: 36 40% 92%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 24 28% 13%;
+    --popover-foreground: 36 40% 92%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 18 65% 61%;
+    --primary-foreground: 21 30% 10%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 28 18% 22%;
+    --secondary-foreground: 36 40% 92%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 28 18% 22%;
+    --muted-foreground: 31 21% 74%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 16 36% 28%;
+    --accent-foreground: 36 40% 92%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 3 65% 48%;
+    --destructive-foreground: 21 30% 10%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 20 18% 24%;
+    --input: 20 18% 24%;
+    --ring: 18 65% 61%;
+    --sidebar-background: 24 26% 12%;
+    --sidebar-foreground: 36 40% 92%;
+    --sidebar-primary: 18 65% 61%;
+    --sidebar-primary-foreground: 21 30% 10%;
+    --sidebar-accent: 16 36% 28%;
+    --sidebar-accent-foreground: 36 40% 92%;
+    --sidebar-border: 20 18% 24%;
+    --sidebar-ring: 18 65% 61%;
+
+    --glow-amber: 28 70% 40%;
+    --glow-rose: 6 50% 36%;
+    --glow-olive: 112 18% 26%;
   }
 }
 
@@ -100,7 +101,27 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    background: radial-gradient(
+        circle at 14% 24%,
+        hsl(var(--glow-amber) / 0.38),
+        transparent 36%
+      ),
+      radial-gradient(circle at 84% 16%, hsl(var(--glow-rose) / 0.3), transparent 32%),
+      radial-gradient(circle at 48% 88%, hsl(var(--glow-olive) / 0.26), transparent 34%),
+      hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+
+  .dark body {
+    background: radial-gradient(
+        circle at 12% 20%,
+        hsl(var(--glow-amber) / 0.2),
+        transparent 30%
+      ),
+      radial-gradient(circle at 78% 18%, hsl(var(--glow-rose) / 0.18), transparent 32%),
+      radial-gradient(circle at 42% 86%, hsl(var(--glow-olive) / 0.22), transparent 34%),
+      hsl(var(--background));
+    color: hsl(var(--foreground));
   }
 
   .fixie-icon {
