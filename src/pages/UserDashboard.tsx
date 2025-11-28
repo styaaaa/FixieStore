@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUserOrders } from "@/hooks/useUserOrders";
 import type { Order } from "@/types/order";
+import { getReviewsByOrder } from "@/lib/repositories/reviewRepository";
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -294,7 +295,10 @@ const UserDashboard = () => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {completedOrders.map((order) => (
+                  {completedOrders.map((order) => {
+                    const hasReview = getReviewsByOrder(order.id).length > 0;
+
+                    return (
                     <div
                       key={order.id}
                       className="flex flex-col gap-3 rounded-xl border bg-background p-4 transition hover:shadow-md"
@@ -316,15 +320,22 @@ const UserDashboard = () => {
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        <Button size="sm" asChild>
-                          <Link to={`/dashboard/reviews?orderId=${order.id}`}>Beri ulasan</Link>
-                        </Button>
+                        {hasReview ? (
+                          <div className="rounded-md border border-dashed bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+                            Ulasan sudah diberikan
+                          </div>
+                        ) : (
+                          <Button size="sm" asChild>
+                            <Link to={`/dashboard/reviews?orderId=${order.id}`}>Beri ulasan</Link>
+                          </Button>
+                        )}
                         <Button variant="outline" size="sm" asChild>
                           <Link to="/">Belanja lagi</Link>
                         </Button>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </CardContent>

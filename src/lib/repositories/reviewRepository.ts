@@ -71,3 +71,9 @@ export const getReviewsByProduct = (productId?: string): ProductReview[] => {
   const existing = readFromStorage<ProductReview>(REVIEW_STORAGE_KEY);
   return existing.filter((review) => review.productId === productId);
 };
+
+export const getReviewsByOrder = (orderId?: string): ProductReview[] => {
+  if (!orderId) return [];
+  const existing = readFromStorage<ProductReview>(REVIEW_STORAGE_KEY);
+  return existing.filter((review) => review.orderId === orderId);
+};
