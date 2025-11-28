@@ -110,6 +110,61 @@ export type Database = {
           }
         ];
       };
+      orders: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          status: string;
+          created_at: string | null;
+          payment_method: string | null;
+          shipping_method: string | null;
+          total_price: number | null;
+          first_name: string | null;
+          last_name: string | null;
+          phone: string | null;
+          address: string | null;
+          city: string | null;
+          postal_code: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          status: string;
+          created_at?: string | null;
+          payment_method?: string | null;
+          shipping_method?: string | null;
+          total_price?: number | null;
+          first_name?: string | null;
+          last_name?: string | null;
+          phone?: string | null;
+          address?: string | null;
+          city?: string | null;
+          postal_code?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          status?: string;
+          created_at?: string | null;
+          payment_method?: string | null;
+          shipping_method?: string | null;
+          total_price?: number | null;
+          first_name?: string | null;
+          last_name?: string | null;
+          phone?: string | null;
+          address?: string | null;
+          city?: string | null;
+          postal_code?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "orders_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
