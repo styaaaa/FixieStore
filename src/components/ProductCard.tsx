@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import type { Product } from "@/types/catalog";
@@ -33,9 +34,14 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
         </p>
       </CardContent>
       <CardFooter className="p-4 pt-0">
-        <Button className="w-full" onClick={() => onAddToCart(product)}>
-          Add to Cart
-        </Button>
+        <div className="flex w-full gap-2">
+          <Button className="w-full" onClick={() => onAddToCart(product)}>
+            Add to Cart
+          </Button>
+          <Button asChild variant="outline">
+            <Link to={`/products/${product.id}`}>Detail</Link>
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );
