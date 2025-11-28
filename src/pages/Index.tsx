@@ -123,6 +123,11 @@ const Index = () => {
       <Header
         cartItemCount={cartCount}
         onSearchChange={setSearchQuery}
+        searchQuery={searchQuery}
+        categories={categories}
+        activeCategory={activeCategory}
+        onCategorySelect={handleCategoryChange}
+        onNavigateToSearch={scrollToCategories}
         transparent={isHeroVisible}
       />
 
