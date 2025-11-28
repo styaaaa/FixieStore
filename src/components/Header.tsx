@@ -104,14 +104,7 @@ export const Header = ({
       <div className="container mx-auto px-4 py-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Kembali ke beranda"
-              onClick={handleHomeClick}
-            >
-              <Home className="h-5 w-5" />
-            </Button>
+          
             <Link to="/" className="flex items-center gap-2" aria-label="FixieStore">
               <img
                 src="/bulat.png"
@@ -167,6 +160,16 @@ export const Header = ({
             >
               <ShoppingBag className="h-5 w-5" />
             </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Kembali ke beranda"
+              onClick={handleHomeClick}
+            >
+              <Home className="h-5 w-5" />
+            </Button>
+
             <div className="relative">
               <Button
                 variant="ghost"

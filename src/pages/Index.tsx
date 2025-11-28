@@ -2,11 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
-import { PromoBanner } from "@/components/PromoBanner";
 import { ProductCard } from "@/components/ProductCard";
 import { Footer } from "@/components/Footer";
 import { FixieLoading } from "@/components/FixieLoading";
-import BrandPartners from "@/components/BrandPartners";
 import { useCart } from "../context/cart-context";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -133,7 +131,7 @@ const Index = () => {
 
       <div ref={heroSectionRef} className="hidden md:block">
         <HeroSection />
-        <PromoBanner />
+        
       </div>
 
       <MobileHome
@@ -247,7 +245,7 @@ const Index = () => {
         )}
       </section>
 
-      <BrandPartners />
+      
       <Footer />
 
       <MobileQuickActions
