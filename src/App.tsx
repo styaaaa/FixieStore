@@ -5,12 +5,17 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from "./context/cart-context";
 import { AuthProvider } from "./context/auth-context";
+
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import UserDashboard from "./pages/UserDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+
+// --- ROUTE PROTECTION ---
+import AdminRoute from "@/routes/AdminRoute";
+import UserRoute from "@/routes/UserRoute";
 
 const queryClient = new QueryClient();
 
@@ -23,13 +28,35 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
+
+              {/* Public Routes */}
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/dashboard" element={<UserDashboard />} />
-              <Route path="/admin/dashboard" element={<AdminDashboard />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+
+              {/* USER DASHBOARD (Protected) */}
+              <Route
+                path="/dashboard"
+                element={
+                  <UserRoute>
+                    <UserDashboard />
+                  </UserRoute>
+                }
+              />
+
+              {/* ADMIN DASHBOARD (Protected + Admin only) */}
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <AdminRoute>
+                    <AdminDashboard />
+                  </AdminRoute>
+                }
+              />
+
+              {/* Catch-all */}
               <Route path="*" element={<NotFound />} />
+
             </Routes>
           </BrowserRouter>
         </TooltipProvider>

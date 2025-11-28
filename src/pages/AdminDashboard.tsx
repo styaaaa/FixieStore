@@ -28,6 +28,9 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     if (authLoading) return;
+    console.log("USER:", user);
+    console.log("IS ADMIN:", isAdmin);
+    console.log("LOADING:", authLoading);
 
     if (!user) {
       navigate("/login", { replace: true });

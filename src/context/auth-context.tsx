@@ -1,84 +1,98 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
-import type { User } from "@supabase/supabase-js";
-
+import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-interface AuthContextValue {
-  user: User | null;
+interface AuthContextType {
+  user: any;
   isAdmin: boolean;
   authLoading: boolean;
   signOut: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  isAdmin: false,
+  authLoading: true,
+  signOut: async () => {},
+});
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
 
+  // Load user + role
+  const loadUser = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    setUser(user);
+
+    if (user) {
+const { data: profile, error } = await supabase
+  .from("profiles" as any)
+  .select("is_admin")
+  .eq("id", user.id)
+  .single<{
+    is_admin: boolean | null;
+  }>();
+    if (error) {
+      console.error("Error fetching profile:", error);
+      setIsAdmin(false);
+      return;
+    }
+
+     if (profile && profile.is_admin === true) {
+  setIsAdmin(true);
+} else {
+  setIsAdmin(false);
+}
+
+    } else {
+      setIsAdmin(false);
+    }
+
+    setAuthLoading(false);
+  };
+
   useEffect(() => {
-    let mounted = true;
+    loadUser();
 
-    const loadSession = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      if (!mounted) return;
-
-      if (error) {
-        console.error("Failed to get session:", error.message);
+    const {
+      data: authListener,
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+        loadUser();
+      } else {
+        setUser(null);
+        setIsAdmin(false);
       }
-
-      setUser(data.session?.user ?? null);
-      setAuthLoading(false);
-    };
-
-    void loadSession();
-
-    const { data } = supabase.auth.onAuthStateChange((_, session) => {
-      if (!mounted) return;
-      setUser(session?.user ?? null);
-      setAuthLoading(false);
     });
 
     return () => {
-      mounted = false;
-      data.subscription.unsubscribe();
+      authListener.subscription.unsubscribe();
     };
   }, []);
 
-  const signOut = useCallback(async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      throw error;
-    }
-  }, []);
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setIsAdmin(false);
+  };
 
-  const isAdmin = useMemo(
-    () => Boolean(user?.app_metadata?.is_admin || user?.user_metadata?.is_admin),
-    [user],
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        isAdmin,
+        authLoading,
+        signOut,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
   );
-
-  const value = useMemo(
-    () => ({ user, isAdmin, authLoading, signOut }),
-    [authLoading, isAdmin, signOut, user],
-  );
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-
-  return context;
-};
+export const useAuth = () => useContext(AuthContext);
