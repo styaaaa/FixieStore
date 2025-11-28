@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/context/auth-context";
 import { useCart } from "@/context/cart-context";
+import { decreaseProductStock } from "@/lib/repositories/catalogRepository";
 import { createOrder } from "@/lib/repositories/orderRepository";
 
 const formatCurrency = (value: number) =>
@@ -80,6 +81,19 @@ const Checkout = () => {
       return;
     }
 
+    const unavailableItem = cartItems.find((item) => {
+      const availableStock = item.product?.stock ?? 0;
+      return availableStock < item.quantity;
+    });
+
+    if (unavailableItem) {
+      const productName = unavailableItem.product?.name ?? "produk";
+      toast.error("Stok tidak mencukupi", {
+        description: `${productName} hanya tersisa ${unavailableItem.product?.stock ?? 0} unit`,
+      });
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -99,6 +113,10 @@ const Checkout = () => {
       toast.success("Pesanan berhasil dibuat", {
         description: `ID pesanan ${order.id.substring(0, 8)}... siap diproses`,
       });
+
+      await Promise.all(
+        cartItems.map((item) => decreaseProductStock(item.productId, item.quantity))
+      );
 
       await clearCart();
       navigate("/");
