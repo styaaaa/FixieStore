@@ -8,9 +8,9 @@ export const Footer = () => {
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <img
-                src="/fixie-icon.svg"
+                src="/bulat.png"
                 alt="Ikon FixieStore"
-                className="h-10 w-10 rounded-full border bg-muted/60 p-1 fixie-icon"
+                className="h-10 w-10 rounded-full bg-muted/20 dark:invert"
               />
               <div>
                 <p className="text-xl font-semibold">FixieStore</p>

@@ -114,9 +114,9 @@ export const Header = ({
             </Button>
             <Link to="/" className="flex items-center gap-2" aria-label="FixieStore">
               <img
-                src="/fixie-icon.svg"
+                src="/bulat.png"
                 alt="Ikon FixieStore"
-                className="h-9 w-9 rounded-full border bg-muted/60 p-1 fixie-icon"
+                className="h-10 w-10 rounded-full bg-muted/20 dark:invert"
               />
               <h1 className="text-2xl font-bold">FixieStore</h1>
             </Link>
