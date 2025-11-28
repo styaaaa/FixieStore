@@ -1,11 +1,11 @@
 import { Navigate } from "react-router-dom";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useAuth } from "@/context/auth-context";
 
 export default function UserRoute({ children }: { children: JSX.Element }) {
-  const { role, loading } = useUserRole();
+  const { user, authLoading } = useAuth();
 
-  if (loading) return <p>Loading...</p>;
-  if (!role) return <Navigate to="/login" replace />;
+   if (authLoading) return <p>Loading...</p>;
+  if (!user) return <Navigate to="/login" replace />;
 
   return children;
 }

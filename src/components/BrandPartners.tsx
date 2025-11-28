@@ -11,7 +11,8 @@ const scrollingLogos = [...brandLogos, ...brandLogos];
 
 export const BrandPartners = () => {
   return (
-        <section className="border-y border-border bg-background text-foreground transition-colors">      <div className="container mx-auto px-4 py-14 md:py-16">
+        <section className="border-y border-border bg-background text-foreground transition-colors">
+      <div className="container mx-auto px-4 py-14 md:py-16">
         <div className="space-y-3 text-center">
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-primary">
             Brand Partner
@@ -35,7 +36,7 @@ export const BrandPartners = () => {
                 <img
                   src={logo.src}
                   alt={logo.name}
-                  className="max-h-12 w-full object-contain dark:invert"
+                  className="max-h-16 w-full object-contain dark:invert"
                   loading="lazy"
                 />
               </div>
