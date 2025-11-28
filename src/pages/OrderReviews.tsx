@@ -24,6 +24,11 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { useUserOrders } from "@/hooks/useUserOrders";
 import type { Order } from "@/types/order";
+import {
+  getPurchasedProductsByOrder,
+  saveProductReview,
+} from "@/lib/repositories/reviewRepository";
+import type { PurchasedProduct } from "@/types/review";
 
 const OrderReviews = () => {
   const navigate = useNavigate();
@@ -35,6 +40,7 @@ const OrderReviews = () => {
   const [rating, setRating] = useState("5");
   const [message, setMessage] = useState("");
   const [selectedOrderId, setSelectedOrderId] = useState<string | undefined>();
+  const [selectedProductId, setSelectedProductId] = useState<string | undefined>();
 
   useEffect(() => {
     if (authLoading) return;
@@ -98,6 +104,19 @@ const OrderReviews = () => {
   };
 
   const selectedOrder = completedOrders.find((order) => order.id === selectedOrderId);
+  const purchasedProducts: PurchasedProduct[] = useMemo(
+    () => getPurchasedProductsByOrder(selectedOrderId),
+    [selectedOrderId]
+  );
+
+  useEffect(() => {
+    if (purchasedProducts.length > 0) {
+      setSelectedProductId((current) => current ?? purchasedProducts[0].productId);
+      return;
+    }
+
+    setSelectedProductId(undefined);
+  }, [purchasedProducts]);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -107,10 +126,25 @@ const OrderReviews = () => {
       return;
     }
 
+    if (!selectedProductId) {
+      toast({ title: "Pilih produk", description: "Tentukan produk dari pesanan ini yang ingin kamu ulas." });
+      return;
+    }
+
+    const review = saveProductReview({
+      orderId: selectedOrder.id,
+      productId: selectedProductId,
+      rating: Number(rating),
+      message,
+      userName: user?.email ?? undefined,
+    });
+
     toast({
       title: "Terima kasih atas ulasanmu!",
-      description: "Feedback kamu membantu kami menjaga pengalaman elegan ala FixieStore.",
+      description: "Ulasan berhasil disimpan dan muncul di halaman detail produk.",
     });
+
+    console.info("Review tersimpan", review);
 
     setMessage("");
     setRating("5");
@@ -242,6 +276,51 @@ const OrderReviews = () => {
                   ) : (
                     <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
                       Pilih dulu pesanan selesai yang ingin kamu ulas.
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Pilih produk dalam pesanan ini</p>
+                  {purchasedProducts.length === 0 ? (
+                    <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
+                      Produk dari pesanan sukses akan muncul di sini setelah pembayaran selesai.
+                    </div>
+                  ) : (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {purchasedProducts.map((product) => (
+                        <button
+                          key={product.productId}
+                          type="button"
+                          onClick={() => setSelectedProductId(product.productId)}
+                          className={`flex items-start gap-3 rounded-lg border bg-background p-3 text-left transition hover:shadow-sm focus:outline-none ${
+                            selectedProductId === product.productId ? "border-primary ring-2 ring-primary/30" : ""
+                          }`}
+                        >
+                          <div className="h-14 w-14 overflow-hidden rounded-md bg-muted">
+                            {product.imageUrl ? (
+                              <img
+                                src={product.imageUrl}
+                                alt={product.name}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
+                                Foto
+                              </div>
+                            )}
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-sm font-semibold text-foreground">{product.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {product.brand || "Brand tidak tersedia"}
+                            </p>
+                            <p className="text-xs font-medium text-primary">
+                              {formatCurrency(product.price)}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
                     </div>
                   )}
                 </div>

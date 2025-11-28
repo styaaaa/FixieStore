@@ -71,6 +71,21 @@ export const getProducts = async (categoryId?: string | null): Promise<Product[]
   return (data ?? []).map(mapProduct);
 };
 
+export const getProductById = async (productId: string): Promise<Product | null> => {
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .eq("id", productId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Error fetching product by id", error);
+    throw error;
+  }
+
+  return data ? mapProduct(data) : null;
+};
+
 export const createProduct = async (payload: NewProductPayload): Promise<Product> => {
   const { data, error } = await supabase
     .from("products")

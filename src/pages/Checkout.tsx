@@ -29,6 +29,7 @@ import { decreaseProductStock } from "@/lib/repositories/catalogRepository";
 import { createOrder } from "@/lib/repositories/orderRepository";
 import { createMidtransTransaction } from "@/lib/repositories/paymentRepository";
 import { supabase } from "@/lib/supabaseClient";
+import { savePurchasedProducts } from "@/lib/repositories/reviewRepository";
 
 // ==== Deklarasi global Midtrans Snap ====
 declare global {
@@ -206,6 +207,9 @@ window.snap.pay(midtransData.token, {
         .from("orders")
         .update({ status: "success" })
         .eq("id", order.id);
+
+      // simpan produk yang berhasil dibeli untuk referensi ulasan
+      savePurchasedProducts(order.id, cartItems);
 
       // kurangi stok dan bersihkan cart
       await Promise.all(
