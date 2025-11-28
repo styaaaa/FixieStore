@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
 import { PromoBanner } from "@/components/PromoBanner";
@@ -7,151 +8,91 @@ import { Footer } from "@/components/Footer";
 import { FixieLoading } from "@/components/FixieLoading";
 import BrandPartners from "@/components/BrandPartners";
 import { useCart } from "../context/cart-context";
-import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { MobileQuickActions } from "@/components/MobileQuickActions";
 import { MobileHome } from "@/components/MobileHome";
-
-interface Category {
-  id: string;
-  name: string;
-  slug: string;
-}
+import { getCategories, getProducts } from "@/lib/repositories/catalogRepository";
+import type { Category, Product } from "@/types/catalog";
 
 const Index = () => {
   const { addToCart, cartCount } = useCart();
 
-  const [products, setProducts] = useState<any[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [loadingProducts, setLoadingProducts] = useState(true);
-  const [loadingCategories, setLoadingCategories] = useState(true);
   const [isHeroVisible, setIsHeroVisible] = useState(false);
 
   const heroSectionRef = useRef<HTMLDivElement | null>(null);
   const categorySectionRef = useRef<HTMLDivElement | null>(null);
 
-  // =========================
-  // FETCH CATEGORIES
-  // =========================
-  const fetchCategories = async () => {
-    setLoadingCategories(true);
-    try {
-      const { data, error } = await supabase
-        .from("categories")
-        .select("id, name, slug")
-        .order("name", { ascending: true });
+  const {
+    data: categories = [],
+    isLoading: loadingCategories,
+    error: categoriesError,
+  } = useQuery<Category[]>({ queryKey: ["categories"], queryFn: getCategories });
 
-      if (error) {
-        console.error("Error fetching categories:", error);
-        setCategories([]);
-      } else {
-        const cleaned = (data || []).filter((c) => {
-          const n = c.name?.trim().toLowerCase();
-          const s = c.slug?.trim().toLowerCase();
-          return n !== "semua" && s !== "semua";
-        });
-        setCategories(cleaned);
-      }
-    } finally {
-      setLoadingCategories(false);
-    }
-  };
+  const {
+    data: products = [],
+    isLoading: loadingProducts,
+    error: productsError,
+  } = useQuery<Product[]>({
+    queryKey: ["products", activeCategory],
+    queryFn: () => getProducts(activeCategory),
+  });
 
-  // =========================
-  // FETCH PRODUCTS
-  // =========================
-  const fetchProducts = async (categoryId?: string) => {
-    setLoadingProducts(true);
-    try {
-      let q = supabase
-        .from("products")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (categoryId) q = q.eq("category_id", categoryId);
-
-      const { data, error } = await q;
-
-      if (error) {
-        console.error("Error fetching products:", error);
-        setProducts([]);
-      } else {
-        setProducts(data || []);
-      }
-    } finally {
-      setLoadingProducts(false);
-    }
-  };
-
-  // =========================
-  // RUN FETCH ON LOAD
-  // =========================
   useEffect(() => {
-    console.log("USE EFFECT RUN → FETCH DATA");
-    fetchCategories();
-    fetchProducts();
-  }, []);
+    if (categoriesError) {
+      toast.error("Gagal memuat kategori");
+      console.error(categoriesError);
+    }
+  }, [categoriesError]);
 
-  // =========================
-  // HERO VISIBILITY
-  // =========================
   useEffect(() => {
-    const el = heroSectionRef.current;
-    if (!el) return setIsHeroVisible(false);
+    if (productsError) {
+      toast.error("Gagal memuat produk");
+      console.error(productsError);
+    }
+  }, [productsError]);
 
-    const obs = new IntersectionObserver(
-      ([e]) => setIsHeroVisible(e.isIntersecting),
+  useEffect(() => {
+    const element = heroSectionRef.current;
+    if (!element) {
+      setIsHeroVisible(false);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsHeroVisible(entry.isIntersecting),
       { threshold: 0.2 }
     );
 
-    obs.observe(el);
-    return () => obs.disconnect();
+    observer.observe(element);
+    return () => observer.disconnect();
   }, []);
 
-  // =========================
-  // AUTH EVENTS
-  // =========================
-  useEffect(() => {
-    const { data: subscriptionObj } = supabase.auth.onAuthStateChange(
-      (evt, session) => {
-        console.log("Auth event:", evt, session ? "IN" : "OUT");
-      }
-    );
-
-    return () => subscriptionObj.subscription.unsubscribe();
+  const handleCategoryChange = useCallback((categoryId?: string) => {
+    setActiveCategory((current) => {
+      if (current === categoryId) return null;
+      return categoryId ?? null;
+    });
   }, []);
 
-  const handleCategoryChange = async (categoryId?: string) => {
-    if (categoryId === activeCategory) {
-      setActiveCategory(null);
-      fetchProducts();
-    } else {
-      setActiveCategory(categoryId || null);
-      fetchProducts(categoryId);
-    }
-  };
-
-  const scrollToCategories = () => {
+  const scrollToCategories = useCallback(() => {
     if (categorySectionRef.current) {
       categorySectionRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  };
+  }, []);
 
-  // =========================
-  // FILTER PRODUCTS (SAFE)
-  // =========================
   const filteredProducts = useMemo(() => {
-    const arr = Array.isArray(products) ? products : [];
-    const s = searchQuery.toLowerCase();
+    const normalizedQuery = searchQuery.trim().toLowerCase();
 
-    return arr.filter(
-      (p) =>
-        p.name?.toLowerCase().includes(s) ||
-        p.brand?.toLowerCase()?.includes(s)
+    if (!normalizedQuery) return products;
+
+    return products.filter((product) =>
+      [product.name, product.brand].some((value) =>
+        value.toLowerCase().includes(normalizedQuery)
+      )
     );
   }, [products, searchQuery]);
 
@@ -165,14 +106,17 @@ const Index = () => {
     [filteredProducts]
   );
 
-  const handleAddToCart = async (product: any) => {
-    try {
-      await addToCart(product.id);
-      toast.success(`${product.name} ditambahkan ke keranjang`);
-    } catch (err: any) {
-      toast.error(err.message || "Gagal menambahkan ke keranjang");
-    }
-  };
+  const handleAddToCart = useCallback(
+    async (product: Product) => {
+      try {
+        await addToCart(product.id);
+        toast.success(`${product.name} ditambahkan ke keranjang`);
+      } catch (error: any) {
+        toast.error(error?.message || "Gagal menambahkan ke keranjang");
+      }
+    },
+    [addToCart]
+  );
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-32 md:pb-0">
@@ -267,10 +211,10 @@ const Index = () => {
               <h2 className="text-3xl font-bold mb-6">Pilihan Produk Terlaris</h2>
 
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {bestSellerProducts.map((p) => (
+                {bestSellerProducts.map((product) => (
                   <ProductCard
-                    key={`best-${p.id}`}
-                    product={p}
+                    key={`best-${product.id}`}
+                    product={product}
                     onAddToCart={handleAddToCart}
                   />
                 ))}
@@ -285,10 +229,10 @@ const Index = () => {
               <h2 className="text-3xl font-bold mb-6">Koleksi Terbaru</h2>
 
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {newArrivalProducts.map((p) => (
+                {newArrivalProducts.map((product) => (
                   <ProductCard
-                    key={`new-${p.id}`}
-                    product={p}
+                    key={`new-${product.id}`}
+                    product={product}
                     onAddToCart={handleAddToCart}
                   />
                 ))}
