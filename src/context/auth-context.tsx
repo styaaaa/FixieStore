@@ -22,37 +22,48 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Load user + role
   const loadUser = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
 
-    setUser(user);
+      if (userError) {
+        console.error("Error fetching user:", userError);
+      }
 
-    if (user) {
-const { data: profile, error } = await supabase
-  .from("profiles" as any)
-  .select("is_admin")
-  .eq("id", user.id)
-  .single<{
-    is_admin: boolean | null;
-  }>();
-    if (error) {
-      console.error("Error fetching profile:", error);
+      setUser(user);
+
+      if (user) {
+        const { data: profile, error } = await supabase
+          .from("profiles" as any)
+          .select("is_admin")
+          .eq("id", user.id)
+          .single<{
+            is_admin: boolean | null;
+          }>();
+
+        if (error) {
+          console.error("Error fetching profile:", error);
+          setIsAdmin(false);
+          return;
+        }
+
+        if (profile && profile.is_admin === true) {
+          setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
+        }
+      } else {
+        setIsAdmin(false);
+      }
+    } catch (error) {
+      console.error("Unexpected auth error:", error);
+      setUser(null);
       setIsAdmin(false);
-      return;
+    } finally {
+      setAuthLoading(false);
     }
-
-     if (profile && profile.is_admin === true) {
-  setIsAdmin(true);
-} else {
-  setIsAdmin(false);
-}
-
-    } else {
-      setIsAdmin(false);
-    }
-
-    setAuthLoading(false);
   };
 
   useEffect(() => {
