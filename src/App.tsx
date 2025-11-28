@@ -14,6 +14,7 @@ import UserDashboard from "./pages/UserDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
+import OrderReviews from "./pages/OrderReviews";
 
 // --- ROUTE PROTECTION ---
 import AdminRoute from "@/routes/AdminRoute";
@@ -44,6 +45,14 @@ const App = () => (
                 element={
                   <UserRoute>
                     <UserDashboard />
+                  </UserRoute>
+                }
+              />
+              <Route
+                path="/dashboard/reviews"
+                element={
+                  <UserRoute>
+                    <OrderReviews />
                   </UserRoute>
                 }
               />

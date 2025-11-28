@@ -62,3 +62,20 @@ export const createOrder = async (input: CreateOrderInput): Promise<Order> => {
 
   return mapOrder(data as OrderRow);
 };
+
+export const fetchOrdersByUser = async (userId: string): Promise<Order[]> => {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Failed to fetch orders", error);
+    throw error;
+  }
+
+  if (!data) return [];
+
+  return data.map((row) => mapOrder(row as OrderRow));
+};
