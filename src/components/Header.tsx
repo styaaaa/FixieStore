@@ -66,13 +66,9 @@ export const Header = ({
   }, [navigate]);
 
   const handleStoreClick = useCallback(() => {
-    if (onNavigateToSearch) {
-      onNavigateToSearch();
-      return;
-    }
-
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [onNavigateToSearch]);
+    navigate("/search");
+    onNavigateToSearch?.();
+  }, [navigate, onNavigateToSearch]);
 
   const handleCategoryChange = useCallback(
     (value: string) => {
@@ -158,7 +154,9 @@ export const Header = ({
     <header
       className={`sticky top-0 z-50 transition-colors ${
         transparent
-          ? "bg-transparent text-white"
+          ? theme === "dark"
+            ? "bg-transparent text-white"
+            : "bg-white/85 text-foreground shadow-sm backdrop-blur"
           : "border-b bg-background/95 backdrop-blur-lg"
       }`}
     >
@@ -201,17 +199,32 @@ export const Header = ({
                           {filteredSuggestions.slice(0, 3).map((product) => (
                             <button
                               key={`suggestion-${product.id}`}
-                              className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition hover:bg-muted"
+                              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-muted"
                               onMouseDown={() => {
                                 onSearchChange(product.name);
                                 handleSearchSubmit(product.name);
                               }}
                             >
-                              <div>
-                                <p className="text-sm font-semibold leading-tight">{product.name}</p>
-                                <p className="text-xs text-muted-foreground">{product.brand}</p>
+                              <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
+                                {product.imageUrl ? (
+                                  <img
+                                    src={product.imageUrl}
+                                    alt={product.name}
+                                    className="h-full w-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
+                                    No Image
+                                  </div>
+                                )}
                               </div>
-                              <span className="text-xs text-primary">{formatCurrency(product.price)}</span>
+                              <div className="flex flex-1 items-center justify-between gap-3">
+                                <div>
+                                  <p className="text-sm font-semibold leading-tight">{product.name}</p>
+                                  <p className="text-xs text-muted-foreground">{product.brand}</p>
+                                </div>
+                                <span className="text-xs text-primary">{formatCurrency(product.price)}</span>
+                              </div>
                             </button>
                           ))}
                         </div>

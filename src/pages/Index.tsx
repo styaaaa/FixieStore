@@ -83,26 +83,14 @@ const Index = () => {
     }
   }, []);
 
-  const filteredProducts = useMemo(() => {
-    const normalizedQuery = searchQuery.trim().toLowerCase();
-
-    if (!normalizedQuery) return products;
-
-    return products.filter((product) =>
-      [product.name, product.brand].some((value) =>
-        value.toLowerCase().includes(normalizedQuery)
-      )
-    );
-  }, [products, searchQuery]);
-
   const bestSellerProducts = useMemo(
-    () => filteredProducts.slice(0, 4),
-    [filteredProducts]
+    () => products.slice(0, 4),
+    [products]
   );
 
   const newArrivalProducts = useMemo(
-    () => (filteredProducts.length > 4 ? filteredProducts.slice(4) : []),
-    [filteredProducts]
+    () => (products.length > 4 ? products.slice(4) : []),
+    [products]
   );
 
   const handleAddToCart = useCallback(
@@ -198,7 +186,7 @@ const Index = () => {
             size="md"
             fullscreen={false}
           />
-        ) : filteredProducts.length === 0 ? (
+        ) : products.length === 0 ? (
           <div className="text-center py-16">
             <h3 className="text-lg font-semibold">Tidak ada produk ditemukan</h3>
             <p className="text-muted-foreground">
