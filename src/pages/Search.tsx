@@ -1,4 +1,4 @@
-import type { FormEvent } from "react";
+import type { FormEvent, MouseEvent } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -91,7 +91,7 @@ const SearchPage = () => {
   }, [navigate]);
 
   const handleSearchSubmit = useCallback(
-    (event?: FormEvent<HTMLFormElement>) => {
+    (event?: FormEvent<HTMLFormElement> | MouseEvent<HTMLButtonElement>) => {
       event?.preventDefault();
       navigate(searchQuery.trim() ? `/search?q=${encodeURIComponent(searchQuery.trim())}` : "/search");
     },
