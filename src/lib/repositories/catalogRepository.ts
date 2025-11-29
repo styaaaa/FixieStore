@@ -110,13 +110,26 @@ export const createProduct = async (payload: NewProductPayload): Promise<Product
   return mapProduct(data);
 };
 
-export const updateProductStock = async (
+export const updateProduct = async (
   productId: string,
-  stock: number,
+  payload: Partial<NewProductPayload>,
 ): Promise<Product> => {
+  const updates: Record<string, unknown> = {};
+
+  if (payload.name !== undefined) updates.name = payload.name;
+  if (payload.brand !== undefined) updates.brand = payload.brand?.trim();
+  if (payload.price !== undefined) updates.price = payload.price;
+  if (payload.stock !== undefined) updates.stock = payload.stock;
+  if (payload.description !== undefined)
+    updates.description = payload.description?.trim();
+  if (payload.longDescription !== undefined)
+    updates.long_description = payload.longDescription?.trim();
+  if (payload.imageUrl !== undefined) updates.image_url = payload.imageUrl?.trim();
+  if (payload.categoryId !== undefined) updates.category_id = payload.categoryId ?? null;
+
   const { data, error } = await supabase
     .from("products")
-    .update({ stock })
+    .update(updates)
     .eq("id", productId)
     .select("*")
     .single();
@@ -128,6 +141,11 @@ export const updateProductStock = async (
 
   return mapProduct(data);
 };
+
+export const updateProductStock = async (
+  productId: string,
+  stock: number,
+): Promise<Product> => updateProduct(productId, { stock });
 
 export const decreaseProductStock = async (
   productId: string,
@@ -152,4 +170,13 @@ export const decreaseProductStock = async (
   const newStock = Math.max(currentStock - quantity, 0);
 
   return updateProductStock(productId, newStock);
+};
+
+export const deleteProduct = async (productId: string): Promise<void> => {
+  const { error } = await supabase.from("products").delete().eq("id", productId);
+
+  if (error) {
+    console.error("Error deleting product", error);
+    throw error;
+  }
 };

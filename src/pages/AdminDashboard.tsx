@@ -7,15 +7,16 @@ import { Link, useNavigate } from "react-router-dom";
 
 import {
   ArrowUpRight,
-  Box,
-  PackagePlus,
+  Pencil,
   RefreshCcw,
   ShieldCheck,
+  Trash2,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -25,13 +26,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 
 import { useAuth } from "@/context/auth-context";
-import { createProduct, getCategories, getProducts, updateProductStock } from "@/lib/repositories/catalogRepository";
+import {
+  createProduct,
+  deleteProduct,
+  getCategories,
+  getProducts,
+  updateProduct,
+} from "@/lib/repositories/catalogRepository";
 import type { Category, Product } from "@/types/catalog";
 
 // ============================
@@ -73,9 +79,10 @@ const AdminDashboard = () => {
   const [loadingInventory, setLoadingInventory] = useState(true);
   const [savingProduct, setSavingProduct] = useState(false);
   const [formState, setFormState] = useState<ProductFormState>(initialFormState);
-
-  const [stockDrafts, setStockDrafts] = useState<Record<string, string>>({});
-  const [updatingStock, setUpdatingStock] = useState<Record<string, boolean>>({});
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editFormState, setEditFormState] = useState<ProductFormState | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [deletingProduct, setDeletingProduct] = useState<Record<string, boolean>>({});
 
   // ============================
   // Auth + Load Data
@@ -90,7 +97,6 @@ const AdminDashboard = () => {
 
       setCategories(categoryData);
       setProducts(productData);
-      syncStockDrafts(productData);
     } catch {
       toast({
         variant: "destructive",
@@ -135,12 +141,6 @@ const AdminDashboard = () => {
     setFormState((prev) => ({ ...prev, [field]: value }));
   };
 
-  const syncStockDrafts = (inventory: Product[]) => {
-    const next: Record<string, string> = {};
-    inventory.forEach((p) => (next[p.id] = String(p.stock)));
-    setStockDrafts(next);
-  };
-
   // ============================
   // Create Product
   // ============================
@@ -183,7 +183,6 @@ const AdminDashboard = () => {
       });
 
       setProducts((prev) => [newProduct, ...prev]);
-      syncStockDrafts([newProduct, ...products]);
 
       setFormState(initialFormState);
 
@@ -202,41 +201,116 @@ const AdminDashboard = () => {
   };
 
   // ============================
-  // Update Stock
+  // Edit Product
   // ============================
 
-  const handleUpdateStock = async (productId: string) => {
-    const raw = stockDrafts[productId];
-    const nextStock = Number(raw);
+  const startEditingProduct = (product: Product) => {
+    setEditingProduct(product);
+    setEditFormState({
+      name: product.name,
+      brand: product.brand,
+      price: String(product.price),
+      stock: String(product.stock),
+      imageUrl: product.imageUrl,
+      description: product.description,
+      longDescription: product.longDescription,
+      categoryId: product.categoryId,
+    });
+  };
 
-    if (Number.isNaN(nextStock) || nextStock < 0) {
+  const handleEditFormChange = (
+    field: keyof ProductFormState,
+    value: string | null,
+  ) => {
+    setEditFormState((prev) => (prev ? { ...prev, [field]: value } : prev));
+  };
+
+  const handleUpdateProduct = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault();
+
+    if (!editingProduct || !editFormState) return;
+
+    if (!editFormState.name.trim()) {
       toast({
         variant: "destructive",
-        title: "Stok tidak valid",
+        title: "Nama produk wajib diisi",
       });
       return;
     }
 
-    setUpdatingStock((prev) => ({ ...prev, [productId]: true }));
+    const price = Number(editFormState.price);
+    const stock = Number(editFormState.stock);
+
+    if (Number.isNaN(price) || Number.isNaN(stock) || price < 0 || stock < 0) {
+      toast({
+        variant: "destructive",
+        title: "Input tidak valid",
+        description: "Harga dan stok harus berupa angka positif.",
+      });
+      return;
+    }
+
+    setSavingEdit(true);
 
     try {
-      const updated = await updateProductStock(productId, nextStock);
+      const updated = await updateProduct(editingProduct.id, {
+        name: editFormState.name.trim(),
+        brand: editFormState.brand.trim(),
+        price,
+        stock,
+        imageUrl: editFormState.imageUrl.trim(),
+        description: editFormState.description.trim(),
+        longDescription: editFormState.longDescription.trim(),
+        categoryId:
+          editFormState.categoryId === "none"
+            ? null
+            : editFormState.categoryId,
+      });
 
       setProducts((prev) =>
-        prev.map((p) => (p.id === productId ? updated : p))
+        prev.map((p) => (p.id === updated.id ? updated : p))
       );
 
       toast({
-        title: "Stok diperbarui",
-        description: `${updated.name} sekarang stoknya ${updated.stock}`,
+        title: "Produk diperbarui",
+        description: `${updated.name} berhasil diupdate.`,
+      });
+
+      setEditingProduct(null);
+      setEditFormState(null);
+    } catch {
+      toast({
+        variant: "destructive",
+        title: "Tidak dapat memperbarui produk",
+      });
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  // ============================
+  // Delete Product
+  // ============================
+
+  const handleDeleteProduct = async (productId: string) => {
+    setDeletingProduct((prev) => ({ ...prev, [productId]: true }));
+
+    try {
+      await deleteProduct(productId);
+      setProducts((prev) => prev.filter((p) => p.id !== productId));
+      toast({
+        title: "Produk dihapus",
+        description: "Item sudah tidak tersedia di katalog.",
       });
     } catch {
       toast({
         variant: "destructive",
-        title: "Tidak dapat memperbarui stok",
+        title: "Gagal menghapus produk",
       });
     } finally {
-      setUpdatingStock((prev) => ({ ...prev, [productId]: false }));
+      setDeletingProduct((prev) => ({ ...prev, [productId]: false }));
     }
   };
 
@@ -495,33 +569,35 @@ const AdminDashboard = () => {
 
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Input
-                              type="number"
-                              min="0"
-                              value={stockDrafts[p.id] ?? p.stock}
-                              onChange={(e) =>
-                                setStockDrafts((prev) => ({
-                                  ...prev,
-                                  [p.id]: e.target.value,
-                                }))
-                              }
-                              className="w-24"
-                            />
                             <Badge variant={p.stock <= 5 ? "destructive" : "outline"}>
                               {p.stock <= 5 ? "Rendah" : "Aman"}
                             </Badge>
+                            <span className="font-semibold">{p.stock} unit</span>
                           </div>
                         </TableCell>
 
                         <TableCell className="text-right">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleUpdateStock(p.id)}
-                            disabled={updatingStock[p.id]}
-                          >
-                            {updatingStock[p.id] ? "Menyimpan…" : "Simpan"}
-                          </Button>
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => startEditingProduct(p)}
+                              className="flex items-center gap-1"
+                            >
+                              <Pencil className="h-4 w-4" />
+                              Update
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeleteProduct(p.id)}
+                              disabled={deletingProduct[p.id]}
+                              className="flex items-center gap-1"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              {deletingProduct[p.id] ? "Menghapus…" : "Delete"}
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -533,6 +609,131 @@ const AdminDashboard = () => {
         </Card>
 
       </div>
+
+      <Dialog
+        open={Boolean(editingProduct)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingProduct(null);
+            setEditFormState(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Edit produk</DialogTitle>
+            <DialogDescription>
+              Perbarui data produk tanpa perlu menggulir pada tabel. Semua perubahan
+              akan langsung tersinkronisasi dengan Supabase.
+            </DialogDescription>
+          </DialogHeader>
+
+          {editFormState && (
+            <form onSubmit={handleUpdateProduct} className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Nama produk</Label>
+                  <Input
+                    value={editFormState.name}
+                    onChange={(e) => handleEditFormChange("name", e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Brand</Label>
+                  <Input
+                    value={editFormState.brand}
+                    onChange={(e) => handleEditFormChange("brand", e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Harga</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={editFormState.price}
+                    onChange={(e) => handleEditFormChange("price", e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Stok</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={editFormState.stock}
+                    onChange={(e) => handleEditFormChange("stock", e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Kategori</Label>
+                  <Select
+                    value={editFormState.categoryId ?? "none"}
+                    onValueChange={(value) =>
+                      handleEditFormChange(
+                        "categoryId",
+                        value === "none" ? null : value,
+                      )
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih kategori (opsional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Tanpa kategori</SelectItem>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>URL Gambar</Label>
+                  <Input
+                    type="url"
+                    value={editFormState.imageUrl}
+                    onChange={(e) => handleEditFormChange("imageUrl", e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Deskripsi singkat</Label>
+                <Input
+                  value={editFormState.description}
+                  onChange={(e) => handleEditFormChange("description", e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Deskripsi panjang</Label>
+                <Textarea
+                  rows={4}
+                  value={editFormState.longDescription}
+                  onChange={(e) => handleEditFormChange("longDescription", e.target.value)}
+                />
+              </div>
+
+              <DialogFooter className="sm:justify-between">
+                <p className="text-sm text-muted-foreground">
+                  Pastikan detail produk sesuai sebelum menekan update.
+                </p>
+                <Button type="submit" disabled={savingEdit}>
+                  {savingEdit ? "Mengupdate…" : "Update produk"}
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
