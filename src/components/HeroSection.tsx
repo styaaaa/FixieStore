@@ -36,10 +36,11 @@ const slides: Slide[] = [
   },
 ];
 export const HeroSection = () => {
-const slidesWithClones = useMemo(
+  const slidesWithClones = useMemo(
     () => [slides[slides.length - 1], ...slides, slides[0]],
     []
   );
+  const maxIndex = slidesWithClones.length - 1;
   const [currentIndex, setCurrentIndex] = useState(1);
   const [isTransitioning, setIsTransitioning] = useState(true);
   const [direction, setDirection] = useState<"left" | "right">("left");
@@ -47,13 +48,13 @@ const slidesWithClones = useMemo(
   const handleNext = useCallback(() => {
     setDirection("left");
     setIsTransitioning(true);
-    setCurrentIndex((prev) => prev + 1);
-  }, []);
+    setCurrentIndex((prev) => Math.min(prev + 1, maxIndex));
+  }, [maxIndex]);
 
   const handlePrev = useCallback(() => {
     setDirection("right");
     setIsTransitioning(true);
-    setCurrentIndex((prev) => prev - 1);
+    setCurrentIndex((prev) => Math.max(prev - 1, 0));
   }, []);
 
   useEffect(() => {
@@ -122,7 +123,7 @@ const slidesWithClones = useMemo(
                   )}
                 />
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/45 via-black/20 to-black/60" />
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 pt-8 text-center text-white drop-shadow-[0_6px_22px_rgba(0,0,0,0.45)] md:pt-14">
+                <div className="absolute inset-0 flex translate-y-3 flex-col items-center justify-center gap-2 px-6 pt-8 text-center text-white drop-shadow-[0_6px_22px_rgba(0,0,0,0.45)] md:translate-y-6 md:pt-14">
                   {slide.accent && (
                     <span className="text-sm uppercase tracking-[0.2em] text-white/80">
                       {slide.accent}
