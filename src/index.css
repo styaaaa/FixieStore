@@ -102,30 +102,12 @@ All colors MUST be HSL.
   }
 
   body {
-    background:
-      radial-gradient(circle at 18% 18%, hsl(var(--glow-pearl) / 0.95), transparent 32%),
-      radial-gradient(circle at 82% 10%, hsl(var(--stone-400) / 0.42), transparent 38%),
-      linear-gradient(
-        135deg,
-        hsl(var(--glow-pearl) / 0.92) 0%,
-        hsl(var(--glow-smoke) / 0.72) 34%,
-        hsl(var(--glow-slate) / 0.52) 62%,
-        hsl(var(--background)) 100%
-      ),
-      hsl(var(--background));
+    background: linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted) / 0.22));
     color: hsl(var(--foreground));
   }
 
   .dark body {
-    background: linear-gradient(
-        155deg,
-        hsl(var(--glow-pearl) / 0.16) 0%,
-        hsl(var(--glow-smoke) / 0.14) 34%,
-        hsl(var(--glow-slate) / 0.08) 62%,
-        hsl(var(--background)) 100%
-      ),
-      hsl(var(--background));
-    color: hsl(var(--foreground));
+    background: linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted) / 0.16));
   }
 
   .fixie-icon {

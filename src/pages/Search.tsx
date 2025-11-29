@@ -15,6 +15,7 @@ import { getCategories, getProducts } from "@/lib/repositories/catalogRepository
 import type { Product } from "@/types/catalog";
 import { useCart } from "@/context/cart-context";
 import { toast } from "sonner";
+import { Search as SearchIcon, Shuffle, Sparkles } from "lucide-react";
 
 const SearchPage = () => {
   const navigate = useNavigate();
@@ -134,7 +135,7 @@ const SearchPage = () => {
   }, [filteredProducts, products]);
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_10%_15%,rgba(99,102,241,0.08),transparent_35%),radial-gradient(circle_at_85%_10%,rgba(16,185,129,0.08),transparent_30%),linear-gradient(to_bottom,rgba(0,0,0,0.04),transparent_22%),hsl(var(--background))] text-foreground">
+     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 text-foreground">
       <Header
         cartItemCount={cartCount}
         onSearchChange={setSearchQuery}
@@ -151,19 +152,25 @@ const SearchPage = () => {
           <div className="rounded-3xl border bg-card/80 shadow-xl">
             <div className="grid gap-6 p-6 md:grid-cols-[300px,1fr] md:p-10">
               <div className="space-y-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Search system</p>
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                    <Sparkles className="h-4 w-4" />
+                    Mode pencarian terbaru
+                  </div>
                   <h1 className="text-3xl font-bold">Temukan produk favoritmu</h1>
-                  <p className="text-sm text-muted-foreground">Ketik untuk melihat saran instan, pilih kategori, atau acak rekomendasi.</p>
+                  <p className="text-sm text-muted-foreground">
+                    Cari dengan kata kunci, padukan filter, atau coba rekomendasi acak yang kami pilihkan.
+                  </p>
                 </div>
 
                 <div className="rounded-2xl border bg-background/80 p-4 shadow-sm">
                   <div className="flex items-center justify-between gap-2">
                     <div>
-                      <p className="text-sm font-semibold">Filter Kategori</p>
-                      <p className="text-xs text-muted-foreground">Pilih lebih dari satu kategori sekaligus</p>
+                      <p className="text-sm font-semibold">Filter kategori</p>
+                      <p className="text-xs text-muted-foreground">Gabungkan beberapa kategori untuk hasil lebih presisi.</p>
                     </div>
-                    <Button variant="outline" size="sm" onClick={() => setShuffleKey(Date.now())}>
+                    <Button variant="outline" size="sm" onClick={() => setShuffleKey(Date.now())} className="gap-2">
+                      <Shuffle className="h-4 w-4" />
                       Acak produk
                     </Button>
                   </div>
@@ -200,17 +207,13 @@ const SearchPage = () => {
                             onClick={() => handleToggleCategory(categoryId)}
                           >
                             {categoryName}
-                            <span className="text-xs text-muted-foreground">(hapus)</span>
+                           <span className="text-xs text-muted-foreground">×</span>
                           </Badge>
                         );
                       })}
                     </div>
                   )}
-
-                  <Button variant="ghost" size="sm" className="mt-4" onClick={handleClearFilters}>
-                    Bersihkan filter
-                  </Button>
-                </div>
+              </div>
 
                 {randomSpotlight && (
                   <div className="rounded-2xl border bg-gradient-to-br from-primary/10 via-transparent to-indigo-500/10 p-4 shadow-sm">
@@ -225,34 +228,57 @@ const SearchPage = () => {
               </div>
 
               <div className="space-y-4">
-                <form onSubmit={handleSearchSubmit} className="space-y-2">
+                <form onSubmit={handleSearchSubmit} className="space-y-3">
                   <Label htmlFor="search-query" className="text-sm font-semibold text-muted-foreground">
-                    Masukkan kata kunci
+                    Cari produk
                   </Label>
-                  <Input
-                    id="search-query"
-                    value={searchQuery}
-                    onChange={(event) => setSearchQuery(event.target.value)}
-                    placeholder="Cari sepatu, apparel, atau aksesoris"
-                  />
-                  <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                    <span className="rounded-full border px-2 py-1">Enter untuk membuka halaman pencarian</span>
-                    <span className="rounded-full border px-2 py-1">Saran muncul otomatis saat mengetik</span>
-                    <span className="rounded-full border px-2 py-1">Pilih lebih dari satu kategori</span>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <div className="relative flex-1">
+                      <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        id="search-query"
+                        value={searchQuery}
+                        onChange={(event) => setSearchQuery(event.target.value)}
+                        placeholder="Cari disni..."
+                        className="h-12 rounded-xl pl-10 pr-32"
+                      />
+                      <Button
+                        type="submit"
+                        className="absolute right-2 top-1/2 h-9 -translate-y-1/2 px-4"
+                      >
+                        Cari
+                      </Button>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={handleClearFilters}
+                      className="h-12 rounded-xl sm:w-auto"
+                      type="button"
+                    >
+                      Bersihkan filter
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                    <span className="rounded-full border px-3 py-1">Tekan Enter atau tombol Cari</span>
+                    <span className="rounded-full border px-3 py-1">Filter bisa digabung</span>
                   </div>
                 </form>
 
-                <div className="flex items-center justify-between rounded-xl border bg-muted/40 px-4 py-3 text-sm">
-                  <div>
-                    <p className="font-semibold">{filteredProducts.length} produk ditemukan</p>
-                    {selectedCategories.length > 0 ? (
-                      <p className="text-muted-foreground">Difilter berdasarkan kategori pilihanmu</p>
-                    ) : (
-                      <p className="text-muted-foreground">Menampilkan semua kategori</p>
-                    )}
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-background/70 px-4 py-3 text-sm shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="h-2 w-2 rounded-full bg-primary" />
+                    <div>
+                      <p className="font-semibold">{filteredProducts.length} produk cocok</p>
+                      {selectedCategories.length > 0 ? (
+                        <p className="text-muted-foreground">Filter kategori sedang aktif</p>
+                      ) : (
+                        <p className="text-muted-foreground">Menampilkan semua kategori</p>
+                      )}
+                    </div>
                   </div>
-                  <Button variant="default" onClick={handleSearchSubmit}>
-                    Mulai mencari
+                  <Button variant="secondary" onClick={handleSearchSubmit} className="gap-2">
+                    <SearchIcon className="h-4 w-4" />
+                    Perbarui hasil
                   </Button>
                 </div>
 
