@@ -47,9 +47,10 @@ All colors MUST be HSL.
     --sidebar-border: 24 9% 86%;
     --sidebar-ring: 24 6% 26%;
 
-    --glow-pearl: 210 10% 96%;
-    --glow-smoke: 24 8% 88%;
-    --glow-slate: 220 12% 94%;
+    --glow-pearl: 0 0% 100%;
+    --glow-smoke: 24 12% 92%;
+    --glow-slate: 24 8% 86%;
+    --stone-400: 24 5% 64%;
   }
 
   .dark {
@@ -101,11 +102,14 @@ All colors MUST be HSL.
   }
 
   body {
-    background: linear-gradient(
+    background:
+      radial-gradient(circle at 18% 18%, hsl(var(--glow-pearl) / 0.95), transparent 32%),
+      radial-gradient(circle at 82% 10%, hsl(var(--stone-400) / 0.42), transparent 38%),
+      linear-gradient(
         135deg,
-        hsl(var(--glow-pearl) / 0.35) 0%,
-        hsl(var(--glow-smoke) / 0.22) 36%,
-        hsl(var(--glow-slate) / 0.12) 52%,
+        hsl(var(--glow-pearl) / 0.92) 0%,
+        hsl(var(--glow-smoke) / 0.72) 34%,
+        hsl(var(--glow-slate) / 0.52) 62%,
         hsl(var(--background)) 100%
       ),
       hsl(var(--background));

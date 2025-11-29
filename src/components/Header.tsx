@@ -150,16 +150,14 @@ export const Header = ({
     return initial || "U";
   }, [user]);
 
+  const headerClasses = transparent
+    ? theme === "dark"
+      ? "bg-transparent text-white"
+      : "bg-transparent text-foreground"
+    : "border-b bg-background/95 backdrop-blur-lg";
+
   return (
-    <header
-      className={`sticky top-0 z-50 transition-colors ${
-        transparent
-          ? theme === "dark"
-            ? "bg-transparent text-white"
-            : "bg-white/85 text-foreground shadow-sm backdrop-blur"
-          : "border-b bg-background/95 backdrop-blur-lg"
-      }`}
-    >
+    <header className={`sticky top-0 z-50 transition-colors ${headerClasses}`}>
       <div className="container mx-auto px-4 py-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
