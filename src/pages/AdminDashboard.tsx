@@ -112,7 +112,7 @@ const AdminDashboard = () => {
     if (authLoading) return;
 
     if (!user) {
-      navigate("/login", { replace: true });
+      navigate("/", { replace: true });
       return;
     }
 
@@ -131,7 +131,7 @@ const AdminDashboard = () => {
   const handleSignOut = async () => {
     try {
       await signOut();
-      navigate("/");
+      navigate("/login");
     } catch {
       console.error("Gagal keluar");
     }
@@ -449,7 +449,7 @@ const AdminDashboard = () => {
                   <RefreshCcw className="h-4 w-4" /> Produk akan tersimpan langsung.
                 </div>
                 <Button type="submit" disabled={savingProduct}>
-                  {savingProduct ? "Menyimpan…" : "Simpan produk"}
+                  {savingProduct ? "Menyimpan…" : "Tambah produk"}
                 </Button>
               </div>
             </form>

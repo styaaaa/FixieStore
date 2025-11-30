@@ -360,7 +360,7 @@ window.snap.pay(midtransData.token, {
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <div className="flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-primary">
               <ShieldCheck className="h-4 w-4" />
-              Data aman di Supabase
+              Data aman dan terenkripsi
             </div>
             <div className="hidden items-center gap-2 rounded-full bg-muted px-3 py-1 sm:flex">
               <Truck className="h-4 w-4" />
@@ -483,35 +483,6 @@ window.snap.pay(midtransData.token, {
                         Biaya pengiriman disesuaikan alamat tujuan.
                       </p>
                     </div>
-
-                    <div className="space-y-2">
-                      <Label>Metode pembayaran</Label>
-                      <Select
-                        value={paymentMethod}
-                        onValueChange={(value) => setPaymentMethod(value)}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Pilih pembayaran" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Transfer Bank">
-                            Transfer bank (VA)
-                          </SelectItem>
-                          <SelectItem value="Kartu Kredit">
-                            Kartu kredit / debit
-                          </SelectItem>
-                          <SelectItem value="E-Wallet">
-                            E-Wallet (OVO, Gopay, DANA)
-                          </SelectItem>
-                          <SelectItem value="COD">
-                            Bayar di tempat (COD)
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <p className="text-xs text-muted-foreground">
-                        Pembayaran aman dengan enkripsi end-to-end.
-                      </p>
-                    </div>
                   </div>
 
                   <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-muted px-4 py-3 text-sm text-muted-foreground">
@@ -519,62 +490,8 @@ window.snap.pay(midtransData.token, {
                       <MapPin className="h-4 w-4" />
                       Pastikan alamat sudah sesuai agar pengiriman tepat waktu.
                     </div>
-                    <div className="flex items-center gap-2 text-primary">
-                      <CreditCard className="h-4 w-4" />
-                      Pembayaran diproses otomatis.
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-3">
-                    <Button
-                      type="submit"
-                      size="lg"
-                      disabled={submitting || cartItems.length === 0 || cartLoading}
-                    >
-                      {submitting ? "Memproses pesanan..." : "Konfirmasi & bayar"}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      type="button"
-                      onClick={() => navigate("/cart")}
-                    >
-                      Kembali ke keranjang
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      type="button"
-                      onClick={() => navigate("/")}
-                    >
-                      Belanja lagi
-                    </Button>
                   </div>
                 </form>
-              </CardContent>
-            </Card>
-
-            <Card className="border-border/70 bg-gradient-to-br from-card to-background shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <ShieldCheck className="h-5 w-5 text-primary" />
-                  Keamanan & layanan
-                </CardTitle>
-                <CardDescription>
-                  Checkout dirancang agar nyaman, cepat, dan aman di FixieStore.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-4 md:grid-cols-3">
-                {highlightCards.map(({ title, description, Icon }) => (
-                  <div
-                    key={title}
-                    className="flex flex-col gap-2 rounded-xl border border-border/70 bg-background/80 p-4 text-sm"
-                  >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    <p className="font-semibold">{title}</p>
-                    <p className="text-muted-foreground">{description}</p>
-                  </div>
-                ))}
               </CardContent>
             </Card>
           </div>
@@ -616,7 +533,7 @@ window.snap.pay(midtransData.token, {
                               {item.product?.name ?? "Produk tanpa nama"}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              Qty {item.quantity}
+                              Jumlah {item.quantity}
                             </p>
                           </div>
                           <p className="text-sm font-semibold text-primary">
@@ -656,10 +573,6 @@ window.snap.pay(midtransData.token, {
                 <div className="flex items-center justify-between text-lg font-semibold">
                   <span>Total tagihan</span>
                   <span>{formatCurrency(totalPrice)}</span>
-                </div>
-
-                <div className="rounded-lg bg-primary/5 px-4 py-3 text-sm text-primary">
-                  Pesananmu akan otomatis tercatat di tabel <strong>orders</strong> Supabase.
                 </div>
               </CardContent>
             </Card>
