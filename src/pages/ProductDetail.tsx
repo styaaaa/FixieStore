@@ -61,6 +61,15 @@ const ProductDetail = () => {
     }
   };
 
+  const handleCheckout = async (currentProduct: Product) => {
+    try {
+      await addToCart(currentProduct.id);
+      navigate("/checkout");
+    } catch (err: any) {
+      toast.error(err?.message || "Gagal memproses checkout");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-muted/30 px-4 py-10">
@@ -158,7 +167,14 @@ const ProductDetail = () => {
                 <Button size="lg" onClick={() => handleAddToCart(product)} disabled={cartLoading}>
                   Tambah ke keranjang
                 </Button>
-                <Button size="lg" variant="outline" onClick={() => navigate("/checkout")}>Checkout</Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={() => handleCheckout(product)}
+                  disabled={cartLoading}
+                >
+                  Checkout
+                </Button>
               </div>
             </div>
           </CardContent>
