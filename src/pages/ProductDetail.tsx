@@ -61,6 +61,14 @@ const ProductDetail = () => {
     }
   };
 
+  const handleCheckout = (currentProduct: Product) => {
+    navigate("/checkout", {
+      state: {
+        directPurchase: { product: currentProduct, quantity: 1 },
+      },
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-muted/30 px-4 py-10">
@@ -158,7 +166,14 @@ const ProductDetail = () => {
                 <Button size="lg" onClick={() => handleAddToCart(product)} disabled={cartLoading}>
                   Tambah ke keranjang
                 </Button>
-                <Button size="lg" variant="outline" onClick={() => navigate("/checkout")}>Checkout</Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={() => handleCheckout(product)}
+                  disabled={cartLoading}
+                >
+                  Checkout
+                </Button>
               </div>
             </div>
           </CardContent>
