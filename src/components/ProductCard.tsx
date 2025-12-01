@@ -54,9 +54,9 @@ export const ProductCard = ({ product, onAddToCart, compact }: ProductCardProps)
           </div>
         )}
         {isOutOfStock && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/70 backdrop-blur-[1px]">
-            <span className="rounded-full bg-destructive/10 px-3 py-1 text-sm font-semibold uppercase tracking-wide text-destructive">
-              Stock Habis
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+            <span className="rounded-full border border-muted-foreground/40 bg-muted/70 px-3 py-1 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Stock Habis Bro
             </span>
           </div>
         )}
