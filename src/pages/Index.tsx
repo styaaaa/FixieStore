@@ -138,7 +138,7 @@ const Index = () => {
       />
 
       {/* KATEGORI */}
-      <div id="kategori" className="scroll-mt-28 bg-background/60" ref={categorySectionRef}>
+      {/* <div id="kategori" className="scroll-mt-28 bg-background/60" ref={categorySectionRef}>
         <div className="container mx-auto px-4 py-3">
           <div className="rounded-full border border-white/5 bg-gradient-to-r from-background/90 via-background/60 to-background/90 p-2 shadow-lg shadow-primary/5">
             <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none sm:flex-wrap sm:justify-center sm:overflow-visible">
@@ -184,7 +184,7 @@ const Index = () => {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* PRODUK */}
       <section className="container mx-auto px-4 py-8">
