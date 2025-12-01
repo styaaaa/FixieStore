@@ -138,42 +138,50 @@ const Index = () => {
       />
 
       {/* KATEGORI */}
-      <div
-        id="kategori"
-        className="border-t border-b bg-card/30 scroll-mt-28"
-        ref={categorySectionRef}
-      >
+      <div id="kategori" className="scroll-mt-28 bg-background/60" ref={categorySectionRef}>
         <div className="container mx-auto px-4 py-3">
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none sm:flex-wrap sm:justify-center sm:overflow-visible">
-            <Button
-              variant={!activeCategory ? "default" : "outline"}
-              size="sm"
-              onClick={() => handleCategoryChange()}
-            >
-              Semua
-            </Button>
+          <div className="rounded-full border border-white/5 bg-gradient-to-r from-background/90 via-background/60 to-background/90 p-2 shadow-lg shadow-primary/5">
+            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none sm:flex-wrap sm:justify-center sm:overflow-visible">
+              <Button
+                variant="outline"
+                size="sm"
+                className={`flex-none rounded-full border-primary/30 bg-primary/10 px-4 py-2 text-sm font-semibold backdrop-blur transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/15 ${
+                  !activeCategory
+                    ? "border-primary/60 bg-primary text-primary-foreground shadow-lg shadow-primary/30"
+                    : "text-muted-foreground"
+                }`}
+                onClick={() => handleCategoryChange()}
+              >
+                Semua
+              </Button>
 
-            {loadingCategories ? (
-              Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton
-                  key={i}
-                  className="h-9 w-24 flex-none rounded-full bg-muted/60"
-                />
-              ))
-            ) : categories.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Belum ada kategori</p>
-            ) : (
-              categories.map((cat) => (
-                <Button
-                  key={cat.id}
-                  variant={activeCategory === cat.id ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => handleCategoryChange(cat.id)}
-                >
-                  {cat.name}
-                </Button>
-              ))
-            )}
+              {loadingCategories ? (
+                Array.from({ length: 6 }).map((_, i) => (
+                  <Skeleton
+                    key={i}
+                    className="h-10 w-28 flex-none rounded-full bg-muted/60"
+                  />
+                ))
+              ) : categories.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Belum ada kategori</p>
+              ) : (
+                categories.map((cat) => (
+                  <Button
+                    key={cat.id}
+                    variant="outline"
+                    size="sm"
+                    className={`flex-none rounded-full border-primary/20 bg-background/70 px-4 py-2 text-sm font-semibold text-muted-foreground shadow-sm backdrop-blur transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:bg-primary/10 hover:text-foreground ${
+                      activeCategory === cat.id
+                        ? "border-primary/60 bg-primary text-primary-foreground shadow-lg shadow-primary/30"
+                        : ""
+                    }`}
+                    onClick={() => handleCategoryChange(cat.id)}
+                  >
+                    {cat.name}
+                  </Button>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>
