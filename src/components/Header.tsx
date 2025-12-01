@@ -151,7 +151,9 @@ export const Header = ({
   }, [user]);
 
   const headerClasses = transparent
-    ? "bg-transparent text-white"
+    ? theme === "dark"
+      ? "bg-transparent text-white"
+      : "bg-transparent text-foreground"
     : "border-b bg-background/95 backdrop-blur-lg";
 
   return (
