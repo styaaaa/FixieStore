@@ -1,6 +1,6 @@
 // src/pages/Checkout.tsx
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, CreditCard, MapPin, Package, ShieldCheck, Truck } from "lucide-react";
 import { toast } from "sonner";
 
@@ -30,6 +30,8 @@ import { createOrder } from "@/lib/repositories/orderRepository";
 import { createMidtransTransaction } from "@/lib/repositories/paymentRepository";
 import { supabase } from "@/lib/supabaseClient";
 import { savePurchasedProducts } from "@/lib/repositories/reviewRepository";
+import type { Product } from "@/types/catalog";
+import type { CartItem } from "@/types/cart";
 
 // ==== Deklarasi global Midtrans Snap ====
 declare global {
@@ -49,8 +51,29 @@ const formatCurrency = (value: number) =>
 
 const Checkout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, authLoading } = useAuth();
   const { cartItems, cartLoading, refreshCart, clearCart } = useCart();
+
+  const directPurchase = (location.state as { directPurchase?: { product: Product; quantity: number } } | null)
+    ?.directPurchase;
+
+  const purchaseItems: CartItem[] = useMemo(() => {
+    if (directPurchase) {
+      const { product, quantity } = directPurchase;
+      return [
+        {
+          id: `direct-${product.id}`,
+          productId: product.id,
+          quantity,
+          createdAt: new Date().toISOString(),
+          product,
+        },
+      ];
+    }
+
+    return cartItems;
+  }, [cartItems, directPurchase]);
 
   const [submitting, setSubmitting] = useState(false);
   const [firstName, setFirstName] = useState("");
@@ -90,17 +113,17 @@ const Checkout = () => {
 
   const totalPrice = useMemo(
     () =>
-      cartItems.reduce(
+      purchaseItems.reduce(
         (total, item) => total + (item.product?.price ?? 0) * item.quantity,
         0
       ),
-    [cartItems]
+    [purchaseItems]
   );
 
 
   // ====== Validasi stok sebelum buat order ======
   const validateStock = () => {
-    const unavailableItem = cartItems.find((item) => {
+    const unavailableItem = purchaseItems.find((item) => {
       const availableStock = item.product?.stock ?? 0;
       return availableStock < item.quantity;
     });
@@ -124,8 +147,8 @@ const Checkout = () => {
       return;
     }
 
-    if (cartItems.length === 0) {
-      toast.error("Keranjangmu masih kosong");
+    if (purchaseItems.length === 0) {
+      toast.error("Tidak ada produk untuk checkout");
       return;
     }
 
@@ -190,15 +213,17 @@ window.snap.pay(midtransData.token, {
         .eq("id", order.id);
 
       // simpan produk yang berhasil dibeli untuk referensi ulasan
-      savePurchasedProducts(order.id, cartItems);
+      savePurchasedProducts(order.id, purchaseItems);
 
       // kurangi stok dan bersihkan cart
       await Promise.all(
-        cartItems.map((item) =>
+        purchaseItems.map((item) =>
           decreaseProductStock(item.productId, item.quantity)
         )
       );
-      await clearCart();
+      if (!directPurchase) {
+        await clearCart();
+      }
 
       toast.success("Pembayaran berhasil", {
         description: "Terima kasih sudah berbelanja di FixieStore.",
@@ -486,13 +511,13 @@ window.snap.pay(midtransData.token, {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-4">
-                  {cartLoading ? (
+                  {cartLoading && !directPurchase ? (
                     <div className="space-y-3">
                       <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
                       <div className="h-4 w-1/2 animate-pulse rounded bg-muted" />
                       <div className="h-4 w-2/3 animate-pulse rounded bg-muted" />
                     </div>
-                  ) : cartItems.length === 0 ? (
+                  ) : purchaseItems.length === 0 ? (
                     <div className="rounded-xl border border-dashed border-border/60 bg-muted/40 px-4 py-6 text-center">
                       <p className="font-semibold">Keranjang kosong</p>
                       <p className="text-sm text-muted-foreground">
@@ -504,7 +529,7 @@ window.snap.pay(midtransData.token, {
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {cartItems.map((item) => (
+                      {purchaseItems.map((item) => (
                         <div
                           key={item.id}
                           className="flex items-start justify-between rounded-lg border bg-card/60 p-3"
