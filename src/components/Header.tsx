@@ -37,6 +37,7 @@ interface HeaderProps {
   onNavigateToSearch?: () => void;
   transparent?: boolean;
   hideSearchControls?: boolean;
+  overlay?: boolean;
 }
 
 export const Header = ({
@@ -49,6 +50,7 @@ export const Header = ({
   onNavigateToSearch,
   transparent,
   hideSearchControls,
+  overlay,
 }: HeaderProps) => {
   const navigate = useNavigate();
   const { user, isAdmin, authLoading } = useAuth();
@@ -156,8 +158,13 @@ export const Header = ({
       : "bg-transparent text-foreground"
     : "border-b bg-background/95 backdrop-blur-lg";
 
+  const headerPositionClasses = overlay
+    ? "fixed left-0 top-0 w-full"
+    : "sticky top-0";
   return (
-    <header className={`sticky top-0 z-50 transition-colors ${headerClasses}`}>
+    <header
+      className={`z-50 transition-colors ${headerPositionClasses} ${headerClasses}`}
+    >
       <div className="container mx-auto px-4 py-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
