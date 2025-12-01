@@ -97,23 +97,6 @@ const Checkout = () => {
     [cartItems]
   );
 
-  const highlightCards = [
-    {
-      title: "Pembayaran terenkripsi",
-      description: "Setiap transaksi dijaga oleh standar keamanan modern.",
-      Icon: ShieldCheck,
-    },
-    {
-      title: "Dukungan 24/7",
-      description: "Mulai dari pembayaran hingga pengiriman, kami siap bantu.",
-      Icon: Package,
-    },
-    {
-      title: "Pengiriman terintegrasi",
-      description: "Lacak paket langsung dari dashboard setelah pesanan dibuat.",
-      Icon: Truck,
-    },
-  ];
 
   // ====== Validasi stok sebelum buat order ======
   const validateStock = () => {
@@ -134,9 +117,7 @@ const Checkout = () => {
     return false;
   };
 
-  const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (event) => {
-    event.preventDefault();
-
+  const handleSubmit = async () => {
     if (!user) {
       toast.error("Silakan masuk untuk melanjutkan checkout");
       navigate("/login");
@@ -567,6 +548,10 @@ window.snap.pay(midtransData.token, {
                     <span>Termasuk</span>
                   </div>
                 </div>
+
+              <Button className="w-full" disabled={submitting} onClick={handleSubmit}>
+                {submitting ? "Memproses..." : "Bayar Sekarang"}
+              </Button>
 
                 <Separator />
 
