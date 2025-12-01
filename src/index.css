@@ -11,6 +11,8 @@ All colors MUST be HSL.
     --background: 0 0% 100%;
     --foreground: 24 6% 20%;
 
+    color-scheme: light;
+
     --card: 0 0% 100%;
     --card-foreground: 24 6% 20%;
 
@@ -56,6 +58,8 @@ All colors MUST be HSL.
   .dark {
     --background: 0 0% 4%;
     --foreground: 0 0% 96%;
+
+    color-scheme: dark;
 
     --card: 0 0% 8%;
     --card-foreground: 0 0% 96%;

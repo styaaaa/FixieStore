@@ -93,7 +93,7 @@ export const HeroSection = () => {
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-background via-background/90 to-background/80 pb-6">
       <div className="container mx-auto px-4">
-        <div className="relative overflow-hidden rounded-3xl shadow-[0_24px_60px_-30px_rgba(0,0,0,0.45)] ring-1 ring-white/10">
+        <div className="relative overflow-hidden rounded-3xl shadow-[0_24px_60px_-30px_rgba(0,0,0,0.45)] ring-1 ring-border/60">
           <div
             className="flex"
             style={{
@@ -147,7 +147,7 @@ export const HeroSection = () => {
               variant="secondary"
               size="icon"
               onClick={handlePrev}
-              className="pointer-events-auto h-12 w-12 rounded-full border border-white/20 bg-white/70 text-foreground shadow-lg backdrop-blur"
+              className="pointer-events-auto h-12 w-12 rounded-full border border-border/70 bg-background/80 text-foreground shadow-lg backdrop-blur"
               aria-label="Slide sebelumnya"
             >
               <ChevronLeft className="h-6 w-6" />
@@ -159,7 +159,7 @@ export const HeroSection = () => {
               variant="secondary"
               size="icon"
               onClick={handleNext}
-              className="pointer-events-auto h-12 w-12 rounded-full border border-white/20 bg-white/70 text-foreground shadow-lg backdrop-blur"
+              className="pointer-events-auto h-12 w-12 rounded-full border border-border/70 bg-background/80 text-foreground shadow-lg backdrop-blur"
               aria-label="Slide berikutnya"
             >
               <ChevronRight className="h-6 w-6" />
@@ -181,10 +181,10 @@ export const HeroSection = () => {
                 <span
                   key={index}
                   className={cn(
-                    "h-2.5 w-2.5 rounded-full border border-white/40 transition",
+                    "h-2.5 w-2.5 rounded-full border border-border/70 bg-foreground/30 transition",
                     isActive
-                      ? "bg-white shadow-[0_0_0_6px_rgba(255,255,255,0.18)]"
-                      : "bg-white/40"
+                      ? "bg-foreground shadow-[0_0_0_6px_rgba(255,255,255,0.18)]"
+                      : ""
                   )}
                 />
               );
