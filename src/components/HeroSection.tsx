@@ -91,39 +91,36 @@ export const HeroSection = () => {
   );
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-background via-background/90 to-background/80 pb-6">
-      <div className="container mx-auto px-4">
-        <div className="relative overflow-hidden rounded-3xl shadow-[0_24px_60px_-30px_rgba(0,0,0,0.45)] ring-1 ring-border/60">
-          <div
-            className="flex"
-            style={{
-              transform: translateValue,
-              transition: isTransitioning
-                ? "transform 900ms ease-in-out"
-                : "none",
-            }}
-            onTransitionEnd={handleTransitionEnd}
-          >
-            {slidesWithClones.map((slide, index) => (
-              <article
-                key={`${slide.id}-${index}`}
+    <section className="relative isolate overflow-hidden">
+      <div className="relative h-[70vh] w-full md:h-[80vh]">
+        <div
+          className="flex h-full"
+          style={{
+            transform: translateValue,
+            transition: isTransitioning
+              ? "transform 900ms ease-in-out"
+              : "none",
+          }}
+          onTransitionEnd={handleTransitionEnd}
+        >
+          {slidesWithClones.map((slide, index) => (
+            <article
+              key={`${slide.id}-${index}`}
+              className="relative h-[70vh] w-full flex-shrink-0 bg-neutral-900 md:h-[80vh]"
+            >
+              <img
+                src={slide.image}
+                alt={slide.title}
                 className={cn(
-                  "relative aspect-[16/7] w-full flex-shrink-0",
-                  "bg-neutral-900"
+                  "absolute inset-0 h-full w-full object-cover transition-transform duration-700",
+                  direction === "left"
+                    ? "scale-100"
+                    : "scale-[1.01] origin-center"
                 )}
-              >
-                <img
-                  src={slide.image}
-                  alt={slide.title}
-                  className={cn(
-                    "h-full w-full object-cover transition-transform duration-700",
-                    direction === "left"
-                      ? "scale-100"
-                      : "scale-[1.01] origin-center"
-                  )}
-                />
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/45 via-black/20 to-black/60" />
-                <div className="absolute inset-0 flex translate-y-3 flex-col items-center justify-center gap-2 px-6 pt-8 text-center text-white drop-shadow-[0_6px_22px_rgba(0,0,0,0.45)] md:translate-y-6 md:pt-14">
+              />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/60" />
+              <div className="absolute inset-0">
+                <div className="container mx-auto flex h-full flex-col items-center justify-center gap-3 px-4 text-center text-white drop-shadow-[0_6px_22px_rgba(0,0,0,0.45)]">
                   {slide.accent && (
                     <span className="text-sm uppercase tracking-[0.2em] text-white/80">
                       {slide.accent}
@@ -136,60 +133,60 @@ export const HeroSection = () => {
                     {slide.description}
                   </p>
                 </div>
-              </article>
-            ))}
-          </div>
+              </div>
+            </article>
+          ))}
+        </div>
 
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-background/40 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-background/70 via-background/40 to-transparent" />
 
-          <div className="absolute inset-y-0 left-0 flex items-center px-3">
-            <Button
-              variant="secondary"
-              size="icon"
-              onClick={handlePrev}
-              className="pointer-events-auto h-12 w-12 rounded-full border border-border/70 bg-background/80 text-foreground shadow-lg backdrop-blur"
-              aria-label="Slide sebelumnya"
-            >
-              <ChevronLeft className="h-6 w-6" />
-            </Button>
-          </div>
+        <div className="absolute inset-y-0 left-0 flex items-center px-3">
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={handlePrev}
+            className="pointer-events-auto h-12 w-12 rounded-full border border-border/70 bg-background/80 text-foreground shadow-lg backdrop-blur"
+            aria-label="Slide sebelumnya"
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </Button>
+        </div>
 
-          <div className="absolute inset-y-0 right-0 flex items-center px-3">
-            <Button
-              variant="secondary"
-              size="icon"
-              onClick={handleNext}
-              className="pointer-events-auto h-12 w-12 rounded-full border border-border/70 bg-background/80 text-foreground shadow-lg backdrop-blur"
-              aria-label="Slide berikutnya"
-            >
-              <ChevronRight className="h-6 w-6" />
-            </Button>
-          </div>
+        <div className="absolute inset-y-0 right-0 flex items-center px-3">
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={handleNext}
+            className="pointer-events-auto h-12 w-12 rounded-full border border-border/70 bg-background/80 text-foreground shadow-lg backdrop-blur"
+            aria-label="Slide berikutnya"
+          >
+            <ChevronRight className="h-6 w-6" />
+          </Button>
+        </div>
 
-          <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 gap-2">
-            {slides.map((_, index) => {
-              const normalizedIndex =
-                currentIndex === 0
-                  ? slides.length - 1
-                  : currentIndex === slidesWithClones.length - 1
-                    ? 0
-                    : currentIndex - 1;
+        <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 gap-2">
+          {slides.map((_, index) => {
+            const normalizedIndex =
+              currentIndex === 0
+                ? slides.length - 1
+                : currentIndex === slidesWithClones.length - 1
+                  ? 0
+                  : currentIndex - 1;
 
-              const isActive = normalizedIndex === index;
+            const isActive = normalizedIndex === index;
 
-              return (
-                <span
-                  key={index}
-                  className={cn(
-                    "h-2.5 w-2.5 rounded-full border border-border/70 bg-foreground/30 transition",
-                    isActive
-                      ? "bg-foreground shadow-[0_0_0_6px_rgba(255,255,255,0.18)]"
-                      : ""
-                  )}
-                />
-              );
-            })}
-          </div>
+            return (
+              <span
+                key={index}
+                className={cn(
+                  "h-2.5 w-2.5 rounded-full border border-border/70 bg-foreground/30 transition",
+                  isActive
+                    ? "bg-foreground shadow-[0_0_0_6px_rgba(255,255,255,0.18)]"
+                    : ""
+                )}
+              />
+            );
+          })}
         </div>
       </div>
     </section>
