@@ -91,9 +91,9 @@ export const HeroSection = () => {
   );
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-background via-background/90 to-background/80 pb-6">
-      <div className="container mx-auto px-4">
-        <div className="relative overflow-hidden rounded-3xl shadow-[0_24px_60px_-30px_rgba(0,0,0,0.45)] ring-1 ring-border/60">
+    <section className="relative flex min-h-screen items-center overflow-hidden bg-gradient-to-b from-background via-background/90 to-background/80 pb-6">
+      <div className="container mx-auto h-full px-4 py-6">
+        <div className="relative h-full overflow-hidden rounded-3xl shadow-[0_24px_60px_-30px_rgba(0,0,0,0.45)] ring-1 ring-border/60">
           <div
             className="flex"
             style={{
@@ -108,8 +108,9 @@ export const HeroSection = () => {
               <article
                 key={`${slide.id}-${index}`}
                 className={cn(
-                  "relative aspect-[16/7] w-full flex-shrink-0",
-                  "bg-neutral-900"
+                  "relative w-full flex-shrink-0",
+                  "bg-neutral-900",
+                  "min-h-[70vh] sm:min-h-[75vh] md:min-h-[80vh] lg:min-h-[85vh] xl:min-h-[92vh]"
                 )}
               >
                 <img
