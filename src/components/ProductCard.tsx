@@ -22,6 +22,8 @@ export const ProductCard = ({ product, onAddToCart, compact }: ProductCardProps)
     }
   };
 
+  const isOutOfStock = product.stock <= 0;
+
   return (
     <Card
       role="button"
@@ -51,6 +53,13 @@ export const ProductCard = ({ product, onAddToCart, compact }: ProductCardProps)
             <span className="text-sm text-muted-foreground">No Image</span>
           </div>
         )}
+        {isOutOfStock && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/70 backdrop-blur-[1px]">
+            <span className="rounded-full bg-destructive/10 px-3 py-1 text-sm font-semibold uppercase tracking-wide text-destructive">
+              Stock Habis
+            </span>
+          </div>
+        )}
       </div>
 
       <CardContent className={`relative flex flex-1 flex-col p-4 ${compact ? "space-y-2" : "space-y-3"}`}>
@@ -69,13 +78,16 @@ export const ProductCard = ({ product, onAddToCart, compact }: ProductCardProps)
       <CardFooter className="relative mt-auto p-4 pt-0">
         <div className="w-full">
           <Button
-            className="w-full bg-primary/90 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
+            className="w-full bg-primary/90 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={isOutOfStock}
             onClick={(event) => {
               event.stopPropagation();
-              onAddToCart(product);
+              if (!isOutOfStock) {
+                onAddToCart(product);
+              }
             }}
           >
-            Add to Cart
+            {isOutOfStock ? "Stock Habis" : "Add to Cart"}
           </Button>
         </div>
       </CardFooter>
