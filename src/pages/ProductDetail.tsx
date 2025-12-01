@@ -61,12 +61,13 @@ const ProductDetail = () => {
     }
   };
 
-  const handleCheckout = (currentProduct: Product) => {
-    navigate("/checkout", {
-      state: {
-        directPurchase: { product: currentProduct, quantity: 1 },
-      },
-    });
+  const handleCheckout = async (currentProduct: Product) => {
+    try {
+      await addToCart(currentProduct.id);
+      navigate("/checkout");
+    } catch (err: any) {
+      toast.error(err?.message || "Gagal memproses checkout");
+    }
   };
 
   if (isLoading) {
