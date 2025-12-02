@@ -12,6 +12,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import UserDashboard from "./pages/UserDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminAddProduct from "./pages/AdminAddProduct";
+import AdminMonitoring from "./pages/AdminMonitoring";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import OrderReviews from "./pages/OrderReviews";
@@ -89,6 +91,22 @@ const App = () => (
                 element={
                   <AdminRoute>
                     <AdminDashboard />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/products/new"
+                element={
+                  <AdminRoute>
+                    <AdminAddProduct />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/monitoring"
+                element={
+                  <AdminRoute>
+                    <AdminMonitoring />
                   </AdminRoute>
                 }
               />

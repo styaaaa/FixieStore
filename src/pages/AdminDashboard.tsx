@@ -1,6 +1,4 @@
-// ============================
-// Admin Dashboard Refactored
-// ============================
+import { Navigate } from "react-router-dom";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
