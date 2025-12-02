@@ -167,7 +167,7 @@ export const Header = ({
     >
       <div className="container mx-auto px-4 py-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between gap-3">
             <Link to="/" className="flex items-center gap-2" aria-label="FixieStore">
               <img
                 src="/bulat.png"
@@ -177,7 +177,7 @@ export const Header = ({
               <h1 className="text-2xl font-bold">FixieStore</h1>
             </Link>
 
-            <div className="ml-auto flex items-center justify-end gap-2">
+            <div className="flex items-center justify-end gap-2">
               <Button
                 variant="ghost"
                 size="icon"
