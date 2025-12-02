@@ -28,6 +28,7 @@ import Blog from "./pages/Blog";
 import AffiliateProgram from "./pages/AffiliateProgram";
 import About from "./pages/About";
 import SearchPage from "./pages/Search";
+import Logout from "./pages/Logout";
 // --- ROUTE PROTECTION ---
 import AdminRoute from "@/routes/AdminRoute";
 import UserRoute from "@/routes/UserRoute";
@@ -47,6 +48,7 @@ const App = () => (
               {/* Public Routes */}
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/logout" element={<Logout />} />
               <Route path="/register" element={<Register />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />

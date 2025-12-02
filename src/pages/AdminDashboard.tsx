@@ -1,5 +1,5 @@
 // ============================
-// Admin Dashboard (Refactored + Supabase Image Upload)
+// Admin Dashboard (Final)
 // ============================
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -9,7 +9,7 @@ import {
   Trash2,
   ShieldCheck,
   RefreshCcw,
-  ArrowUpRight,
+  Home,
 } from "lucide-react";
 
 import {
@@ -31,7 +31,14 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem
+} from "@/components/ui/select";
+
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
 
@@ -60,7 +67,7 @@ interface ProductFormState {
   description: string;
   longDescription: string;
   categoryId: string | null;
-  file: File | null;               // file image
+  file: File | null;
 }
 
 const initialForm: ProductFormState = {
@@ -81,7 +88,7 @@ const initialForm: ProductFormState = {
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const { user, isAdmin, authLoading, signOut } = useAuth();
+  const { user, isAdmin, authLoading } = useAuth();
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -98,7 +105,7 @@ export default function AdminDashboard() {
 
 
   // ============================
-  // Load initial data
+  // Load Data
   // ============================
 
   const loadData = useCallback(async () => {
@@ -107,14 +114,10 @@ export default function AdminDashboard() {
         getCategories(),
         getProducts(),
       ]);
-
       setCategories(cats);
       setProducts(prods);
     } catch {
-      toast({
-        variant: "destructive",
-        title: "Gagal memuat data",
-      });
+      toast({ variant: "destructive", title: "Gagal memuat data" });
     } finally {
       setLoading(false);
     }
@@ -124,7 +127,7 @@ export default function AdminDashboard() {
     if (authLoading) return;
 
     if (!user) {
-      navigate("/", { replace: true });
+      navigate("/login", { replace: true });
       return;
     }
     if (!isAdmin) {
@@ -140,54 +143,46 @@ export default function AdminDashboard() {
   // Helpers
   // ============================
 
-  const setField = (field: keyof ProductFormState, value: any) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  };
+  const setField = (f: keyof ProductFormState, v: any) =>
+    setForm((p) => ({ ...p, [f]: v }));
 
-  const setEditField = (field: keyof ProductFormState, value: any) => {
-    setEditForm((prev) => (prev ? { ...prev, [field]: value } : prev));
-  };
+  const setEditField = (f: keyof ProductFormState, v: any) =>
+    setEditForm((p) => (p ? { ...p, [f]: v } : p));
+
 
   // ============================
-  // Upload to Supabase
+  // Supabase Upload
   // ============================
 
-const uploadProductImage = async (file: File) => {
-  const path = `products/${Date.now()}_${file.name}`;
+  const uploadProductImage = async (file: File) => {
+    const path = `products/${Date.now()}_${file.name}`;
 
-  const { error } = await supabase.storage
-    .from("image_product")
-    .upload(path, file, {
-      contentType: file.type,
-      cacheControl: "3600",
-    });
+    const { error } = await supabase.storage
+      .from("image_product")
+      .upload(path, file, {
+        contentType: file.type,
+        cacheControl: "3600",
+      });
 
-  if (error) {
-    console.error(error);
-    throw error;
-  }
+    if (error) throw error;
 
-  const { data } = supabase.storage
-    .from("image_product")
-    .getPublicUrl(path);
+    const { data } = supabase.storage
+      .from("image_product")
+      .getPublicUrl(path);
 
-  return data.publicUrl;
-};
-
+    return data.publicUrl;
+  };
 
 
   // ============================
   // Create Product
   // ============================
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleCreate = async (e: any) => {
     e.preventDefault();
 
     if (!form.name.trim() || !form.file) {
-      toast({
-        variant: "destructive",
-        title: "Nama dan file gambar wajib",
-      });
+      toast({ variant: "destructive", title: "Nama dan file wajib" });
       return;
     }
 
@@ -196,21 +191,18 @@ const uploadProductImage = async (file: File) => {
     try {
       const imageUrl = await uploadProductImage(form.file);
 
-      const price = Number(form.price);
-      const stock = Number(form.stock);
-
       const newProduct = await createProduct({
         name: form.name,
         brand: form.brand,
-        price,
-        stock,
+        price: Number(form.price),
+        stock: Number(form.stock),
         imageUrl,
         description: form.description,
         longDescription: form.longDescription,
         categoryId: form.categoryId,
       });
 
-      setProducts((prev) => [newProduct, ...prev]);
+      setProducts((p) => [newProduct, ...p]);
       setForm(initialForm);
 
       toast({ title: "Produk ditambahkan" });
@@ -229,7 +221,6 @@ const uploadProductImage = async (file: File) => {
 
   const startEdit = (product: Product) => {
     setEditing(product);
-
     setEditForm({
       name: product.name,
       brand: product.brand,
@@ -242,8 +233,9 @@ const uploadProductImage = async (file: File) => {
     });
   };
 
-  const handleUpdate = async (e: React.FormEvent) => {
+  const handleUpdate = async (e: any) => {
     e.preventDefault();
+
     if (!editing || !editForm) return;
 
     setSavingEdit(true);
@@ -251,33 +243,28 @@ const uploadProductImage = async (file: File) => {
     try {
       let imageUrl = editing.imageUrl;
 
-      // jika admin upload file baru → replace
       if (editForm.file) {
         imageUrl = await uploadProductImage(editForm.file);
       }
 
-      const price = Number(editForm.price);
-      const stock = Number(editForm.stock);
-
       const updated = await updateProduct(editing.id, {
         name: editForm.name,
         brand: editForm.brand,
-        price,
-        stock,
+        price: Number(editForm.price),
+        stock: Number(editForm.stock),
         imageUrl,
         description: editForm.description,
         longDescription: editForm.longDescription,
         categoryId: editForm.categoryId,
       });
 
-      setProducts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+      setProducts((p) => p.map((x) => (x.id === updated.id ? updated : x)));
       setEditing(null);
       setEditForm(null);
 
       toast({ title: "Produk diperbarui" });
-
     } catch {
-      toast({ variant: "destructive", title: "Gagal update produk" });
+      toast({ variant: "destructive", title: "Gagal mengupdate produk" });
     }
 
     setSavingEdit(false);
@@ -289,17 +276,17 @@ const uploadProductImage = async (file: File) => {
   // ============================
 
   const handleDelete = async (id: string) => {
-    setDeleteLoading((prev) => ({ ...prev, [id]: true }));
+    setDeleteLoading((s) => ({ ...s, [id]: true }));
 
     try {
       await deleteProduct(id);
-      setProducts((prev) => prev.filter((p) => p.id !== id));
+      setProducts((p) => p.filter((x) => x.id !== id));
       toast({ title: "Produk dihapus" });
     } catch {
       toast({ variant: "destructive", title: "Gagal menghapus" });
     }
 
-    setDeleteLoading((prev) => ({ ...prev, [id]: false }));
+    setDeleteLoading((s) => ({ ...s, [id]: false }));
   };
 
 
@@ -314,34 +301,40 @@ const uploadProductImage = async (file: File) => {
     [products]
   );
 
-
   return (
     <div className="p-6 max-w-6xl mx-auto">
 
-      {/* HEADER */}
+      {/* TOP BAR */}
       <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            Dashboard Admin
-            <Badge variant="secondary">
-              <ShieldCheck className="h-4 w-4" /> Admin
-            </Badge>
-          </h1>
-          <p className="text-sm text-muted-foreground">Kelola produk & stok</p>
+
+        {/* Left buttons */}
+        <div className="flex items-center gap-3">
+          <Button variant="outline" onClick={() => navigate("/")}>
+            <Home className="h-4 w-4 mr-2" />
+            Kembali ke Home
+          </Button>
         </div>
 
-        <Button variant="secondary" onClick={signOut}>Keluar</Button>
+        {/* Right button */}
+        <Button variant="destructive" onClick={() => navigate("/logout")}>
+          Keluar
+        </Button>
       </div>
 
+      {/* TITLE */}
+      <h1 className="text-3xl font-bold flex items-center gap-2 mb-1">
+        Dashboard Admin
+        <Badge variant="secondary">
+          <ShieldCheck className="h-4 w-4" /> Admin
+        </Badge>
+      </h1>
+      <p className="text-sm text-muted-foreground mb-6">Kelola produk & stok</p>
 
-      {/* ================================= */}
-      {/* FORM: ADD PRODUCT */}
-      {/* ================================= */}
-
+      {/* ADD PRODUCT */}
       <Card className="mb-8">
         <CardHeader>
           <CardTitle>Tambah Produk</CardTitle>
-          <CardDescription>Upload gambar langsung ke bucket Supabase.</CardDescription>
+          <CardDescription>Upload gambar ke Supabase Storage</CardDescription>
         </CardHeader>
 
         <CardContent>
@@ -355,9 +348,7 @@ const uploadProductImage = async (file: File) => {
               <Input type="number" placeholder="Stok" value={form.stock} onChange={(e) => setField("stock", e.target.value)} />
 
               <Select value={form.categoryId ?? "none"} onValueChange={(v) => setField("categoryId", v === "none" ? null : v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Kategori" />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Kategori" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Tanpa kategori</SelectItem>
                   {categories.map((c) => (
@@ -367,14 +358,12 @@ const uploadProductImage = async (file: File) => {
               </Select>
             </div>
 
-            {/* FILE INPUT */}
             <div>
-              <Label>Gambar Produk</Label>
+              <Label>Gambar</Label>
               <Input type="file" accept="image/*" onChange={(e) => setField("file", e.target.files?.[0] ?? null)} />
             </div>
 
             <Input placeholder="Deskripsi singkat" value={form.description} onChange={(e) => setField("description", e.target.value)} />
-
             <Textarea rows={4} placeholder="Deskripsi panjang" value={form.longDescription} onChange={(e) => setField("longDescription", e.target.value)} />
 
             <div className="flex justify-between items-center">
@@ -391,21 +380,17 @@ const uploadProductImage = async (file: File) => {
         </CardContent>
       </Card>
 
-
-      {/* ================================= */}
-      {/* TABLE */}
-      {/* ================================= */}
-
+      {/* PRODUCT TABLE */}
       <Card>
         <CardHeader>
           <CardTitle>Daftar Produk</CardTitle>
-          <CardDescription>Total nilai inventaris: Rp {inventoryValue.toLocaleString("id-ID")}</CardDescription>
+          <CardDescription>
+            Total nilai inventaris: Rp {inventoryValue.toLocaleString("id-ID")}
+          </CardDescription>
         </CardHeader>
 
         <CardContent>
-          {loading ? (
-            <p>Memuat...</p>
-          ) : (
+          {loading ? <p>Memuat...</p> : (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -419,6 +404,7 @@ const uploadProductImage = async (file: File) => {
               <TableBody>
                 {products.map((p) => (
                   <TableRow key={p.id}>
+
                     <TableCell>
                       <p className="font-semibold">{p.name}</p>
                       <p className="text-sm text-muted-foreground">{p.brand}</p>
@@ -432,7 +418,7 @@ const uploadProductImage = async (file: File) => {
                       </Badge>
                     </TableCell>
 
-                    <TableCell className="text-right flex gap-2 justify-end">
+                    <TableCell className="flex gap-2 justify-end">
 
                       {/* EDIT */}
                       <Button size="sm" variant="secondary" onClick={() => startEdit(p)}>
@@ -450,6 +436,7 @@ const uploadProductImage = async (file: File) => {
                       </Button>
 
                     </TableCell>
+
                   </TableRow>
                 ))}
               </TableBody>
@@ -459,16 +446,11 @@ const uploadProductImage = async (file: File) => {
       </Card>
 
 
-      {/* ================================= */}
       {/* EDIT MODAL */}
-      {/* ================================= */}
-
       {editing && editForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm p-4">
           <Card className="max-w-xl w-full">
-            <CardHeader>
-              <CardTitle>Edit Produk</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle>Edit Produk</CardTitle></CardHeader>
 
             <CardContent>
               <form onSubmit={handleUpdate} className="space-y-4">
@@ -479,9 +461,7 @@ const uploadProductImage = async (file: File) => {
                 <Input type="number" value={editForm.stock} onChange={(e) => setEditField("stock", e.target.value)} />
 
                 <Select value={editForm.categoryId ?? "none"} onValueChange={(v) => setEditField("categoryId", v === "none" ? null : v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Kategori" />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Kategori" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Tanpa kategori</SelectItem>
                     {categories.map((c) => (
@@ -490,9 +470,8 @@ const uploadProductImage = async (file: File) => {
                   </SelectContent>
                 </Select>
 
-                {/* REPLACE IMAGE */}
                 <div>
-                  <Label>Gambar Baru (opsional)</Label>
+                  <Label>Gambar baru (opsional)</Label>
                   <Input type="file" accept="image/*" onChange={(e) => setEditField("file", e.target.files?.[0] ?? null)} />
                 </div>
 
@@ -500,7 +479,6 @@ const uploadProductImage = async (file: File) => {
 
                 <div className="flex justify-between items-center">
                   <Button type="button" variant="outline" onClick={() => setEditing(null)}>Batal</Button>
-
                   <Button type="submit" disabled={savingEdit}>
                     {savingEdit ? ".." : "Simpan"}
                   </Button>
