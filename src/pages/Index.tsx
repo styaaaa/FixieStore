@@ -218,7 +218,7 @@ const Index = () => {
                 <h2 className="text-3xl font-bold mb-6">Pilihan Produk Terlaris</h2>
 
 
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                   {bestSellerProducts.map((product) => (
                     <ProductCard
                       key={`best-${product.id}`}
@@ -236,7 +236,7 @@ const Index = () => {
                 </p>
                 <h2 className="text-3xl font-bold mb-6">Koleksi Terbaru</h2>
 
-               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+               <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                   {newArrivalProducts.map((product) => (
                     <ProductCard
                       key={`new-${product.id}`}
