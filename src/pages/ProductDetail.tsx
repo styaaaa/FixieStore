@@ -149,7 +149,13 @@ const ProductDetail = () => {
                 {product.brand && <Badge variant="outline">{product.brand}</Badge>}
                 <h2 className="text-2xl font-semibold leading-tight">{product.name}</h2>
                 <p className="text-3xl font-bold text-primary">{formatCurrency(product.price)}</p>
-                <p className="text-sm text-muted-foreground">Stok tersisa: {product.stock}</p>
+                <p
+                  className={`text-sm ${
+                    isOutOfStock ? "font-semibold text-destructive" : "text-muted-foreground"
+                  }`}
+                >
+                  {isOutOfStock ? "Stok habis" : `Stok tersisa: ${product.stock}`}
+                </p>
               </div>
 
               <div className="space-y-3 text-sm text-muted-foreground">
