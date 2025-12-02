@@ -112,7 +112,7 @@ export const HeroSection = () => {
                 src={slide.image}
                 alt={slide.title}
                 className={cn(
-                  "absolute inset-0 h-full w-full object-cover transition-transform duration-700",
+                  "absolute inset-0 h-full w-full object-cover transition-transform duration-5000",
                   direction === "left"
                     ? "scale-100"
                     : "scale-[1.01] origin-center"
