@@ -348,14 +348,6 @@ const AdminDashboard = () => {
   // ============================
   // UI START
   // ============================
-
-  const scrollToSection = (sectionId: string) => {
-    const el = document.getElementById(sectionId);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
-
   return (
     <div className="min-h-screen bg-muted/30 py-10 px-4">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -378,25 +370,6 @@ const AdminDashboard = () => {
             <Button variant="secondary" onClick={handleSignOut}>Keluar</Button>
           </div>
         </div>
-
-        <nav className="sticky top-4 z-10 -mx-1 bg-muted/60 backdrop-blur supports-[backdrop-filter]:bg-muted/70 rounded-lg border p-2 shadow-sm">
-          <div className="flex flex-wrap gap-2">
-            {[{ id: "add-product", label: "Tambah produk" }, { id: "inventory", label: "Monitoring stok" }, { id: "products", label: "Daftar produk" }].map((section) => (
-              <Button
-                key={section.id}
-                variant="ghost"
-                className="flex-1 md:flex-none"
-                onClick={(e) => {
-                  e.preventDefault();
-                  scrollToSection(section.id);
-                }}
-              >
-                {section.label}
-              </Button>
-            ))}
-          </div>
-        </nav>
-
         <div className="grid gap-6 lg:grid-cols-[7fr_5fr]">
           {/* CARD: Add Product */}
           <section id="add-product" className="scroll-mt-28">
