@@ -9,10 +9,11 @@ export interface PurchasedProduct {
 
 export interface ProductReview {
   id: string;
-  orderId: string;
+  orderId?: string;
   productId: string;
   rating: number;
   message: string;
   createdAt: string;
   userName?: string;
+  userId?: string;
 }
