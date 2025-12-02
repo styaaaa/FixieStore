@@ -131,8 +131,6 @@ const Index = () => {
 
       <div className="pt-24 md:pt-28">
         <MobileHome
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
           featuredProducts={bestSellerProducts}
           wishlistProducts={
             newArrivalProducts.length > 0 ? newArrivalProducts : bestSellerProducts
