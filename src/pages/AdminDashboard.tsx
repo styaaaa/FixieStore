@@ -152,21 +152,28 @@ export default function AdminDashboard() {
   // Upload to Supabase
   // ============================
 
-  const uploadProductImage = async (file: File) => {
-    const path = `products/${Date.now()}_${file.name}`;
+const uploadProductImage = async (file: File) => {
+  const path = `products/${Date.now()}_${file.name}`;
 
-    const { error } = await supabase.storage
-      .from("image product")
-      .upload(path, file);
+  const { error } = await supabase.storage
+    .from("image_product")
+    .upload(path, file, {
+      contentType: file.type,
+      cacheControl: "3600",
+    });
 
-    if (error) throw error;
+  if (error) {
+    console.error(error);
+    throw error;
+  }
 
-    const { data } = supabase.storage
-      .from("image product")
-      .getPublicUrl(path);
+  const { data } = supabase.storage
+    .from("image_product")
+    .getPublicUrl(path);
 
-    return data.publicUrl;
-  };
+  return data.publicUrl;
+};
+
 
 
   // ============================

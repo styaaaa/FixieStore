@@ -89,6 +89,8 @@ const UserDashboard = () => {
     return <Badge variant="secondary">{status}</Badge>;
   };
 
+  
+
   if (!user || isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-muted/30">
@@ -161,27 +163,27 @@ const UserDashboard = () => {
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="rounded-xl border bg-background p-4 shadow-sm">
                   <p className="text-sm text-muted-foreground">Pesanan aktif</p>
-                  <p className="text-2xl font-semibold">
+                  <div className="text-2xl font-semibold">
                     {ordersLoading ? <Skeleton className="h-8 w-16" /> : activeOrders.length}
-                  </p>
+                  </div>
                   <p className="text-xs text-muted-foreground">Menunggu konfirmasi & pembayaran</p>
                 </div>
                 <div className="rounded-xl border bg-background p-4 shadow-sm">
                   <p className="text-sm text-muted-foreground">Pesanan selesai</p>
-                  <p className="text-2xl font-semibold">
+                  <div className="text-2xl font-semibold">
                     {ordersLoading ? <Skeleton className="h-8 w-16" /> : completedOrders.length}
-                  </p>
+                  </div>
                   <p className="text-xs text-muted-foreground">Berstatus sukses di Supabase</p>
                 </div>
                 <div className="rounded-xl border bg-background p-4 shadow-sm">
                   <p className="text-sm text-muted-foreground">Total nilai</p>
-                  <p className="text-2xl font-semibold">
+                  <div className="text-2xl font-semibold">
                     {ordersLoading ? (
                       <Skeleton className="h-8 w-24" />
                     ) : (
                       formatCurrency(orders.reduce((sum, order) => sum + (order.totalPrice ?? 0), 0))
                     )}
-                  </p>
+                  </div>
                   <p className="text-xs text-muted-foreground">Akumulasi checkout kamu</p>
                 </div>
               </div>
