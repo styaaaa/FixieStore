@@ -113,7 +113,7 @@ const ProductDetail = () => {
     );
   }
 
-  const isOutOfStock = product.stock <= 0;
+  const isOutOfStock = (product.stock ?? 0) <= 0
 
   return (
     <div className="min-h-screen bg-muted/30 px-4 py-10 text-foreground">
@@ -181,23 +181,20 @@ const ProductDetail = () => {
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  size="lg"
-                  onClick={() => handleAddToCart(product)}
-                  disabled={cartLoading || isOutOfStock}
-                >
-                  Tambah ke keranjang
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  onClick={() => handleCheckout(product)}
-                  disabled={cartLoading || isOutOfStock}
-                >
-                  Checkout
-                </Button>
-              </div>
+              {isOutOfStock ? (
+                <div className="rounded-xl border border-dashed bg-muted/60 p-4 text-sm text-muted-foreground">
+                  Produk sedang tidak tersedia. Silakan cek produk lain atau kembali setelah stok tersedia lagi.
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-3">
+                  <Button size="lg" onClick={() => handleAddToCart(product)} disabled={cartLoading}>
+                    Tambah ke keranjang
+                  </Button>
+                  <Button size="lg" variant="outline" onClick={() => handleCheckout(product)} disabled={cartLoading}>
+                    Checkout
+                  </Button>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
