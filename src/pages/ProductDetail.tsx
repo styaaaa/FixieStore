@@ -53,6 +53,11 @@ const ProductDetail = () => {
   }, [reviews]);
 
   const handleAddToCart = async (currentProduct: Product) => {
+    if (currentProduct.stock <= 0) {
+      toast.error("Stok produk habis");
+      return;
+    }
+
     try {
       await addToCart(currentProduct.id);
       toast.success(`${currentProduct.name} ditambahkan ke keranjang`);
@@ -62,6 +67,11 @@ const ProductDetail = () => {
   };
 
   const handleCheckout = async (currentProduct: Product) => {
+    if (currentProduct.stock <= 0) {
+      toast.error("Stok produk habis");
+      return;
+    }
+
     try {
       await addToCart(currentProduct.id);
       navigate("/checkout");
@@ -102,6 +112,8 @@ const ProductDetail = () => {
       </div>
     );
   }
+
+  const isOutOfStock = product.stock <= 0;
 
   return (
     <div className="min-h-screen bg-muted/30 px-4 py-10 text-foreground">
@@ -164,14 +176,18 @@ const ProductDetail = () => {
               </div>
 
               <div className="flex flex-wrap gap-3">
-                <Button size="lg" onClick={() => handleAddToCart(product)} disabled={cartLoading}>
+                <Button
+                  size="lg"
+                  onClick={() => handleAddToCart(product)}
+                  disabled={cartLoading || isOutOfStock}
+                >
                   Tambah ke keranjang
                 </Button>
                 <Button
                   size="lg"
                   variant="outline"
                   onClick={() => handleCheckout(product)}
-                  disabled={cartLoading}
+                  disabled={cartLoading || isOutOfStock}
                 >
                   Checkout
                 </Button>

@@ -101,6 +101,11 @@ const SearchPage = () => {
 
   const handleAddToCart = useCallback(
     async (product: Product) => {
+      if (product.stock <= 0) {
+        toast.error("Stok produk habis");
+        return;
+      }
+
       try {
         await addToCart(product.id);
         toast.success(`${product.name} ditambahkan ke keranjang`);

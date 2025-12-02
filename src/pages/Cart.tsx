@@ -41,6 +41,11 @@ const Cart = () => {
     [cartItems]
   );
 
+  const hasInsufficientStock = useMemo(
+    () => cartItems.some((item) => (item.product?.stock ?? 0) < item.quantity),
+    [cartItems]
+  );
+
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-muted/40">
@@ -149,78 +154,94 @@ const Cart = () => {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {cartItems.map((item, index) => (
-                    <div key={item.id} className="rounded-2xl border border-border/60 bg-card/60 p-4 shadow-sm">
-                      <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-                        <div className="h-24 w-full overflow-hidden rounded-xl bg-muted sm:h-28 sm:w-28">
-                          {item.product?.imageUrl ? (
-                            <img
-                              src={item.product.imageUrl}
-                              alt={item.product.name}
-                              className="h-full w-full object-cover"
-                              loading="lazy"
-                            />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-                              <ShoppingBag className="h-6 w-6" />
-                            </div>
-                          )}
-                        </div>
+                  {cartItems.map((item, index) => {
+                    const availableStock = item.product?.stock ?? 0;
+                    const isOutOfStock = availableStock === 0;
+                    const exceedsStock = availableStock < item.quantity;
 
-                        <div className="flex-1 space-y-3">
-                          <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
-                            <div>
-                              <p className="text-xs uppercase tracking-wide text-primary">Produk #{index + 1}</p>
-                              <h3 className="text-lg font-semibold leading-tight">
-                                {item.product?.name ?? "Produk tanpa nama"}
-                              </h3>
-                              {item.product?.brand && (
-                                <p className="text-sm text-muted-foreground">{item.product.brand}</p>
-                              )}
-                            </div>
-                            <p className="text-lg font-bold text-primary">
-                              {formatCurrency((item.product?.price ?? 0) * item.quantity)}
-                            </p>
+                    return (
+                      <div key={item.id} className="rounded-2xl border border-border/60 bg-card/60 p-4 shadow-sm">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                          <div className="h-24 w-full overflow-hidden rounded-xl bg-muted sm:h-28 sm:w-28">
+                            {item.product?.imageUrl ? (
+                              <img
+                                src={item.product.imageUrl}
+                                alt={item.product.name}
+                                className="h-full w-full object-cover"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                                <ShoppingBag className="h-6 w-6" />
+                              </div>
+                            )}
                           </div>
 
-                          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                            <div className="flex items-center gap-2 rounded-full border bg-background px-2 py-1 shadow-sm">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-9 w-9"
-                                onClick={() => void updateQuantity(item.id, item.quantity - 1)}
-                                disabled={item.quantity <= 1 || cartLoading}
-                              >
-                                <Minus className="h-4 w-4" />
-                              </Button>
-                              <span className="min-w-[3rem] text-center text-sm font-medium">{item.quantity}</span>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-9 w-9"
-                                onClick={() => void updateQuantity(item.id, item.quantity + 1)}
-                                disabled={cartLoading}
-                              >
-                                <Plus className="h-4 w-4" />
-                              </Button>
+                          <div className="flex-1 space-y-3">
+                            <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                              <div>
+                                <p className="text-xs uppercase tracking-wide text-primary">Produk #{index + 1}</p>
+                                <h3 className="text-lg font-semibold leading-tight">
+                                  {item.product?.name ?? "Produk tanpa nama"}
+                                </h3>
+                                {item.product?.brand && (
+                                  <p className="text-sm text-muted-foreground">{item.product.brand}</p>
+                                )}
+                                <p className="text-xs font-medium text-muted-foreground">
+                                  Stok tersedia: {availableStock}
+                                </p>
+                                {(isOutOfStock || exceedsStock) && (
+                                  <p className="text-xs font-medium text-destructive">
+                                    {isOutOfStock
+                                      ? "Stok habis, silakan hapus produk ini"
+                                      : "Jumlah melebihi stok yang tersedia"}
+                                  </p>
+                                )}
+                              </div>
+                              <p className="text-lg font-bold text-primary">
+                                {formatCurrency((item.product?.price ?? 0) * item.quantity)}
+                              </p>
                             </div>
 
-                            <div className="flex flex-wrap gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => void removeFromCart(item.id)}
-                                disabled={cartLoading}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" /> Hapus
-                              </Button>
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                              <div className="flex items-center gap-2 rounded-full border bg-background px-2 py-1 shadow-sm">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-9 w-9"
+                                  onClick={() => void updateQuantity(item.id, item.quantity - 1)}
+                                  disabled={item.quantity <= 1 || cartLoading}
+                                >
+                                  <Minus className="h-4 w-4" />
+                                </Button>
+                                <span className="min-w-[3rem] text-center text-sm font-medium">{item.quantity}</span>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-9 w-9"
+                                  onClick={() => void updateQuantity(item.id, item.quantity + 1)}
+                                  disabled={cartLoading || isOutOfStock || item.quantity >= availableStock}
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+
+                              <div className="flex flex-wrap gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => void removeFromCart(item.id)}
+                                  disabled={cartLoading}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" /> Hapus
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
@@ -262,7 +283,7 @@ const Cart = () => {
                 <Button
                   className="w-full"
                   size="lg"
-                  disabled={cartItems.length === 0 || cartLoading}
+                  disabled={cartItems.length === 0 || cartLoading || hasInsufficientStock}
                   onClick={() => navigate("/checkout")}
                 >
                   Lanjut ke checkout
@@ -270,6 +291,11 @@ const Cart = () => {
                 <Button variant="outline" className="w-full" onClick={() => navigate("/")}>
                   Cari produk lain
                 </Button>
+                {hasInsufficientStock && (
+                  <p className="text-center text-sm font-medium text-destructive">
+                    Checkout tidak tersedia karena ada item yang stoknya habis atau kurang.
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>

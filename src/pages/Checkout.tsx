@@ -120,6 +120,11 @@ const Checkout = () => {
     [purchaseItems]
   );
 
+  const hasInsufficientStock = useMemo(
+    () => purchaseItems.some((item) => (item.product?.stock ?? 0) < item.quantity),
+    [purchaseItems]
+  );
+
 
   // ====== Validasi stok sebelum buat order ======
   const validateStock = () => {
@@ -574,9 +579,14 @@ window.snap.pay(midtransData.token, {
                   </div>
                 </div>
 
-              <Button className="w-full" disabled={submitting} onClick={handleSubmit}>
+              <Button className="w-full" disabled={submitting || hasInsufficientStock} onClick={handleSubmit}>
                 {submitting ? "Memproses..." : "Bayar Sekarang"}
               </Button>
+              {hasInsufficientStock && (
+                <p className="text-center text-sm font-medium text-destructive">
+                  Checkout tidak dapat dilanjutkan karena ada stok yang habis atau kurang.
+                </p>
+              )}
 
                 <Separator />
 
