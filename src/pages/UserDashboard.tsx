@@ -19,6 +19,7 @@ import type { Order } from "@/types/order";
 import type { ProductReview } from "@/types/review";
 import { getReviewsByOrder } from "@/lib/repositories/reviewRepository";
 
+
 const UserDashboard = () => {
   const navigate = useNavigate();
   const { user, isAdmin, authLoading, signOut } = useAuth();
@@ -54,30 +55,36 @@ const UserDashboard = () => {
     [orders]
   );
 
-  const completedOrders = useMemo(
-    () => orders.filter((order) => order.status === "success"),
-    [orders]
-  );
+  const completedOrders = useMemo(() => {
+  return orders.filter((order) => order.status === "success");
+}, [orders]);
 
-  useEffect(() => {
-    const fetchOrderReviews = async () => {
-      if (completedOrders.length === 0) {
-        setOrderReviews({});
-        return;
-      }
+// stringify agar dependency tidak berubah tiap render
+const completedOrdersKey = useMemo(
+  () => JSON.stringify(completedOrders.map((o) => o.id)),
+  [completedOrders]
+);
 
-      const entries = await Promise.all(
-        completedOrders.map(async (order) => {
-          const reviews = await getReviewsByOrder(order.id);
-          return [order.id, reviews] as const;
-        }),
-      );
+useEffect(() => {
+  const fetchOrderReviews = async () => {
+    if (completedOrders.length === 0) {
+      setOrderReviews({});
+      return;
+    }
 
-      setOrderReviews(Object.fromEntries(entries));
-    };
+    const entries = await Promise.all(
+      completedOrders.map(async (order) => {
+        const reviews = await getReviewsByOrder(order.id);
+        return [order.id, reviews] as const;
+      })
+    );
 
-    fetchOrderReviews();
-  }, [completedOrders]);
+    setOrderReviews(Object.fromEntries(entries));
+  };
+
+  fetchOrderReviews();
+}, [completedOrdersKey]);
+
 
   const formatCurrency = (value?: number | null) =>
     new Intl.NumberFormat("id-ID", {

@@ -41,6 +41,9 @@ const OrderReviews = () => {
   const [message, setMessage] = useState("");
   const [selectedOrderId, setSelectedOrderId] = useState<string | undefined>();
   const [selectedProductId, setSelectedProductId] = useState<string | undefined>();
+  const [purchasedProducts, setPurchasedProducts] = useState<PurchasedProduct[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
 
   useEffect(() => {
     if (authLoading) return;
@@ -104,10 +107,26 @@ const OrderReviews = () => {
   };
 
   const selectedOrder = completedOrders.find((order) => order.id === selectedOrderId);
-  const purchasedProducts: PurchasedProduct[] = useMemo(
-    () => getPurchasedProductsByOrder(selectedOrderId),
-    [selectedOrderId]
-  );
+  useEffect(() => {
+  if (!selectedOrderId) {
+    setPurchasedProducts([]);
+    return;
+  }
+
+  let isActive = true;
+
+  const fetchProducts = async () => {
+    const res = await getPurchasedProductsByOrder(selectedOrderId);
+    if (isActive) setPurchasedProducts(res ?? []);
+  };
+
+  fetchProducts();
+
+  return () => {
+    isActive = false;
+  };
+}, [selectedOrderId]);
+
 
   useEffect(() => {
     if (purchasedProducts.length > 0) {
@@ -137,14 +156,16 @@ const OrderReviews = () => {
     }
 
     setIsSubmitting(true);
+const review = await saveProductReview({
+  orderId: selectedOrderId!,
+  productId: selectedProductId!,
+  rating: Number(rating),
+  message,
+  userId: user.id,
+});
 
-    const review = await saveProductReview({
-      orderId: selectedOrder.id,
-      productId: selectedProductId,
-      rating: Number(rating),
-      message,
-      userId: user.id,
-    });
+
+
 
     setIsSubmitting(false);
 
