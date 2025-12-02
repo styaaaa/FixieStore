@@ -1,4 +1,3 @@
-import type { FormEvent, MouseEvent } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -9,13 +8,11 @@ import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { getCategories, getProducts } from "@/lib/repositories/catalogRepository";
 import type { Product } from "@/types/catalog";
 import { useCart } from "@/context/cart-context";
 import { toast } from "sonner";
-import { Search as SearchIcon, Shuffle, Sparkles } from "lucide-react";
+import { Shuffle, Sparkles } from "lucide-react";
 
 const SearchPage = () => {
   const navigate = useNavigate();
@@ -90,14 +87,6 @@ const SearchPage = () => {
     setSearchQuery("");
     navigate("/search", { replace: true });
   }, [navigate]);
-
-  const handleSearchSubmit = useCallback(
-    (event?: FormEvent<HTMLFormElement> | MouseEvent<HTMLButtonElement>) => {
-      event?.preventDefault();
-      navigate(searchQuery.trim() ? `/search?q=${encodeURIComponent(searchQuery.trim())}` : "/search");
-    },
-    [navigate, searchQuery],
-  );
 
   const handleAddToCart = useCallback(
     async (product: Product) => {
@@ -233,42 +222,6 @@ const SearchPage = () => {
               </div>
 
               <div className="space-y-4">
-                <form onSubmit={handleSearchSubmit} className="space-y-3">
-                  <Label htmlFor="search-query" className="text-sm font-semibold text-muted-foreground">
-                    Cari produk
-                  </Label>
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                    <div className="relative flex-1">
-                      <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        id="search-query"
-                        value={searchQuery}
-                        onChange={(event) => setSearchQuery(event.target.value)}
-                        placeholder="Cari disni..."
-                        className="h-12 rounded-xl pl-10 pr-32"
-                      />
-                      <Button
-                        type="submit"
-                        className="absolute right-2 top-1/2 h-9 -translate-y-1/2 px-4"
-                      >
-                        Cari
-                      </Button>
-                    </div>
-                    <Button
-                      variant="outline"
-                      onClick={handleClearFilters}
-                      className="h-12 rounded-xl sm:w-auto"
-                      type="button"
-                    >
-                      Bersihkan filter
-                    </Button>
-                  </div>
-                  <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                    <span className="rounded-full border px-3 py-1">Tekan Enter atau tombol Cari</span>
-                    <span className="rounded-full border px-3 py-1">Filter bisa digabung</span>
-                  </div>
-                </form>
-
                 <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-background/70 px-4 py-3 text-sm shadow-sm">
                   <div className="flex items-center gap-3">
                     <div className="h-2 w-2 rounded-full bg-primary" />
@@ -281,9 +234,8 @@ const SearchPage = () => {
                       )}
                     </div>
                   </div>
-                  <Button variant="secondary" onClick={handleSearchSubmit} className="gap-2">
-                    <SearchIcon className="h-4 w-4" />
-                    Perbarui hasil
+                  <Button variant="outline" onClick={handleClearFilters} className="h-10 rounded-lg">
+                    Bersihkan filter
                   </Button>
                 </div>
 
