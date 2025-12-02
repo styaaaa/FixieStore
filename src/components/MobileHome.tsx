@@ -25,8 +25,6 @@ const mobileSlides = [
 ];
 
 interface MobileHomeProps {
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
   featuredProducts: Product[];
   wishlistProducts: Product[];
   onAddToCart: (product: Product) => void;
@@ -37,8 +35,6 @@ interface MobileHomeProps {
 }
 
 export const MobileHome = ({
-  searchQuery,
-  onSearchChange,
   featuredProducts,
   wishlistProducts,
   onAddToCart,
@@ -104,16 +100,6 @@ export const MobileHome = ({
             {category.name}
           </button>
         ))}
-      </div>
-
-      {/* Search */}
-      <div className="p-4">
-        <input
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Cari produk..."
-          className="w-full rounded-lg border px-3 py-2"
-        />
       </div>
 
       {/* Featured Products */}
