@@ -1,5 +1,28 @@
 import type { Category, Product } from "@/types/catalog";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
 import { ProductCard } from "./ProductCard";
+
+const mobileSlides = [
+  {
+    id: "poster",
+    title: "Retro spirit, pedal with it",
+    image: "/Poster.png",
+  },
+  {
+    id: "part",
+    title: "Timeless ride, fixie pride",
+    image: "/part.png",
+  },
+  {
+    id: "cycology",
+    title: "Culture moves, fixie proves",
+    image: "/cycology.png",
+  },
+];
 
 interface MobileHomeProps {
   searchQuery: string;
@@ -28,8 +51,36 @@ export const MobileHome = ({
     <div className="md:hidden">
       {/* Hero Banner */}
       <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground p-6">
-        <h2 className="text-2xl font-bold mb-2">Welcome to FixieStore</h2>
-        <p className="text-sm opacity-90">Discover amazing products</p>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-bold">Welcome to FixieStore</h2>
+          <p className="text-sm opacity-90">Discover amazing products</p>
+        </div>
+
+        <div className="mt-4">
+          <Carousel
+            opts={{ align: "start", loop: true }}
+            className="w-full"
+            aria-label="Promo slider mobile"
+          >
+            <CarouselContent className="-ml-3">
+              {mobileSlides.map((slide) => (
+                <CarouselItem key={slide.id} className="pl-3">
+                  <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-md">
+                    <img
+                      src={slide.image}
+                      alt={slide.title}
+                      className="h-48 w-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                    <div className="absolute bottom-3 left-4 right-4 text-white drop-shadow-md">
+                      <p className="text-sm font-medium leading-tight">{slide.title}</p>
+                    </div>
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
+        </div>
       </div>
 
       {/* Quick filters */}
