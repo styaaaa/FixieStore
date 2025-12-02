@@ -349,6 +349,13 @@ const AdminDashboard = () => {
   // UI START
   // ============================
 
+  const scrollToSection = (sectionId: string) => {
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-muted/30 py-10 px-4">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -372,241 +379,267 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* CARD: Add Product */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Tambah produk baru</CardTitle>
-            <CardDescription>Pastikan sesuai skema produk Supabase.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleCreateProduct} className="space-y-4">
+        <nav className="sticky top-4 z-10 -mx-1 bg-muted/60 backdrop-blur supports-[backdrop-filter]:bg-muted/70 rounded-lg border p-2 shadow-sm">
+          <div className="flex flex-wrap gap-2">
+            {[{ id: "add-product", label: "Tambah produk" }, { id: "inventory", label: "Monitoring stok" }, { id: "products", label: "Daftar produk" }].map((section) => (
+              <Button
+                key={section.id}
+                variant="ghost"
+                className="flex-1 md:flex-none"
+                onClick={(e) => {
+                  e.preventDefault();
+                  scrollToSection(section.id);
+                }}
+              >
+                {section.label}
+              </Button>
+            ))}
+          </div>
+        </nav>
 
-              {/* FORM GRID */}
-              <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-6 lg:grid-cols-[7fr_5fr]">
+          {/* CARD: Add Product */}
+          <section id="add-product" className="scroll-mt-28">
+            <Card>
+              <CardHeader>
+                <CardTitle>Tambah produk baru</CardTitle>
+                <CardDescription>Pastikan sesuai skema produk Supabase.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleCreateProduct} className="space-y-4">
 
-                <div className="space-y-2">
-                  <Label>Nama produk</Label>
-                  <Input value={formState.name} onChange={(e) => handleFormChange("name", e.target.value)} required />
+                  {/* FORM GRID */}
+                  <div className="grid gap-4 md:grid-cols-2">
+
+                    <div className="space-y-2">
+                      <Label>Nama produk</Label>
+                      <Input value={formState.name} onChange={(e) => handleFormChange("name", e.target.value)} required />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Brand</Label>
+                      <Input value={formState.brand} onChange={(e) => handleFormChange("brand", e.target.value)} />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Harga</Label>
+                      <Input type="number" min="0" value={formState.price} onChange={(e) => handleFormChange("price", e.target.value)} required />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Stok</Label>
+                      <Input type="number" min="0" value={formState.stock} onChange={(e) => handleFormChange("stock", e.target.value)} required />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Kategori</Label>
+                      <Select
+                        value={formState.categoryId ?? "none"}
+                        onValueChange={(value) =>
+                          handleFormChange("categoryId", value === "none" ? null : value)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih kategori (opsional)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Tanpa kategori</SelectItem>
+                          {categories.map((cat) => (
+                            <SelectItem key={cat.id} value={cat.id}>
+                              {cat.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>URL Gambar</Label>
+                      <Input type="url" value={formState.imageUrl} onChange={(e) => handleFormChange("imageUrl", e.target.value)} />
+                    </div>
+                  </div>
+
+                  {/* DESCRIPTION */}
+                  <div className="space-y-2">
+                    <Label>Deskripsi singkat</Label>
+                    <Input value={formState.description} onChange={(e) => handleFormChange("description", e.target.value)} />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Deskripsi panjang</Label>
+                    <Textarea rows={4} value={formState.longDescription} onChange={(e) => handleFormChange("longDescription", e.target.value)} />
+                  </div>
+
+                  {/* SUBMIT */}
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-muted-foreground flex items-center gap-2">
+                      <RefreshCcw className="h-4 w-4" /> Produk akan tersimpan langsung.
+                    </div>
+                    <Button type="submit" disabled={savingProduct}>
+                      {savingProduct ? "Menyimpan…" : "Tambah produk"}
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* INVENTORY SUMMARY */}
+          <section id="inventory" className="scroll-mt-28">
+            <Card>
+              <CardHeader>
+                <CardTitle>Ringkasan inventaris</CardTitle>
+                <CardDescription>Monitor stok dan performa katalog.</CardDescription>
+              </CardHeader>
+              <CardContent>
+
+                {/* Inventory Metrics */}
+                <div className="grid grid-cols-2 md:grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
+
+                  <div className="border rounded-lg p-3">
+                    <p className="text-sm text-muted-foreground">Total Produk</p>
+                    <p className="text-2xl font-bold">{products.length}</p>
+                  </div>
+
+                  <div className="border rounded-lg p-3">
+                    <p className="text-sm text-muted-foreground">Total Stok</p>
+                    <p className="text-2xl font-bold">
+                      {products.reduce((sum, p) => sum + p.stock, 0)}
+                    </p>
+                  </div>
+
+                  <div className="border rounded-lg p-3">
+                    <p className="text-sm text-muted-foreground">Nilai Inventaris</p>
+                    <p className="text-2xl font-bold">Rp {inventoryValue.toLocaleString("id-ID")}</p>
+                  </div>
+
+                  <div className="border rounded-lg p-3">
+                    <p className="text-sm text-muted-foreground">Stok Rendah (≤ 5)</p>
+                    <p className="text-2xl font-bold">{lowStockProducts.length}</p>
+                  </div>
+
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Brand</Label>
-                  <Input value={formState.brand} onChange={(e) => handleFormChange("brand", e.target.value)} />
-                </div>
+                {/* Low Stock Warning */}
+                {lowStockProducts.length > 0 && (
+                  <div className="rounded-lg border bg-amber-50 p-3 text-amber-900">
+                    <div className="font-semibold flex items-center gap-2 text-sm">
+                      <ArrowUpRight className="h-4 w-4" />
+                      Produk stok rendah
+                    </div>
 
-                <div className="space-y-2">
-                  <Label>Harga</Label>
-                  <Input type="number" min="0" value={formState.price} onChange={(e) => handleFormChange("price", e.target.value)} required />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Stok</Label>
-                  <Input type="number" min="0" value={formState.stock} onChange={(e) => handleFormChange("stock", e.target.value)} required />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Kategori</Label>
-                  <Select
-                    value={formState.categoryId ?? "none"}
-                    onValueChange={(value) =>
-                      handleFormChange("categoryId", value === "none" ? null : value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih kategori (opsional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Tanpa kategori</SelectItem>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </SelectItem>
+                    <div className="mt-2 space-y-1 text-sm">
+                      {lowStockProducts.slice(0, 3).map((p) => (
+                        <p key={p.id} className="flex justify-between">
+                          <span>{p.name}</span>
+                          <span className="font-semibold">{p.stock} stok</span>
+                        </p>
                       ))}
-                    </SelectContent>
-                  </Select>
+
+                      {lowStockProducts.length > 3 && (
+                        <p className="text-xs text-muted-foreground">
+                          +{lowStockProducts.length - 3} produk lainnya
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </section>
+        </div>
+
+        <section id="products" className="scroll-mt-28">
+          {/* PRODUCT TABLE */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Daftar Produk</CardTitle>
+              <CardDescription>Kelola stok dan data katalog.</CardDescription>
+            </CardHeader>
+
+            <CardContent>
+              {loadingInventory ? (
+                <p>Memuat...</p>
+              ) : products.length === 0 ? (
+                <div className="border border-dashed rounded-lg p-6 text-center text-muted-foreground">
+                  Belum ada produk. Tambahkan via formulir di atas.
                 </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Produk</TableHead>
+                      <TableHead>Kategori</TableHead>
+                      <TableHead>Harga</TableHead>
+                      <TableHead>Stok</TableHead>
+                      <TableHead className="text-right">Aksi</TableHead>
+                    </TableRow>
+                  </TableHeader>
 
-                <div className="space-y-2">
-                  <Label>URL Gambar</Label>
-                  <Input type="url" value={formState.imageUrl} onChange={(e) => handleFormChange("imageUrl", e.target.value)} />
-                </div>
-              </div>
+                  <TableBody>
+                    {products.map((p) => {
+                      const categoryLabel =
+                        categories.find((c) => c.id === p.categoryId)?.name ??
+                        "-";
 
-              {/* DESCRIPTION */}
-              <div className="space-y-2">
-                <Label>Deskripsi singkat</Label>
-                <Input value={formState.description} onChange={(e) => handleFormChange("description", e.target.value)} />
-              </div>
+                      return (
+                        <TableRow key={p.id}>
+                          <TableCell>
+                            <div>
+                              <p className="font-semibold">{p.name}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {p.brand || "Tanpa brand"}
+                              </p>
+                            </div>
+                          </TableCell>
 
-              <div className="space-y-2">
-                <Label>Deskripsi panjang</Label>
-                <Textarea rows={4} value={formState.longDescription} onChange={(e) => handleFormChange("longDescription", e.target.value)} />
-              </div>
+                          <TableCell>{categoryLabel}</TableCell>
 
-              {/* SUBMIT */}
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-muted-foreground flex items-center gap-2">
-                  <RefreshCcw className="h-4 w-4" /> Produk akan tersimpan langsung.
-                </div>
-                <Button type="submit" disabled={savingProduct}>
-                  {savingProduct ? "Menyimpan…" : "Tambah produk"}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+                          <TableCell>
+                            Rp {p.price.toLocaleString("id-ID")}
+                          </TableCell>
 
-        {/* INVENTORY SUMMARY */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Ringkasan inventaris</CardTitle>
-            <CardDescription>Monitor stok dan performa katalog.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            
-            {/* Inventory Metrics */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Badge variant={p.stock <= 5 ? "destructive" : "outline"}>
+                                {p.stock <= 5 ? "Rendah" : "Aman"}
+                              </Badge>
+                              <span className="font-semibold">{p.stock} unit</span>
+                            </div>
+                          </TableCell>
 
-              <div className="border rounded-lg p-3">
-                <p className="text-sm text-muted-foreground">Total Produk</p>
-                <p className="text-2xl font-bold">{products.length}</p>
-              </div>
-
-              <div className="border rounded-lg p-3">
-                <p className="text-sm text-muted-foreground">Total Stok</p>
-                <p className="text-2xl font-bold">
-                  {products.reduce((sum, p) => sum + p.stock, 0)}
-                </p>
-              </div>
-
-              <div className="border rounded-lg p-3">
-                <p className="text-sm text-muted-foreground">Nilai Inventaris</p>
-                <p className="text-2xl font-bold">Rp {inventoryValue.toLocaleString("id-ID")}</p>
-              </div>
-
-              <div className="border rounded-lg p-3">
-                <p className="text-sm text-muted-foreground">Stok Rendah (≤ 5)</p>
-                <p className="text-2xl font-bold">{lowStockProducts.length}</p>
-              </div>
-
-            </div>
-
-            {/* Low Stock Warning */}
-            {lowStockProducts.length > 0 && (
-              <div className="rounded-lg border bg-amber-50 p-3 text-amber-900">
-                <div className="font-semibold flex items-center gap-2 text-sm">
-                  <ArrowUpRight className="h-4 w-4" />
-                  Produk stok rendah
-                </div>
-
-                <div className="mt-2 space-y-1 text-sm">
-                  {lowStockProducts.slice(0, 3).map((p) => (
-                    <p key={p.id} className="flex justify-between">
-                      <span>{p.name}</span>
-                      <span className="font-semibold">{p.stock} stok</span>
-                    </p>
-                  ))}
-
-                  {lowStockProducts.length > 3 && (
-                    <p className="text-xs text-muted-foreground">
-                      +{lowStockProducts.length - 3} produk lainnya
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* PRODUCT TABLE */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Daftar Produk</CardTitle>
-            <CardDescription>Kelola stok dan data katalog.</CardDescription>
-          </CardHeader>
-
-          <CardContent>
-            {loadingInventory ? (
-              <p>Memuat...</p>
-            ) : products.length === 0 ? (
-              <div className="border border-dashed rounded-lg p-6 text-center text-muted-foreground">
-                Belum ada produk. Tambahkan via formulir di atas.
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Produk</TableHead>
-                    <TableHead>Kategori</TableHead>
-                    <TableHead>Harga</TableHead>
-                    <TableHead>Stok</TableHead>
-                    <TableHead className="text-right">Aksi</TableHead>
-                  </TableRow>
-                </TableHeader>
-
-                <TableBody>
-                  {products.map((p) => {
-                    const categoryLabel =
-                      categories.find((c) => c.id === p.categoryId)?.name ??
-                      "-";
-
-                    return (
-                      <TableRow key={p.id}>
-                        <TableCell>
-                          <div>
-                            <p className="font-semibold">{p.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {p.brand || "Tanpa brand"}
-                            </p>
-                          </div>
-                        </TableCell>
-
-                        <TableCell>{categoryLabel}</TableCell>
-
-                        <TableCell>
-                          Rp {p.price.toLocaleString("id-ID")}
-                        </TableCell>
-
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Badge variant={p.stock <= 5 ? "destructive" : "outline"}>
-                              {p.stock <= 5 ? "Rendah" : "Aman"}
-                            </Badge>
-                            <span className="font-semibold">{p.stock} unit</span>
-                          </div>
-                        </TableCell>
-
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              onClick={() => startEditingProduct(p)}
-                              className="flex items-center gap-1"
-                            >
-                              <Pencil className="h-4 w-4" />
-                              Update
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleDeleteProduct(p.id)}
-                              disabled={deletingProduct[p.id]}
-                              className="flex items-center gap-1"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                              {deletingProduct[p.id] ? "Menghapus…" : "Delete"}
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                size="sm"
+                                variant="secondary"
+                                onClick={() => startEditingProduct(p)}
+                                className="flex items-center gap-1"
+                              >
+                                <Pencil className="h-4 w-4" />
+                                Update
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleDeleteProduct(p.id)}
+                                disabled={deletingProduct[p.id]}
+                                className="flex items-center gap-1"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                {deletingProduct[p.id] ? "Menghapus…" : "Delete"}
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </section>
 
       </div>
 
