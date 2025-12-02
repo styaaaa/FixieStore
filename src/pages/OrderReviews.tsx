@@ -118,7 +118,7 @@ const OrderReviews = () => {
     setSelectedProductId(undefined);
   }, [purchasedProducts]);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!selectedOrder) {
@@ -131,13 +131,27 @@ const OrderReviews = () => {
       return;
     }
 
-    const review = saveProductReview({
+    if (!user?.id) {
+      toast({ title: "Session tidak valid", description: "Silakan login ulang." });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const review = await saveProductReview({
       orderId: selectedOrder.id,
       productId: selectedProductId,
       rating: Number(rating),
       message,
-      userName: user?.email ?? undefined,
+      userId: user.id,
     });
+
+    setIsSubmitting(false);
+
+    if (!review) {
+      toast({ title: "Gagal menyimpan ulasan", description: "Periksa koneksi dan coba lagi." });
+      return;
+    }
 
     toast({
       title: "Terima kasih atas ulasanmu!",
@@ -363,7 +377,9 @@ const OrderReviews = () => {
 
                 <div className="flex items-center justify-end gap-3">
                   <Button type="button" variant="ghost" onClick={() => navigate("/dashboard")}>Tutup</Button>
-                  <Button type="submit" disabled={!selectedOrder}>Kirim ulasan</Button>
+                  <Button type="submit" disabled={!selectedOrder || isSubmitting}>
+                    {isSubmitting ? "Menyimpan..." : "Kirim ulasan"}
+                  </Button>
                 </div>
               </form>
             </CardContent>

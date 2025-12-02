@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Star, Truck } from "lucide-react";
@@ -33,11 +33,11 @@ const ProductDetail = () => {
     enabled: Boolean(productId),
   });
 
-  const [reviews, setReviews] = useState<ProductReview[]>([]);
-
-  useEffect(() => {
-    setReviews(getReviewsByProduct(productId));
-  }, [productId]);
+  const { data: reviews = [], isLoading: reviewsLoading } = useQuery<ProductReview[]>({
+    queryKey: ["product-reviews", productId],
+    queryFn: () => getReviewsByProduct(productId!),
+    enabled: Boolean(productId),
+  });
 
   useEffect(() => {
     if (error) {
@@ -212,7 +212,12 @@ const ProductDetail = () => {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {reviews.length === 0 ? (
+            {reviewsLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-16 w-full" />
+              </div>
+            ) : reviews.length === 0 ? (
               <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
                 Belum ada ulasan. Selesaikan pembayaran dan tulis review di halaman pesanan untuk tampil di sini.
               </div>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -16,12 +16,14 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUserOrders } from "@/hooks/useUserOrders";
 import type { Order } from "@/types/order";
+import type { ProductReview } from "@/types/review";
 import { getReviewsByOrder } from "@/lib/repositories/reviewRepository";
 
 const UserDashboard = () => {
   const navigate = useNavigate();
   const { user, isAdmin, authLoading, signOut } = useAuth();
   const { data: orders = [], isLoading: ordersLoading } = useUserOrders(user?.id);
+  const [orderReviews, setOrderReviews] = useState<Record<string, ProductReview[]>>({});
 
   const handleSignOut = useCallback(async () => {
     try {
@@ -56,6 +58,26 @@ const UserDashboard = () => {
     () => orders.filter((order) => order.status === "success"),
     [orders]
   );
+
+  useEffect(() => {
+    const fetchOrderReviews = async () => {
+      if (completedOrders.length === 0) {
+        setOrderReviews({});
+        return;
+      }
+
+      const entries = await Promise.all(
+        completedOrders.map(async (order) => {
+          const reviews = await getReviewsByOrder(order.id);
+          return [order.id, reviews] as const;
+        }),
+      );
+
+      setOrderReviews(Object.fromEntries(entries));
+    };
+
+    fetchOrderReviews();
+  }, [completedOrders]);
 
   const formatCurrency = (value?: number | null) =>
     new Intl.NumberFormat("id-ID", {
@@ -298,7 +320,7 @@ const UserDashboard = () => {
               ) : (
                 <div className="space-y-3">
                   {completedOrders.map((order) => {
-                    const hasReview = getReviewsByOrder(order.id).length > 0;
+                    const hasReview = (orderReviews[order.id] ?? []).length > 0;
 
                     return (
                     <div
