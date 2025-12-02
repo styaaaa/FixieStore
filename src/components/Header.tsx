@@ -167,7 +167,8 @@ export const Header = ({
     >
       <div className="container mx-auto px-4 py-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+          
             <Link to="/" className="flex items-center gap-2" aria-label="FixieStore">
               <img
                 src="/bulat.png"
@@ -176,78 +177,6 @@ export const Header = ({
               />
               <h1 className="text-2xl font-bold">FixieStore</h1>
             </Link>
-
-            <div className="flex items-center justify-end gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Ubah tema"
-                onClick={toggleTheme}
-              >
-                {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Pergi ke pencarian"
-                onClick={handleStoreClick}
-              >
-                <ShoppingBag className="h-5 w-5" />
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Kembali ke beranda"
-                onClick={handleHomeClick}
-              >
-                <Home className="h-5 w-5" />
-              </Button>
-
-              <div className="relative">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Buka keranjang"
-                  onClick={handleCartClick}
-                >
-                  <ShoppingCart className="h-5 w-5" />
-                </Button>
-                {cartItemCount > 0 && (
-                  <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1 text-xs font-semibold text-destructive-foreground">
-                    {cartItemCount}
-                  </span>
-                )}
-              </div>
-              {authLoading ? (
-                <div className="h-10 w-10 animate-pulse rounded-full bg-muted" aria-label="Memuat status akun" />
-              ) : user ? (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-10 w-10 rounded-full border"
-                  aria-label="Buka dashboard"
-                  onClick={handleProfileClick}
-                >
-                  <Avatar className="h-9 w-9">
-                    <AvatarImage
-                      src={(user.user_metadata as Record<string, string> | undefined)?.avatar_url}
-                      alt="Foto profil"
-                    />
-                    <AvatarFallback>{avatarFallback}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              ) : (
-                <>
-                  <Button variant="outline" asChild size="sm">
-                    <Link to="/login">Masuk</Link>
-                  </Button>
-                  <Button size="sm" asChild>
-                    <Link to="/register">Daftar</Link>
-                  </Button>
-                </>
-              )}
-            </div>
           </div>
 
           {!hideSearchControls && (
@@ -355,6 +284,78 @@ export const Header = ({
               </Select>
             </div>
           )}
+
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Ubah tema"
+              onClick={toggleTheme}
+            >
+              {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Pergi ke pencarian"
+              onClick={handleStoreClick}
+            >
+              <ShoppingBag className="h-5 w-5" />
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Kembali ke beranda"
+              onClick={handleHomeClick}
+            >
+              <Home className="h-5 w-5" />
+            </Button>
+
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Buka keranjang"
+                onClick={handleCartClick}
+              >
+                <ShoppingCart className="h-5 w-5" />
+              </Button>
+              {cartItemCount > 0 && (
+                <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1 text-xs font-semibold text-destructive-foreground">
+                  {cartItemCount}
+                </span>
+              )}
+            </div>
+            {authLoading ? (
+              <div className="h-10 w-10 animate-pulse rounded-full bg-muted" aria-label="Memuat status akun" />
+            ) : user ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 rounded-full border"
+                aria-label="Buka dashboard"
+                onClick={handleProfileClick}
+              >
+                <Avatar className="h-9 w-9">
+                  <AvatarImage
+                    src={(user.user_metadata as Record<string, string> | undefined)?.avatar_url}
+                    alt="Foto profil"
+                  />
+                  <AvatarFallback>{avatarFallback}</AvatarFallback>
+                </Avatar>
+              </Button>
+            ) : (
+              <>
+                <Button variant="outline" asChild size="sm">
+                  <Link to="/login">Masuk</Link>
+                </Button>
+                <Button size="sm" asChild>
+                  <Link to="/register">Daftar</Link>
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </header>
