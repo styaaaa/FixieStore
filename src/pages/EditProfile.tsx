@@ -186,30 +186,44 @@ return (
               />
             </div>
 
-            {/* Phone + City */}
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone">No. Tlp</Label>
-                <Input
-                  id="phone"
-                  value={profileForm.phone}
-                  onChange={handleProfileChange("phone")}
-                  placeholder="Contoh: 0812xxxx"
-                  disabled={profileLoading || saveProfilePending}
-                />
-              </div>
+            {/* Phone + City + Postal Code */}
+<div className="grid gap-4 md:grid-cols-3">
+  
+  <div className="space-y-2">
+    <Label htmlFor="phone">Nomor Telepon</Label>
+    <Input
+      id="phone"
+      value={profileForm.phone}
+      onChange={handleProfileChange("phone")}
+      placeholder="0812xxxxxxx"
+      disabled={profileLoading || saveProfilePending}
+    />
+  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="city">Kota/Kabupaten</Label>
-                <Input
-                  id="city"
-                  value={profileForm.city}
-                  onChange={handleProfileChange("city")}
-                  placeholder="Contoh: Surabaya"
-                  disabled={profileLoading || saveProfilePending}
-                />
-              </div>
-            </div>
+  <div className="space-y-2">
+    <Label htmlFor="city">Kota / Kabupaten</Label>
+    <Input
+      id="city"
+      value={profileForm.city}
+      onChange={handleProfileChange("city")}
+      placeholder="Contoh: Surabaya"
+      disabled={profileLoading || saveProfilePending}
+    />
+  </div>
+
+  <div className="space-y-2">
+    <Label htmlFor="postalCode">Kode Pos</Label>
+    <Input
+      id="postalCode"
+      value={profileForm.postalCode}
+      onChange={handleProfileChange("postalCode")}
+      placeholder="Contoh: 60231"
+      disabled={profileLoading || saveProfilePending}
+    />
+  </div>
+
+</div>
+
 
             {/* Address */}
             <div className="space-y-2">
