@@ -16,8 +16,8 @@ export const FixieLoading = ({
   } as const;
 
   const containerClasses = fullscreen
-    ? 'fixed inset-0 flex items-center justify-center bg-background/80 z-50'
-    : 'flex items-center justify-center py-8';
+    ? 'fixed inset-0 z-50 flex items-center justify-center bg-background/90 backdrop-blur-sm'
+    : 'flex min-h-[60vh] items-center justify-center py-8';
 
   return (
     <div className={containerClasses}>
@@ -36,7 +36,7 @@ export const FixieLoading = ({
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
-                <g className="origin-center animate-wheel-spin">
+                <g className="origin-center">
                   <circle cx="30" cy="50" r="18" />
                   <line x1="30" y1="32" x2="30" y2="68" />
                   <line x1="12" y1="50" x2="48" y2="50" />
@@ -44,7 +44,7 @@ export const FixieLoading = ({
                   <line x1="17" y1="63" x2="43" y2="37" />
                 </g>
 
-                <g className="origin-center animate-wheel-spin">
+                <g className="origin-center">
                   <circle cx="90" cy="50" r="18" />
                   <line x1="90" y1="32" x2="90" y2="68" />
                   <line x1="72" y1="50" x2="108" y2="50" />
@@ -52,7 +52,7 @@ export const FixieLoading = ({
                   <line x1="77" y1="63" x2="103" y2="37" />
                 </g>
 
-                <circle cx="60" cy="46" r="6" className="origin-center animate-crank-spin" />
+                <circle cx="60" cy="46" r="6" className="origin-center" />
                 <path d="M30 50 L58 46 L48 30 Z" />
                 <path d="M58 46 L90 50 L82 24" />
                 <path d="M48 30 L68 24 L74 28" />
