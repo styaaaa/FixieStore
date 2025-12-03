@@ -85,9 +85,9 @@ export default {
           "100%": { transform: "translateX(-50%)" },
         },
         ride: {
-          "0%": { transform: "translateX(-30%) translateY(0)" },
-          "50%": { transform: "translateX(25%) translateY(-4px)" },
-          "100%": { transform: "translateX(-30%) translateY(0)" },
+          "0%": { transform: "translateX(-8%) translateY(0)" },
+          "50%": { transform: "translateX(6%) translateY(-4px)" },
+          "100%": { transform: "translateX(-8%) translateY(0)" },
         },
         "wheel-spin": {
           "0%": { transform: "rotate(0deg)" },
