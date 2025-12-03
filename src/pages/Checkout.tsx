@@ -12,7 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -25,6 +24,7 @@ import {
 
 import { useAuth } from "@/context/auth-context";
 import { useCart } from "@/context/cart-context";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { decreaseProductStock } from "@/lib/repositories/catalogRepository";
 import { createOrder } from "@/lib/repositories/orderRepository";
 import { createMidtransTransaction } from "@/lib/repositories/paymentRepository";
@@ -54,6 +54,7 @@ const Checkout = () => {
   const location = useLocation();
   const { user, authLoading } = useAuth();
   const { cartItems, cartLoading, refreshCart, clearCart } = useCart();
+  const { data: profile, isLoading: profileLoading } = useUserProfile(user?.id);
 
   const directPurchase = (location.state as { directPurchase?: { product: Product; quantity: number } } | null)
     ?.directPurchase;
@@ -76,12 +77,6 @@ const Checkout = () => {
   }, [cartItems, directPurchase]);
 
   const [submitting, setSubmitting] = useState(false);
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
-  const [city, setCity] = useState("");
-  const [postalCode, setPostalCode] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("Transfer Bank");
   const [shippingMethod, setShippingMethod] = useState("Reguler");
 
@@ -119,6 +114,37 @@ const Checkout = () => {
       ),
     [purchaseItems]
   );
+
+  const profileFullName = useMemo(
+    () => profile?.full_name?.trim() || (user?.user_metadata as Record<string, string> | undefined)?.full_name?.trim() || "",
+    [profile?.full_name, user?.user_metadata]
+  );
+
+  const profilePhone = profile?.phone?.trim() ?? "";
+  const profileAddress = profile?.address?.trim() ?? "";
+  const profileCity = profile?.city?.trim() ?? "";
+  const profilePostalCode = profile?.postal_code?.trim() ?? "";
+
+  const [derivedFirstName, derivedLastName] = useMemo(() => {
+    if (!profileFullName) return ["", ""];
+
+    const [first, ...rest] = profileFullName.split(" ");
+    const last = rest.join(" ").trim();
+
+    return [first || profileFullName, last || first || "Customer"];
+  }, [profileFullName]);
+
+  const missingProfileFields = useMemo(() => {
+    const missing: string[] = [];
+
+    if (!profileFullName) missing.push("Nama lengkap");
+    if (!profilePhone) missing.push("Nomor telepon");
+    if (!profileAddress) missing.push("Alamat lengkap");
+    if (!profileCity) missing.push("Kota / Kabupaten");
+    if (!profilePostalCode) missing.push("Kode pos");
+
+    return missing;
+  }, [profileAddress, profileCity, profileFullName, profilePhone, profilePostalCode]);
 
   const hasInsufficientStock = useMemo(
     () => purchaseItems.some((item) => (item.product?.stock ?? 0) < item.quantity),
@@ -159,6 +185,19 @@ const Checkout = () => {
 
     if (!validateStock()) return;
 
+    if (profileLoading) {
+      toast.info("Sedang memuat data profil. Coba lagi sesaat lagi.");
+      return;
+    }
+
+    if (missingProfileFields.length > 0) {
+      toast.error("Lengkapi informasi penerima", {
+        description: "Perbarui detail profilmu sebelum melanjutkan checkout.",
+      });
+      navigate("/dashboard/profile");
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -168,98 +207,85 @@ const Checkout = () => {
         paymentMethod,
         shippingMethod,
         totalPrice,
-        firstName,
-        lastName,
-        phone,
-        address,
-        city,
-        postalCode,
+        firstName: derivedFirstName,
+        lastName: derivedLastName,
+        phone: profilePhone,
+        address: profileAddress,
+        city: profileCity,
+        postalCode: profilePostalCode,
       });
 
       // 2. Minta token Midtrans ke Edge Function
-        createMidtransTransaction({
-        orderId: order.id,
-        grossAmount: totalPrice,
-        customerDetails: {
-        first_name: firstName,
-        last_name: lastName,
-        phone,
-        address,
-        email: user.email // WAJIB
-  },
-});
-
-
       if (!window.snap) {
         toast.error("Layanan pembayaran belum siap. Coba beberapa saat lagi.");
         return;
       }
 
-      const midtransData = await createMidtransTransaction({
-    orderId: order.id,
-    grossAmount: totalPrice,
-    customerDetails: {
-    first_name: firstName,
-    last_name: lastName,
-    phone,
-    address,
-    email: user.email
-  },
-});
+        const midtransData = await createMidtransTransaction({
+          orderId: order.id,
+          grossAmount: totalPrice,
+          customerDetails: {
+            first_name: derivedFirstName,
+            last_name: derivedLastName,
+            phone: profilePhone,
+            address: `${profileAddress}, ${profileCity} ${profilePostalCode}`,
+            email: user.email,
+          },
+        });
 
-// 3. Jalankan Midtrans Snap popup
-window.snap.pay(midtransData.token, {
-  onSuccess: async () => {
-    try {
-      // update status ke success (fallback jika webhook sudah handle)
-      await supabase
-        .from("orders")
-        .update({ status: "success" })
-        .eq("id", order.id);
+        // 3. Jalankan Midtrans Snap popup
+        window.snap.pay(midtransData.token, {
+          onSuccess: async () => {
+            try {
+              // update status ke success (fallback jika webhook sudah handle)
+              await supabase
+                .from("orders")
+                .update({ status: "success" })
+                .eq("id", order.id);
 
-      // simpan produk yang berhasil dibeli untuk referensi ulasan
-      savePurchasedProducts(order.id, purchaseItems);
+              // simpan produk yang berhasil dibeli untuk referensi ulasan
+              savePurchasedProducts(order.id, purchaseItems);
 
-      // kurangi stok dan bersihkan cart
-      await Promise.all(
-        purchaseItems.map((item) =>
-          decreaseProductStock(item.productId, item.quantity)
-        )
-      );
-      if (!directPurchase) {
-        await clearCart();
-      }
+              // kurangi stok dan bersihkan cart
+              await Promise.all(
+                purchaseItems.map((item) =>
+                  decreaseProductStock(item.productId, item.quantity)
+                )
+              );
+              if (!directPurchase) {
+                await clearCart();
+              }
 
-      toast.success("Pembayaran berhasil", {
-        description: "Terima kasih sudah berbelanja di FixieStore.",
-      });
-    } catch (err) {
-      console.error("Sync setelah bayar gagal:", err);
-    }
+              toast.success("Pembayaran berhasil", {
+                description: "Terima kasih sudah berbelanja di FixieStore.",
+              });
+            } catch (err) {
+              console.error("Sync setelah bayar gagal:", err);
+            }
 
-    navigate(`/order-success?order_id=${order.id}`);
-  },
+            navigate(`/order-success?order_id=${order.id}`);
+          },
 
-  onPending: () => {
-    toast("Menunggu pembayaran", {
-      description: "Transaksi berhasil dibuat. Selesaikan pembayaranmu.",
-    });
-    navigate(`/order-success?order_id=${order.id}`);
-  },
+          onPending: () => {
+            toast("Menunggu pembayaran", {
+              description: "Transaksi berhasil dibuat. Selesaikan pembayaranmu.",
+            });
+            navigate(`/order-success?order_id=${order.id}`);
+          },
 
-  onError: (err) => {
-    console.error("Midtrans error:", err);
-    toast.error("Pembayaran gagal", {
-      description: "Silakan coba metode pembayaran lain.",
-    });
-  },
+          onError: (err) => {
+            console.error("Midtrans error:", err);
+            toast.error("Pembayaran gagal", {
+              description: "Silakan coba metode pembayaran lain.",
+            });
+          },
 
-  onClose: () => {
-    toast("Pembayaran dibatalkan", {
-      description: "Kamu menutup jendela pembayaran sebelum selesai.",
-    });
-  },
-});
+          onClose: () => {
+            toast("Pembayaran dibatalkan", {
+              description: "Kamu menutup jendela pembayaran sebelum selesai.",
+            });
+          },
+        });
 
     } catch (error) {
       console.error("Checkout error", error);
@@ -392,120 +418,96 @@ window.snap.pay(midtransData.token, {
                   Kami akan menggunakan detail ini untuk memproses pengiriman.
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <form className="space-y-6" onSubmit={handleSubmit}>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstName">Nama depan</Label>
-                      <Input
-                        id="firstName"
-                        placeholder="Nama depan"
-                        value={firstName}
-                        onChange={(event) => setFirstName(event.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="lastName">Nama belakang</Label>
-                      <Input
-                        id="lastName"
-                        placeholder="Nama belakang"
-                        value={lastName}
-                        onChange={(event) => setLastName(event.target.value)}
-                        required
-                      />
-                    </div>
+              <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Detail penerima tersimpan
+                    </p>
+                    <h3 className="text-lg font-semibold">Data dikirim sesuai profilmu</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Nama lengkap, nomor telepon, dan alamat otomatis diambil dari profil Supabase.
+                    </p>
                   </div>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/dashboard/profile">Ubah di Profil</Link>
+                  </Button>
+                </div>
 
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Nomor telepon</Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        placeholder="08xxxxxxxxxx"
-                        value={phone}
-                        onChange={(event) => setPhone(event.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="city">Kota / Kabupaten</Label>
-                      <Input
-                        id="city"
-                        placeholder="Jakarta, Bandung, ..."
-                        value={city}
-                        onChange={(event) => setCity(event.target.value)}
-                        required
-                      />
-                    </div>
+                {profileLoading ? (
+                  <div className="space-y-3">
+                    <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
+                    <div className="h-4 w-1/2 animate-pulse rounded bg-muted" />
+                    <div className="h-4 w-2/3 animate-pulse rounded bg-muted" />
                   </div>
-
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <div className="md:col-span-2 space-y-2">
-                      <Label htmlFor="address">Alamat lengkap</Label>
-                      <Input
-                        id="address"
-                        placeholder="Nama jalan, nomor rumah, patokan"
-                        value={address}
-                        onChange={(event) => setAddress(event.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="postalCode">Kode pos</Label>
-                      <Input
-                        id="postalCode"
-                        placeholder="XXXXX"
-                        value={postalCode}
-                        onChange={(event) =>
-                          setPostalCode(event.target.value)
-                        }
-                        required
-                      />
-                    </div>
+                ) : missingProfileFields.length > 0 ? (
+                  <div className="space-y-3 rounded-lg border border-dashed border-destructive/40 bg-destructive/10 p-4">
+                    <p className="font-semibold text-destructive">Lengkapi profilmu terlebih dahulu</p>
+                    <p className="text-sm text-destructive/80">
+                      Kami butuh data berikut agar alamat otomatis terisi: {missingProfileFields.join(", ")}.
+                    </p>
+                    <Button variant="destructive" asChild size="sm">
+                      <Link to="/dashboard/profile">Lengkapi sekarang</Link>
+                    </Button>
                   </div>
-
-                  <Separator />
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label>Pilihan pengiriman</Label>
-                      <Select
-                        value={shippingMethod}
-                        onValueChange={(value) => setShippingMethod(value)}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Pilih pengiriman" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Reguler">
-                            Reguler (2-4 hari)
-                          </SelectItem>
-                          <SelectItem value="Ekspres">
-                            Ekspres (1-2 hari)
-                          </SelectItem>
-                          <SelectItem value="Same Day">
-                            Same day (kota tertentu)
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <p className="text-xs text-muted-foreground">
-                        Biaya pengiriman disesuaikan alamat tujuan.
+                ) : (
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div className="space-y-1 rounded-lg border bg-card/60 p-3">
+                      <p className="text-xs uppercase text-muted-foreground">Nama lengkap</p>
+                      <p className="text-sm font-semibold">{profileFullName}</p>
+                    </div>
+                    <div className="space-y-1 rounded-lg border bg-card/60 p-3">
+                      <p className="text-xs uppercase text-muted-foreground">Nomor telepon</p>
+                      <p className="text-sm font-semibold">{profilePhone}</p>
+                    </div>
+                    <div className="space-y-1 rounded-lg border bg-card/60 p-3">
+                      <p className="text-xs uppercase text-muted-foreground">Alamat lengkap</p>
+                      <p className="text-sm font-semibold">{profileAddress}</p>
+                    </div>
+                    <div className="space-y-1 rounded-lg border bg-card/60 p-3">
+                      <p className="text-xs uppercase text-muted-foreground">Kota &amp; Kode pos</p>
+                      <p className="text-sm font-semibold">
+                        {profileCity}, {profilePostalCode}
                       </p>
                     </div>
                   </div>
+                )}
+              </div>
 
-                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-muted px-4 py-3 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2 font-medium text-foreground">
-                      <MapPin className="h-4 w-4" />
-                      Pastikan alamat sudah sesuai agar pengiriman tepat waktu.
-                    </div>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-          </div>
+              <Separator />
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Pilihan pengiriman</Label>
+                  <Select
+                    value={shippingMethod}
+                    onValueChange={(value) => setShippingMethod(value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Pilih pengiriman" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Reguler">Reguler (2-4 hari)</SelectItem>
+                      <SelectItem value="Ekspres">Ekspres (1-2 hari)</SelectItem>
+                      <SelectItem value="Same Day">Same day (kota tertentu)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Biaya pengiriman disesuaikan alamat tujuan.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-muted px-4 py-3 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2 font-medium text-foreground">
+                  <MapPin className="h-4 w-4" />
+                  Pastikan alamat sudah sesuai agar pengiriman tepat waktu.
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
           {/* Ringkasan kanan */}
           <div className="space-y-6">
@@ -579,14 +581,14 @@ window.snap.pay(midtransData.token, {
                   </div>
                 </div>
 
-              <Button className="w-full" disabled={submitting || hasInsufficientStock} onClick={handleSubmit}>
-                {submitting ? "Memproses..." : "Bayar Sekarang"}
-              </Button>
-              {hasInsufficientStock && (
-                <p className="text-center text-sm font-medium text-destructive">
-                  Checkout tidak dapat dilanjutkan karena ada stok yang habis atau kurang.
-                </p>
-              )}
+                <Button className="w-full" disabled={submitting || hasInsufficientStock} onClick={handleSubmit}>
+                  {submitting ? "Memproses..." : "Bayar Sekarang"}
+                </Button>
+                {hasInsufficientStock && (
+                  <p className="text-center text-sm font-medium text-destructive">
+                    Checkout tidak dapat dilanjutkan karena ada stok yang habis atau kurang.
+                  </p>
+                )}
 
                 <Separator />
 
