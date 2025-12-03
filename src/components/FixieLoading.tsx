@@ -26,7 +26,9 @@ export const FixieLoading = ({
           <div className={`relative ${sizeClasses[size].track}`}>
             <div className="absolute inset-x-4 bottom-3 h-1 rounded-full bg-muted" />
 
-            <div className={`absolute left-1/2 bottom-0 -translate-x-1/2 ${sizeClasses[size].bike}`}>
+            <div
+              className={`absolute left-1/2 bottom-0 -translate-x-1/2 ${sizeClasses[size].bike} animate-ride`}
+            >
               <svg
                 viewBox="0 0 120 70"
                 className="h-full w-full text-primary drop-shadow-md"
@@ -36,7 +38,7 @@ export const FixieLoading = ({
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
-                <g className="origin-center">
+                <g className="origin-center animate-wheel-spin">
                   <circle cx="30" cy="50" r="18" />
                   <line x1="30" y1="32" x2="30" y2="68" />
                   <line x1="12" y1="50" x2="48" y2="50" />
@@ -44,7 +46,7 @@ export const FixieLoading = ({
                   <line x1="17" y1="63" x2="43" y2="37" />
                 </g>
 
-                <g className="origin-center">
+                <g className="origin-center animate-wheel-spin">
                   <circle cx="90" cy="50" r="18" />
                   <line x1="90" y1="32" x2="90" y2="68" />
                   <line x1="72" y1="50" x2="108" y2="50" />
@@ -52,11 +54,31 @@ export const FixieLoading = ({
                   <line x1="77" y1="63" x2="103" y2="37" />
                 </g>
 
-                <circle cx="60" cy="46" r="6" className="origin-center" />
-                <path d="M30 50 L58 46 L48 30 Z" />
-                <path d="M58 46 L90 50 L82 24" />
+                <circle
+                  cx="60"
+                  cy="46"
+                  r="6"
+                  className="origin-center animate-crank-spin"
+                />
+                <path d="M30 50 L58 46 L48 30 Z" className="animate-crank-spin origin-center" />
+                <path d="M58 46 L90 50 L82 24" className="animate-crank-spin origin-center" />
                 <path d="M48 30 L68 24 L74 28" />
                 <path d="M82 24 L70 20" />
+
+                <g className="animate-pulse">
+                  <path
+                    d="M14 34 C8 28 8 22 14 18"
+                    strokeWidth={3}
+                    strokeLinecap="round"
+                    opacity={0.5}
+                  />
+                  <path
+                    d="M20 26 C14 20 14 14 20 10"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    opacity={0.35}
+                  />
+                </g>
               </svg>
             </div>
 
