@@ -181,7 +181,7 @@ return (
                 id="fullName"
                 value={profileForm.fullName}
                 onChange={handleProfileChange("fullName")}
-                placeholder="Contoh: Budi Santoso"
+                placeholder=""
                 disabled={profileLoading || saveProfilePending}
               />
             </div>
@@ -206,7 +206,7 @@ return (
       id="city"
       value={profileForm.city}
       onChange={handleProfileChange("city")}
-      placeholder="Contoh: Surabaya"
+      placeholder=""
       disabled={profileLoading || saveProfilePending}
     />
   </div>
@@ -217,7 +217,7 @@ return (
       id="postalCode"
       value={profileForm.postalCode}
       onChange={handleProfileChange("postalCode")}
-      placeholder="Contoh: 60231"
+      placeholder=""
       disabled={profileLoading || saveProfilePending}
     />
   </div>
@@ -232,7 +232,7 @@ return (
                 id="address"
                 value={profileForm.address}
                 onChange={handleProfileChange("address")}
-                placeholder="Nama jalan, nomor rumah, RT/RW"
+                placeholder=""
                 disabled={profileLoading || saveProfilePending}
                 rows={3}
               />

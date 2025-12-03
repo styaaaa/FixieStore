@@ -147,262 +147,227 @@ useEffect(() => {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30 py-10 px-4">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">Selamat datang kembali</p>
-            <h1 className="text-3xl font-bold">Dashboard Pengguna</h1>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button onClick={() => navigate("/dashboard/profile")}>Edit profil</Button>
-            <Button variant="outline" onClick={() => navigate("/")}>Kembali ke toko</Button>
-          </div>
+  <div className="min-h-screen bg-muted/30 py-10 px-4">
+    <div className="max-w-6xl mx-auto space-y-8">
+
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-muted-foreground">Selamat datang kembali</p>
+          <h1 className="text-3xl font-bold">Dashboard Pengguna</h1>
         </div>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center gap-4 space-y-0">
-            <Avatar className="h-12 w-12">
-              <AvatarImage
-                src={(user.user_metadata as Record<string, string> | undefined)?.avatar_url}
-                alt="Avatar pengguna"
-              />
-              <AvatarFallback>{initial}</AvatarFallback>
-            </Avatar>
-            <div>
-              <CardTitle>{displayName}</CardTitle>
-              <CardDescription>{user.email}</CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Gunakan dashboard ini untuk melacak pesanan, memperbarui profil, atau melihat rekomendasi terbaru.
-            </p>
-            <Separator />
-            <div className="flex flex-wrap gap-3">
-              <Button asChild>
-                <Link to="/">Lanjut belanja</Link>
-              </Button>
-              <Button variant="secondary" asChild>
-                <Link to="/cart">Lihat keranjang</Link>
-              </Button>
-              <Button variant="outline" onClick={handleSignOut}>
-                Keluar
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle>Profil & Alamat</CardTitle>
-            <CardDescription>
-              Kelola detail penerima di halaman khusus agar checkout berikutnya lebih cepat.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-wrap items-center justify-between gap-4">
-            <div className="text-sm text-muted-foreground">
-              <p>Perbarui nama, nomor telepon, kota, dan alamat lengkap kamu dari satu tempat.</p>
-              <p className="mt-1">Informasi ini akan otomatis terisi saat checkout.</p>
-            </div>
-            <Button onClick={() => navigate("/dashboard/profile")}>Buka halaman edit profil</Button>
-          </CardContent>
-        </Card>
-
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card className="bg-gradient-to-br from-primary/5 via-background to-background">
-            <CardHeader>
-              <CardTitle>Ringkasan Pesanan</CardTitle>
-              <CardDescription>
-                Pantau perjalanan setiap checkout yang kamu lakukan di Cosmic Cart.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 sm:grid-cols-3">
-                <div className="rounded-xl border bg-background p-4 shadow-sm">
-                  <p className="text-sm text-muted-foreground">Pesanan aktif</p>
-                  <div className="text-2xl font-semibold">
-                    {ordersLoading ? <Skeleton className="h-8 w-16" /> : activeOrders.length}
-                  </div>
-                  <p className="text-xs text-muted-foreground">Menunggu konfirmasi & pembayaran</p>
-                </div>
-                <div className="rounded-xl border bg-background p-4 shadow-sm">
-                  <p className="text-sm text-muted-foreground">Pesanan selesai</p>
-                  <div className="text-2xl font-semibold">
-                    {ordersLoading ? <Skeleton className="h-8 w-16" /> : completedOrders.length}
-                  </div>
-                  <p className="text-xs text-muted-foreground">Berstatus sukses di Supabase</p>
-                </div>
-                <div className="rounded-xl border bg-background p-4 shadow-sm">
-                  <p className="text-sm text-muted-foreground">Total nilai</p>
-                  <div className="text-2xl font-semibold">
-                    {ordersLoading ? (
-                      <Skeleton className="h-8 w-24" />
-                    ) : (
-                      formatCurrency(orders.reduce((sum, order) => sum + (order.totalPrice ?? 0), 0))
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground">Akumulasi checkout kamu</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-primary/30">
-            <CardHeader>
-              <CardTitle>Kesiapan & Bantuan</CardTitle>
-              <CardDescription>
-                Buat pengalaman belanjamu tetap elegan ala FixieStore.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
-                <p>
-                  Status pesanan <strong>success</strong> menandakan transaksi sudah tercatat mulus di Supabase. Status
-                  <strong> pending</strong> artinya masih aktif atau menunggu langkah berikutnya.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <Button variant="outline" asChild>
-                  <Link to="/checkout">Lanjutkan checkout</Link>
-                </Button>
-                <Button variant="secondary" asChild>
-                  <Link to="/dashboard/reviews">Halaman ulasan</Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Card className="shadow-sm">
-            <CardHeader>
-              <div className="flex items-center justify-between gap-2">
-                <div>
-                  <CardTitle>Pesanan Aktif</CardTitle>
-                  <CardDescription>Status pending</CardDescription>
-                </div>
-                <Badge variant="outline">{activeOrders.length} pesanan</Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {ordersLoading ? (
-                <div className="space-y-3">
-                  <Skeleton className="h-16 w-full" />
-                  <Skeleton className="h-16 w-full" />
-                </div>
-              ) : activeOrders.length === 0 ? (
-                <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                  Belum ada pesanan aktif. Yuk, cek koleksi terbaru kami!
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {activeOrders.map((order) => (
-                    <div
-                      key={order.id}
-                      className="flex flex-col gap-3 rounded-xl border bg-background p-4 transition hover:shadow-md"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium">ID Pesanan: {order.id}</p>
-                          <p className="text-xs text-muted-foreground">{formatDate(order)}</p>
-                        </div>
-                        {renderOrderBadge(order.status)}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                        <span>{order.shippingMethod || "Metode kirim belum diatur"}</span>
-                        <Separator orientation="vertical" className="hidden h-4 sm:inline" />
-                        <span>{order.paymentMethod || "Menunggu pembayaran"}</span>
-                        <Separator orientation="vertical" className="hidden h-4 sm:inline" />
-                        <span className="font-semibold text-foreground">
-                          {formatCurrency(order.totalPrice)}
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        <Button variant="secondary" size="sm" asChild>
-                          <Link to="/checkout">Selesaikan pembayaran</Link>
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => navigate("/cart")}>
-                          Lihat keranjang
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm">
-            <CardHeader>
-              <div className="flex items-center justify-between gap-2">
-                <div>
-                  <CardTitle>Pesanan Selesai</CardTitle>
-                  <CardDescription>Status success</CardDescription>
-                </div>
-                <Badge variant="secondary">{completedOrders.length} pesanan</Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {ordersLoading ? (
-                <div className="space-y-3">
-                  <Skeleton className="h-16 w-full" />
-                  <Skeleton className="h-16 w-full" />
-                </div>
-              ) : completedOrders.length === 0 ? (
-                <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                  Belum ada pesanan selesai. Setelah sukses, kamu bisa beri ulasan di sini.
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {completedOrders.map((order) => {
-                    const hasReview = (orderReviews[order.id] ?? []).length > 0;
-
-                    return (
-                    <div
-                      key={order.id}
-                      className="flex flex-col gap-3 rounded-xl border bg-background p-4 transition hover:shadow-md"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium">ID Pesanan: {order.id}</p>
-                          <p className="text-xs text-muted-foreground">{formatDate(order)}</p>
-                        </div>
-                        {renderOrderBadge(order.status)}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                        <span>{order.shippingMethod || "Pengiriman selesai"}</span>
-                        <Separator orientation="vertical" className="hidden h-4 sm:inline" />
-                        <span>{order.paymentMethod || "Metode pembayaran"}</span>
-                        <Separator orientation="vertical" className="hidden h-4 sm:inline" />
-                        <span className="font-semibold text-foreground">
-                          {formatCurrency(order.totalPrice)}
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {hasReview ? (
-                          <div className="rounded-md border border-dashed bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
-                            Ulasan sudah diberikan
-                          </div>
-                        ) : (
-                          <Button size="sm" asChild>
-                            <Link to={`/dashboard/reviews?orderId=${order.id}`}>Beri ulasan</Link>
-                          </Button>
-                        )}
-                        <Button variant="outline" size="sm" asChild>
-                          <Link to="/">Belanja lagi</Link>
-                        </Button>
-                      </div>
-                    </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+        <div className="flex items-center gap-3">
+          <Button onClick={() => navigate("/dashboard/profile")}>Edit profil</Button>
+          <Button variant="outline" onClick={() => navigate("/")}>Kembali ke toko</Button>
         </div>
       </div>
+
+      {/* User Card */}
+      <Card>
+        <CardHeader className="flex items-center gap-4">
+          <Avatar className="h-14 w-14">
+            <AvatarImage
+              src={(user.user_metadata as any)?.avatar_url}
+            />
+            <AvatarFallback>{initial}</AvatarFallback>
+          </Avatar>
+          <div>
+            <CardTitle>{displayName}</CardTitle>
+            <CardDescription>{user.email}</CardDescription>
+          </div>
+        </CardHeader>
+
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Kelola pesanan dan profil kamu dari satu tempat.
+          </p>
+
+          <Separator />
+
+          <div className="flex flex-wrap gap-3">
+            <Button asChild><Link to="/">Lanjut belanja</Link></Button>
+            <Button variant="secondary" asChild><Link to="/cart">Keranjang</Link></Button>
+            <Button variant="outline" onClick={handleSignOut}>Keluar</Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Profil & Alamat */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Profil & Alamat</CardTitle>
+          <CardDescription>Kelola detail penerima untuk checkout cepat.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-wrap items-center justify-between gap-4">
+          <div className="text-sm text-muted-foreground">
+            <p>Perbarui nama, telepon, kota, dan alamat lengkap.</p>
+            <p className="mt-1">Digunakan otomatis saat checkout.</p>
+          </div>
+          <Button onClick={() => navigate("/dashboard/profile")}>
+            Edit profil
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Ringkasan Pesanan */}
+      <Card className="bg-gradient-to-br from-primary/5 via-background to-background">
+        <CardHeader>
+          <CardTitle>Ringkasan Pesanan</CardTitle>
+          <CardDescription>Lihat status pesanan kamu.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 sm:grid-cols-3">
+
+            <div className="rounded-xl border bg-background p-4 shadow-sm">
+              <p className="text-sm text-muted-foreground">Pesanan aktif</p>
+              <div className="text-2xl font-semibold">
+                {ordersLoading ? <Skeleton className="h-8 w-16" /> : activeOrders.length}
+              </div>
+              <p className="text-xs text-muted-foreground">Menunggu konfirmasi & pembayaran</p>
+            </div>
+
+            <div className="rounded-xl border bg-background p-4 shadow-sm">
+              <p className="text-sm text-muted-foreground">Pesanan selesai</p>
+              <div className="text-2xl font-semibold">
+                {ordersLoading ? <Skeleton className="h-8 w-16" /> : completedOrders.length}
+              </div>
+              <p className="text-xs text-muted-foreground">Pesanan sukses</p>
+            </div>
+
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Aktif + Selesai */}
+      <div className="grid gap-6 lg:grid-cols-2">
+
+        {/* Pesanan Aktif */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Pesanan Aktif</CardTitle>
+                <CardDescription>Status pending</CardDescription>
+              </div>
+              <Badge variant="outline">{activeOrders.length} pesanan</Badge>
+            </div>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            {ordersLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-16 w-full" />
+              </div>
+            ) : activeOrders.length === 0 ? (
+              <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                Belum ada pesanan aktif.
+              </div>
+            ) : (
+              activeOrders.map(order => (
+                <div key={order.id} className="rounded-xl border bg-background p-4 hover:shadow-md transition space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">ID Pesanan: {order.id}</p>
+                      <p className="text-xs text-muted-foreground">{formatDate(order)}</p>
+                    </div>
+                    {renderOrderBadge(order.status)}
+                  </div>
+
+                  {/* <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                    <span>{order.shippingMethod || ""}</span>
+                    <Separator orientation="vertical" className="hidden h-4 sm:inline" />
+                    <span>{order.paymentMethod || "Menunggu pembayaran"}</span>
+                    <Separator orientation="vertical" className="hidden h-4 sm:inline" />
+                    <span className="font-semibold text-foreground">
+                      {formatCurrency(order.totalPrice)}
+                    </span>
+                  </div> */}
+
+                  <div className="flex flex-wrap gap-2">
+                    <Button variant="secondary" size="sm" asChild>
+                      <Link to="/checkout">Bayar sekarang</Link>
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => navigate("/cart")}>
+                      Lihat keranjang
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Pesanan Selesai */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Pesanan Selesai</CardTitle>
+                <CardDescription>Status success</CardDescription>
+              </div>
+              <Badge variant="secondary">{completedOrders.length} pesanan</Badge>
+            </div>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            {ordersLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-16 w-full" />
+              </div>
+            ) : completedOrders.length === 0 ? (
+              <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                Belum ada pesanan selesai.
+              </div>
+            ) : (
+              completedOrders.map(order => {
+                const hasReview = (orderReviews[order.id] ?? []).length > 0;
+
+                return (
+                  <div key={order.id} className="rounded-xl border bg-background p-4 hover:shadow-md transition space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">ID Pesanan: {order.id}</p>
+                        <p className="text-xs text-muted-foreground">{formatDate(order)}</p>
+                      </div>
+                      {renderOrderBadge(order.status)}
+                    </div>
+
+                    {/* <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                      <span>{order.shippingMethod || "Pengiriman selesai"}</span>
+                      <Separator orientation="vertical" className="hidden h-4 sm:inline" />
+                      <span>{order.paymentMethod || "Metode pembayaran"}</span>
+                      <Separator orientation="vertical" className="hidden h-4 sm:inline" />
+                      <span className="font-semibold text-foreground">
+                        {formatCurrency(order.totalPrice)}
+                      </span>
+                    </div> */}
+
+                    <div className="flex flex-wrap gap-2">
+                      {hasReview ? (
+                        <div className="rounded-md border border-dashed bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+                          Ulasan sudah diberikan
+                        </div>
+                      ) : (
+                        <Button size="sm" asChild>
+                          <Link to={`/dashboard/reviews?orderId=${order.id}`}>Beri ulasan</Link>
+                        </Button>
+                      )}
+                      <Button variant="outline" size="sm" asChild>
+                        <Link to="/">Belanja lagi</Link>
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default UserDashboard;

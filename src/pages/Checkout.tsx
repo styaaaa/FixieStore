@@ -426,13 +426,7 @@ const Checkout = () => {
                       Detail penerima tersimpan
                     </p>
                     <h3 className="text-lg font-semibold">Data dikirim sesuai profilmu</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Nama lengkap, nomor telepon, dan alamat otomatis diambil dari profil Supabase.
-                    </p>
                   </div>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link to="/dashboard/profile">Ubah di Profil</Link>
-                  </Button>
                 </div>
 
                 {profileLoading ? (
@@ -468,7 +462,7 @@ const Checkout = () => {
                     <div className="space-y-1 rounded-lg border bg-card/60 p-3">
                       <p className="text-xs uppercase text-muted-foreground">Kota &amp; Kode pos</p>
                       <p className="text-sm font-semibold">
-                        {profileCity}, {profilePostalCode}
+                        {profileCity} & {profilePostalCode}
                       </p>
                     </div>
                   </div>
@@ -574,10 +568,6 @@ const Checkout = () => {
                     <span className="text-muted-foreground">
                       Akan dihitung otomatis
                     </span>
-                  </div>
-                  <div className="flex items-center justify-between text-muted-foreground">
-                    <span>Biaya layanan</span>
-                    <span>Termasuk</span>
                   </div>
                 </div>
 

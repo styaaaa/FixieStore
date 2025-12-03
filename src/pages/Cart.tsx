@@ -113,9 +113,6 @@ const Cart = () => {
             <CardHeader className="flex flex-row items-center justify-between gap-4">
               <div>
                 <CardTitle>Ringkasan Keranjang</CardTitle>
-                <CardDescription>
-                  Semua item kamu tersimpan aman di Supabase dan siap dikirim.
-                </CardDescription>
               </div>
               {cartItems.length > 0 && (
                 <Button variant="ghost" size="sm" onClick={() => void clearCart()} disabled={cartLoading}>
@@ -259,8 +256,6 @@ const Cart = () => {
                   <span className="font-semibold">{formatCurrency(totalPrice)}</span>
                 </div>
                 <div className="flex items-center justify-between text-muted-foreground">
-                  <span>Diskon</span>
-                  <span>-</span>
                 </div>
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span>Ongkos kirim</span>
@@ -273,10 +268,6 @@ const Cart = () => {
               <div className="flex items-center justify-between text-lg font-semibold">
                 <span>Total</span>
                 <span>{formatCurrency(totalPrice)}</span>
-              </div>
-
-              <div className="rounded-lg bg-primary/5 px-4 py-3 text-sm text-primary">
-                Item kamu disimpan di Supabase, jadi keranjang tetap aman di perangkat manapun.
               </div>
 
               <div className="space-y-2">
