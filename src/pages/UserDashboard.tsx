@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { type ChangeEvent, type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,12 @@ import { useAuth } from "@/context/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
 import { useUserOrders } from "@/hooks/useUserOrders";
+import { useUpdateUserProfile, useUserProfile } from "@/hooks/useUserProfile";
 import type { Order } from "@/types/order";
 import type { ProductReview } from "@/types/review";
 import { getReviewsByOrder } from "@/lib/repositories/reviewRepository";
@@ -24,6 +29,17 @@ const UserDashboard = () => {
   const navigate = useNavigate();
   const { user, isAdmin, authLoading, signOut } = useAuth();
   const { data: orders = [], isLoading: ordersLoading } = useUserOrders(user?.id);
+  const { data: profile, isLoading: profileLoading } = useUserProfile(user?.id);
+  const { mutateAsync: saveProfile, isPending: saveProfilePending } = useUpdateUserProfile(user?.id);
+  const { toast } = useToast();
+  const [profileForm, setProfileForm] = useState({
+    firstName: "",
+    lastName: "",
+    phone: "",
+    city: "",
+    address: "",
+    postalCode: "",
+  });
   const [orderReviews, setOrderReviews] = useState<Record<string, ProductReview[]>>({});
 
   const handleSignOut = useCallback(async () => {
@@ -48,7 +64,43 @@ const UserDashboard = () => {
     }
   }, [authLoading, isAdmin, navigate, user]);
 
-  const initial = user?.email?.charAt(0)?.toUpperCase() ?? "U";
+  const initial = (profile?.first_name ?? profile?.full_name ?? user?.email ?? "U")
+    .charAt(0)
+    .toUpperCase();
+  const displayName = useMemo(() => {
+    const nameFromProfile = [profile?.first_name, profile?.last_name]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+
+    if (nameFromProfile) return nameFromProfile;
+    if (profile?.full_name) return profile.full_name;
+    return (user?.user_metadata as Record<string, string> | undefined)?.full_name || "Akun Anda";
+  }, [profile?.first_name, profile?.full_name, profile?.last_name, user?.user_metadata]);
+
+  useEffect(() => {
+    if (profile) {
+      setProfileForm({
+        firstName: profile.first_name ?? "",
+        lastName: profile.last_name ?? "",
+        phone: profile.phone ?? "",
+        city: profile.city ?? "",
+        address: profile.address ?? "",
+        postalCode: profile.postal_code ?? "",
+      });
+      return;
+    }
+
+    if (user?.user_metadata) {
+      const metadata = user.user_metadata as Record<string, string>;
+
+      setProfileForm((current) => ({
+        ...current,
+        firstName: metadata.first_name ?? current.firstName,
+        lastName: metadata.last_name ?? current.lastName,
+      }));
+    }
+  }, [profile, user?.user_metadata]);
 
   const activeOrders = useMemo(
     () => orders.filter((order) => order.status === "pending"),
@@ -118,7 +170,41 @@ useEffect(() => {
     return <Badge variant="secondary">{status}</Badge>;
   };
 
-  
+  const handleProfileChange = (field: keyof typeof profileForm) =>
+    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setProfileForm((current) => ({ ...current, [field]: event.target.value }));
+    };
+
+  const handleProfileSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!user?.id) return;
+
+    try {
+      await saveProfile({
+        first_name: profileForm.firstName.trim() || null,
+        last_name: profileForm.lastName.trim() || null,
+        phone: profileForm.phone.trim() || null,
+        city: profileForm.city.trim() || null,
+        address: profileForm.address.trim() || null,
+        postal_code: profileForm.postalCode.trim() || null,
+      });
+
+      toast({
+        title: "Profil diperbarui",
+        description: "Data pengiriman kamu berhasil disimpan.",
+      });
+    } catch (error) {
+      console.error("handleProfileSubmit error:", error);
+      toast({
+        title: "Gagal menyimpan profil",
+        description: "Periksa koneksi atau coba lagi sebentar lagi.",
+        variant: "destructive",
+      });
+    }
+  };
+
+
 
   if (!user || isAdmin) {
     return (
@@ -157,7 +243,7 @@ useEffect(() => {
               <AvatarFallback>{initial}</AvatarFallback>
             </Avatar>
             <div>
-              <CardTitle>{user.user_metadata?.full_name || "Akun Anda"}</CardTitle>
+              <CardTitle>{displayName}</CardTitle>
               <CardDescription>{user.email}</CardDescription>
             </div>
           </CardHeader>
@@ -177,6 +263,98 @@ useEffect(() => {
                 Keluar
               </Button>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>Edit Profil & Alamat</CardTitle>
+            <CardDescription>
+              Lengkapi detail penerima agar checkout berikutnya lebih cepat dan akurat.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form className="space-y-4" onSubmit={handleProfileSubmit}>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">Nama depan</Label>
+                  <Input
+                    id="firstName"
+                    value={profileForm.firstName}
+                    onChange={handleProfileChange("firstName")}
+                    placeholder="Nama penerima"
+                    disabled={profileLoading || saveProfilePending}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Nama belakang</Label>
+                  <Input
+                    id="lastName"
+                    value={profileForm.lastName}
+                    onChange={handleProfileChange("lastName")}
+                    placeholder="Opsional"
+                    disabled={profileLoading || saveProfilePending}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="phone">No. Tlp</Label>
+                  <Input
+                    id="phone"
+                    value={profileForm.phone}
+                    onChange={handleProfileChange("phone")}
+                    placeholder="Contoh: 0812xxxx"
+                    disabled={profileLoading || saveProfilePending}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="city">Kota/Kabupaten</Label>
+                  <Input
+                    id="city"
+                    value={profileForm.city}
+                    onChange={handleProfileChange("city")}
+                    placeholder="Nama kota"
+                    disabled={profileLoading || saveProfilePending}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="address">Alamat lengkap</Label>
+                <Textarea
+                  id="address"
+                  value={profileForm.address}
+                  onChange={handleProfileChange("address")}
+                  placeholder="Nama jalan, nomor rumah, RT/RW"
+                  disabled={profileLoading || saveProfilePending}
+                  rows={3}
+                />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="postalCode">Kode pos</Label>
+                  <Input
+                    id="postalCode"
+                    value={profileForm.postalCode}
+                    onChange={handleProfileChange("postalCode")}
+                    placeholder="Kode pos"
+                    disabled={profileLoading || saveProfilePending}
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <Button type="submit" disabled={profileLoading || saveProfilePending}>
+                  {saveProfilePending ? "Menyimpan..." : "Simpan perubahan"}
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Informasi ini akan otomatis terisi saat kamu checkout.
+                </p>
+              </div>
+            </form>
           </CardContent>
         </Card>
 
