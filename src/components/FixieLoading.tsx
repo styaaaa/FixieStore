@@ -38,7 +38,10 @@ export const FixieLoading = ({
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
-                <g className="origin-center animate-wheel-spin">
+                <g
+                  className="animate-wheel-spin"
+                  style={{ transformOrigin: '30px 50px', transformBox: 'fill-box' }}
+                >
                   <circle cx="30" cy="50" r="18" />
                   <line x1="30" y1="32" x2="30" y2="68" />
                   <line x1="12" y1="50" x2="48" y2="50" />
@@ -46,7 +49,10 @@ export const FixieLoading = ({
                   <line x1="17" y1="63" x2="43" y2="37" />
                 </g>
 
-                <g className="origin-center animate-wheel-spin">
+                <g
+                  className="animate-wheel-spin"
+                  style={{ transformOrigin: '90px 50px', transformBox: 'fill-box' }}
+                >
                   <circle cx="90" cy="50" r="18" />
                   <line x1="90" y1="32" x2="90" y2="68" />
                   <line x1="72" y1="50" x2="108" y2="50" />
