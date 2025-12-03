@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from "./context/cart-context";
 import { AuthProvider } from "./context/auth-context";
+import { GlobalLoadingOverlay } from "./components/GlobalLoadingOverlay";
 
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -43,6 +44,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <GlobalLoadingOverlay />
             <Routes>
 
               {/* Public Routes */}
