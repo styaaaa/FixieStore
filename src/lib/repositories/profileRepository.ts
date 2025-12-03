@@ -4,8 +4,6 @@ export interface UserProfile {
   id: string;
   email?: string | null;
   full_name?: string | null;
-  first_name?: string | null;
-  last_name?: string | null;
   phone?: string | null;
   city?: string | null;
   address?: string | null;
@@ -14,8 +12,7 @@ export interface UserProfile {
 }
 
 export interface ProfileUpdatePayload {
-  first_name?: string | null;
-  last_name?: string | null;
+  full_name?: string | null;
   phone?: string | null;
   city?: string | null;
   address?: string | null;
@@ -24,10 +21,11 @@ export interface ProfileUpdatePayload {
 
 export const getProfileById = async (userId: string): Promise<UserProfile | null> => {
   const { data, error } = await supabase
-    .from("profiles")
-    .select("id, email, full_name, first_name, last_name, phone, city, address, postal_code, avatar_url")
-    .eq("id", userId)
-    .maybeSingle();
+  .from("profiles")
+  .select("id, email, full_name, phone, address, city, is_admin, created_at")
+  .eq("id", userId)
+  .single();
+
 
   if (error) {
     console.error("getProfileById error:", error);
@@ -48,7 +46,7 @@ export const upsertProfile = async (
       ...payload,
       updated_at: new Date().toISOString(),
     })
-    .select("id, email, full_name, first_name, last_name, phone, city, address, postal_code, avatar_url")
+    .select("id, email, full_name,phone, city, address, postal_code")
     .single();
 
   if (error || !data) {

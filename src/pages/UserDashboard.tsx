@@ -50,19 +50,17 @@ const UserDashboard = () => {
     }
   }, [authLoading, isAdmin, navigate, user]);
 
-  const initial = (profile?.first_name ?? profile?.full_name ?? user?.email ?? "U")
-    .charAt(0)
-    .toUpperCase();
-  const displayName = useMemo(() => {
-    const nameFromProfile = [profile?.first_name, profile?.last_name]
-      .filter(Boolean)
-      .join(" ")
-      .trim();
+  const initial = (profile?.full_name ?? user?.email ?? "U")
+  .charAt(0)
+  .toUpperCase();
 
-    if (nameFromProfile) return nameFromProfile;
-    if (profile?.full_name) return profile.full_name;
-    return (user?.user_metadata as Record<string, string> | undefined)?.full_name || "Akun Anda";
-  }, [profile?.first_name, profile?.full_name, profile?.last_name, user?.user_metadata]);
+const displayName = useMemo(() => {
+  if (profile?.full_name) return profile.full_name;
+
+  return (user?.user_metadata as Record<string, string> | undefined)?.full_name 
+    || user?.email 
+    || "Akun Anda";
+}, [profile?.full_name, user?.user_metadata, user?.email]);
 
   const activeOrders = useMemo(
     () => orders.filter((order) => order.status === "pending"),
