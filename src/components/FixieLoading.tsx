@@ -26,7 +26,7 @@ export const FixieLoading = ({
           <div className={`relative ${sizeClasses[size].track}`}>
             <div className="absolute inset-x-4 bottom-3 h-1 rounded-full bg-muted" />
 
-            <div className={`absolute left-[-35%] bottom-0 ${sizeClasses[size].bike} animate-ride`}>                
+            <div className={`absolute left-1/2 bottom-0 -translate-x-1/2 ${sizeClasses[size].bike}`}>
               <svg
                 viewBox="0 0 120 70"
                 className="h-full w-full text-primary drop-shadow-md"

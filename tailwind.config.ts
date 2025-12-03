@@ -94,8 +94,9 @@ export default {
           "100%": { transform: "rotate(360deg)" },
         },
         "crank-spin": {
-          "0%": { transform: "rotate(0deg)" },
-          "100%": { transform: "rotate(360deg)" },
+          "0%": { transform: "rotate(-35deg)" },
+          "50%": { transform: "rotate(35deg)" },
+          "100%": { transform: "rotate(-35deg)" },
         },
         "cloud-puff": {
           "0%": { opacity: "0", transform: "translateX(0) scale(0.8)" },
@@ -109,7 +110,7 @@ export default {
         marquee: "marquee 18s linear infinite",
         ride: "ride 2.6s ease-in-out infinite",
         "wheel-spin": "wheel-spin 0.9s linear infinite",
-        "crank-spin": "crank-spin 1.2s linear infinite",
+        "crank-spin": "crank-spin 1s ease-in-out infinite",
         cloud: "cloud-puff 1.8s ease-out infinite",
       },
     },
