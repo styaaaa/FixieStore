@@ -54,16 +54,18 @@ export const FixieLoading = ({
                   <line x1="77" y1="63" x2="103" y2="37" />
                 </g>
 
-                <circle
-                  cx="60"
-                  cy="46"
-                  r="6"
-                  className="origin-center animate-crank-spin"
-                />
-                <path d="M30 50 L58 46 L48 30 Z" className="animate-crank-spin origin-center" />
-                <path d="M58 46 L90 50 L82 24" className="animate-crank-spin origin-center" />
+                <path d="M30 50 L58 46 L48 30 Z" />
+                <path d="M58 46 L90 50 L82 24" />
                 <path d="M48 30 L68 24 L74 28" />
                 <path d="M82 24 L70 20" />
+
+                <g className="animate-crank-spin [transform-origin:60px_46px]">
+                  <circle cx="60" cy="46" r="6" />
+                  <line x1="60" y1="46" x2="60" y2="30" />
+                  <rect x="57" y="24" width="6" height="6" rx="1" />
+                  <line x1="60" y1="46" x2="60" y2="62" />
+                  <rect x="57" y="62" width="6" height="6" rx="1" />
+                </g>
 
                 <g className="animate-pulse">
                   <path
