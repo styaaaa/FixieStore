@@ -80,15 +80,37 @@ export default {
             height: "0",
           },
         },
-          marquee: {
+        marquee: {
           "0%": { transform: "translateX(0)" },
           "100%": { transform: "translateX(-50%)" },
+        },
+        ride: {
+          "0%": { transform: "translateX(-30%) translateY(0)" },
+          "50%": { transform: "translateX(25%) translateY(-4px)" },
+          "100%": { transform: "translateX(-30%) translateY(0)" },
+        },
+        "wheel-spin": {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" },
+        },
+        "crank-spin": {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" },
+        },
+        "cloud-puff": {
+          "0%": { opacity: "0", transform: "translateX(0) scale(0.8)" },
+          "50%": { opacity: "0.7", transform: "translateX(20px) scale(1)" },
+          "100%": { opacity: "0", transform: "translateX(40px) scale(0.85)" },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         marquee: "marquee 18s linear infinite",
+        ride: "ride 2.6s ease-in-out infinite",
+        "wheel-spin": "wheel-spin 0.9s linear infinite",
+        "crank-spin": "crank-spin 1.2s linear infinite",
+        cloud: "cloud-puff 1.8s ease-out infinite",
       },
     },
   },
