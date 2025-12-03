@@ -17,6 +17,7 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import OrderReviews from "./pages/OrderReviews";
 import OrderSuccess from "./pages/OrderSuccess";
+import EditProfile from "./pages/EditProfile";
 import ProductDetail from "./pages/ProductDetail";
 import Contact from "./pages/Contact";
 import TermsOfService from "./pages/TermsOfService";
@@ -75,6 +76,14 @@ const App = () => (
                 element={
                   <UserRoute>
                     <UserDashboard />
+                  </UserRoute>
+                }
+              />
+              <Route
+                path="/dashboard/profile"
+                element={
+                  <UserRoute>
+                    <EditProfile />
                   </UserRoute>
                 }
               />
