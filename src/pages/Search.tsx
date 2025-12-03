@@ -288,7 +288,7 @@ const SearchPage = () => {
                 </div>
 
                 {loadingProducts ? (
-                  <FixieLoading message="Memuat produk" size="md" fullscreen={false} />
+                <FixieLoading message="Memuat produk" size="md" fullscreen />
                 ) : filteredProducts.length === 0 ? (
                   <div className="rounded-2xl border bg-background p-8 text-center shadow-sm">
                     <p className="text-lg font-semibold">Produk tidak ditemukan</p>

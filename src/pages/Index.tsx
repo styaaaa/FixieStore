@@ -199,7 +199,7 @@ const Index = () => {
             <FixieLoading
               message="Memuat produk..."
               size="md"
-              fullscreen={false}
+              fullscreen
             />
           ) : products.length === 0 ? (
             <div className="text-center py-16">
