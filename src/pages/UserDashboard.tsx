@@ -220,7 +220,7 @@ useEffect(() => {
 
       {/* User Card */}
       <Card>
-        <CardHeader className="flex items-center gap-4">
+        <CardHeader className="flex items-start gap-4">
           <Avatar className="h-14 w-14">
             <AvatarImage
               src={(user.user_metadata as any)?.avatar_url}

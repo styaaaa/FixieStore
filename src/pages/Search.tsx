@@ -17,6 +17,8 @@ import { useCart } from "@/context/cart-context";
 import { toast } from "sonner";
 import { Search as SearchIcon, Shuffle, Sparkles } from "lucide-react";
 
+const ITEMS_PER_BATCH = 20;
+
 const SearchPage = () => {
   const navigate = useNavigate();
   const { addToCart, cartCount } = useCart();
@@ -31,6 +33,9 @@ const SearchPage = () => {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(initialCategories);
   const [shuffleKey, setShuffleKey] = useState(0);
+  const [minPrice, setMinPrice] = useState<string>("");
+  const [maxPrice, setMaxPrice] = useState<string>("");
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_BATCH);
 
   const { data: categories = [], isLoading: loadingCategories } = useQuery({
     queryKey: ["search-categories"],
@@ -65,6 +70,10 @@ const SearchPage = () => {
       console.error(productsError);
     }
   }, [productsError]);
+
+   useEffect(() => {
+    setVisibleCount(ITEMS_PER_BATCH);
+  }, [searchQuery, selectedCategories, minPrice, maxPrice]);
 
   const handleToggleCategory = useCallback((categoryId: string) => {
     setSelectedCategories((previous) => {
@@ -126,18 +135,38 @@ const SearchPage = () => {
     const matchesCategory = (product: Product) =>
       selectedCategories.length === 0 || (product.categoryId && selectedCategories.includes(product.categoryId));
 
-    const base = products.filter((product) => matchesCategory(product) && matchesQuery(product));
+    const min = Number(minPrice);
+    const max = Number(maxPrice);
+
+    const matchesPrice = (product: Product) => {
+      const aboveMin = !minPrice || (!Number.isNaN(min) && product.price >= min);
+      const belowMax = !maxPrice || (!Number.isNaN(max) && product.price <= max);
+      return aboveMin && belowMax;
+    };
+
+    const base = products.filter(
+      (product) => matchesCategory(product) && matchesQuery(product) && matchesPrice(product),
+    );
 
     if (!shuffleKey) return base;
 
     return [...base].sort(() => 0.5 - Math.random());
-  }, [products, searchQuery, selectedCategories, shuffleKey]);
+  }, [products, searchQuery, selectedCategories, shuffleKey, minPrice, maxPrice]);
 
   const randomSpotlight = useMemo(() => {
     if (products.length === 0) return null;
     const pool = filteredProducts.length > 0 ? filteredProducts : products;
     return pool[Math.floor(Math.random() * pool.length)];
   }, [filteredProducts, products]);
+
+  const visibleProducts = useMemo(
+    () => filteredProducts.slice(0, visibleCount),
+    [filteredProducts, visibleCount],
+  );
+
+  const handleLoadMore = useCallback(() => {
+    setVisibleCount((count) => count + ITEMS_PER_BATCH);
+  }, []);
 
   return (
      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 text-foreground">
@@ -155,9 +184,9 @@ const SearchPage = () => {
       <main className="container mx-auto px-4 pb-16">
         <div className="py-10 md:py-12">
           <div className="rounded-3xl border bg-card/80 shadow-xl">
-            <div className="grid gap-6 p-6 md:grid-cols-[300px,1fr] md:p-10">
-              <div className="space-y-4">
-                <div className="space-y-2">
+              <div className="grid gap-6 p-6 md:grid-cols-[300px,1fr] md:p-10">
+                <div className="space-y-4">
+                  <div className="space-y-2">
                   <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                     <Sparkles className="h-4 w-4" />
                     Mode pencarian terbaru
@@ -216,6 +245,54 @@ const SearchPage = () => {
                   )}
               </div>
 
+              <div className="rounded-2xl border bg-background/80 p-4 shadow-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <p className="text-sm font-semibold">Filter harga</p>
+                    <p className="text-xs text-muted-foreground">Tentukan rentang harga yang diinginkan.</p>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="min-price" className="text-xs text-muted-foreground">
+                      Harga minimum
+                    </Label>
+                    <Input
+                      id="min-price"
+                      type="number"
+                      placeholder="0"
+                      value={minPrice}
+                      onChange={(event) => setMinPrice(event.target.value)}
+                      min={0}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="max-price" className="text-xs text-muted-foreground">
+                      Harga maksimum
+                    </Label>
+                    <Input
+                      id="max-price"
+                      type="number"
+                      placeholder="Tidak dibatasi"
+                      value={maxPrice}
+                      onChange={(event) => setMaxPrice(event.target.value)}
+                      min={0}
+                    />
+                  </div>
+                </div>
+
+                {(minPrice || maxPrice) && (
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                    {minPrice && <Badge variant="secondary">Min: Rp {Number(minPrice).toLocaleString("id-ID")}</Badge>}
+                    {maxPrice && <Badge variant="secondary">Max: Rp {Number(maxPrice).toLocaleString("id-ID")}</Badge>}
+                    <Button variant="ghost" size="sm" onClick={() => { setMinPrice(""); setMaxPrice(""); }}>
+                      Hapus batas harga
+                    </Button>
+                  </div>
+                )}
+              </div>
+
                 {randomSpotlight && (
                   <div className="rounded-2xl border bg-gradient-to-br from-primary/10 via-transparent to-indigo-500/10 p-4 shadow-sm">
                     <p className="text-xs font-semibold uppercase tracking-wide text-primary">Pilihan acak</p>
@@ -259,10 +336,6 @@ const SearchPage = () => {
                       Bersihkan filter
                     </Button>
                   </div>
-                  <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                    <span className="rounded-full border px-3 py-1">Tekan Enter atau tombol Cari</span>
-                    <span className="rounded-full border px-3 py-1">Filter bisa digabung</span>
-                  </div>
                 </form>
 
                 <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-background/70 px-4 py-3 text-sm shadow-sm">
@@ -293,15 +366,25 @@ const SearchPage = () => {
                     </p>
                   </div>
                 ) : (
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {filteredProducts.map((product) => (
-                      <ProductCard
-                        key={product.id}
-                        product={product}
-                        onAddToCart={handleAddToCart}
-                        compact
-                      />
-                    ))}
+                   <div className="space-y-6">
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                      {visibleProducts.map((product) => (
+                        <ProductCard
+                          key={product.id}
+                          product={product}
+                          onAddToCart={handleAddToCart}
+                          compact
+                        />
+                      ))}
+                    </div>
+
+                    {visibleCount < filteredProducts.length && (
+                      <div className="flex justify-center">
+                        <Button onClick={handleLoadMore} variant="outline" className="px-6">
+                          Muat lebih banyak
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
