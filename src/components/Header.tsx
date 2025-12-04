@@ -3,11 +3,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Home,
+  LogIn,
   Moon,
   Search as SearchIcon,
   ShoppingBag,
   ShoppingCart,
   Sun,
+  UserPlus,
 } from "lucide-react";
 
 import type { Category } from "@/types/catalog";
@@ -165,23 +167,22 @@ export const Header = ({
     <header
       className={`z-50 transition-colors ${headerPositionClasses} ${headerClasses}`}
     >
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-3">
-          
+      <div className="container mx-auto px-4 py-2 md:py-4">
+        <div className="flex items-center justify-between gap-2 md:flex-row md:items-center md:gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             <Link to="/" className="flex items-center gap-2" aria-label="FixieStore">
               <img
                 src="/bulat.png"
                 alt="Ikon FixieStore"
-                className="h-10 w-10 rounded-full bg-muted/20 dark:invert"
+                className="h-8 w-8 rounded-full bg-muted/20 dark:invert md:h-10 md:w-10"
               />
-              <h1 className="text-2xl font-bold">FixieStore</h1>
+              <h1 className="text-lg font-bold md:text-2xl">FixieStore</h1>
             </Link>
           </div>
 
           {!hideSearchControls && (
-            <div className="flex flex-col gap-2 md:flex-1 md:flex-row md:items-center md:justify-center">
-              <div className="flex items-center gap-2 w-full md:w-2/5 lg:w-[40%]">
+            <div className="hidden md:flex md:flex-1 md:items-center md:justify-center">
+              <div className="flex w-full items-center gap-2 md:w-2/5 lg:w-[40%]">
                 <div className="relative w-full">
                   <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -285,7 +286,7 @@ export const Header = ({
             </div>
           )}
 
-          <div className="flex items-center justify-end gap-2">
+          <div className="flex items-center justify-end gap-1 md:gap-2">
             <Button
               variant="ghost"
               size="icon"
@@ -308,6 +309,7 @@ export const Header = ({
               size="icon"
               aria-label="Kembali ke beranda"
               onClick={handleHomeClick}
+              className="hidden md:inline-flex"
             >
               <Home className="h-5 w-5" />
             </Button>
@@ -347,12 +349,26 @@ export const Header = ({
               </Button>
             ) : (
               <>
-                <Button variant="outline" asChild size="sm">
-                  <Link to="/login">Masuk</Link>
-                </Button>
-                <Button size="sm" asChild>
-                  <Link to="/register">Daftar</Link>
-                </Button>
+                <div className="flex items-center gap-1 md:hidden">
+                  <Button variant="ghost" size="icon" aria-label="Masuk" asChild>
+                    <Link to="/login">
+                      <LogIn className="h-5 w-5" />
+                    </Link>
+                  </Button>
+                  <Button size="icon" aria-label="Daftar" asChild>
+                    <Link to="/register">
+                      <UserPlus className="h-5 w-5" />
+                    </Link>
+                  </Button>
+                </div>
+                <div className="hidden items-center gap-2 md:flex">
+                  <Button variant="outline" asChild size="sm">
+                    <Link to="/login">Masuk</Link>
+                  </Button>
+                  <Button size="sm" asChild>
+                    <Link to="/register">Daftar</Link>
+                  </Button>
+                </div>
               </>
             )}
           </div>
