@@ -26,7 +26,7 @@ import { useAuth } from "@/context/auth-context";
 import { useCart } from "@/context/cart-context";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { decreaseProductStock } from "@/lib/repositories/catalogRepository";
-import { createOrder } from "@/lib/repositories/orderRepository";
+import { createOrder, updateOrderStatus } from "@/lib/repositories/orderRepository";
 import { createMidtransTransaction } from "@/lib/repositories/paymentRepository";
 import { supabase } from "@/lib/supabaseClient";
 import { savePurchasedProducts } from "@/lib/repositories/reviewRepository";
@@ -237,11 +237,8 @@ const Checkout = () => {
         window.snap.pay(midtransData.token, {
           onSuccess: async () => {
             try {
-              // update status ke success (fallback jika webhook sudah handle)
-              await supabase
-                .from("orders")
-                .update({ status: "success" })
-                .eq("id", order.id);
+              // update status ke processed (fallback jika webhook sudah handle)
+              await updateOrderStatus(order.id, "processed");
 
               // simpan produk yang berhasil dibeli untuk referensi ulasan
               savePurchasedProducts(order.id, purchaseItems);

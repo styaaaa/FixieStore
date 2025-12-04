@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUserOrders } from "@/hooks/useUserOrders";
 import { useUserProfile } from "@/hooks/useUserProfile";
-import type { Order } from "@/types/order";
+import type { Order, OrderStatus } from "@/types/order";
 import type { ProductReview } from "@/types/review";
 import { getReviewsByOrder } from "@/lib/repositories/reviewRepository";
 
@@ -62,14 +62,41 @@ const displayName = useMemo(() => {
     || "Akun Anda";
 }, [profile?.full_name, user?.user_metadata, user?.email]);
 
+  const statusFlow: OrderStatus[] = [
+    "pending",
+    "processed",
+    "packaged",
+    "shipped",
+    "completed",
+  ];
+
+  const activeStatuses: OrderStatus[] = [
+    "pending",
+    "processed",
+    "packaged",
+    "shipped",
+  ];
+
+  const statusLabels: Record<OrderStatus, string> = {
+    pending: "Pending",
+    processed: "Diproses",
+    packaged: "Dikemas",
+    shipped: "Dikirim",
+    completed: "Selesai",
+    failed: "Gagal",
+    expired: "Kedaluwarsa",
+    cancelled: "Dibatalkan",
+  };
+
   const activeOrders = useMemo(
-    () => orders.filter((order) => order.status === "pending"),
+    () => orders.filter((order) => activeStatuses.includes(order.status)),
     [orders]
   );
 
-  const completedOrders = useMemo(() => {
-  return orders.filter((order) => order.status === "success");
-}, [orders]);
+  const completedOrders = useMemo(
+    () => orders.filter((order) => order.status === "completed"),
+    [orders]
+  );
 
 // stringify agar dependency tidak berubah tiap render
 const completedOrdersKey = useMemo(
@@ -116,18 +143,47 @@ useEffect(() => {
         }).format(new Date(order.createdAt))
       : "Tanggal tidak tersedia";
 
-  const renderOrderBadge = (status: string) => {
-    const normalized = status.toLowerCase();
+  const renderOrderBadge = (status: OrderStatus) => {
+    const COLORS: Record<OrderStatus, string> = {
+      pending: "bg-amber-100 text-amber-800",
+      processed: "bg-blue-100 text-blue-700",
+      packaged: "bg-indigo-100 text-indigo-700",
+      shipped: "bg-sky-100 text-sky-700",
+      completed: "bg-emerald-100 text-emerald-700",
+      failed: "bg-red-100 text-red-700",
+      expired: "bg-slate-100 text-slate-700",
+      cancelled: "bg-rose-100 text-rose-700",
+    };
 
-    if (normalized === "success") {
-      return <Badge className="bg-emerald-600 text-white">Selesai</Badge>;
-    }
+    return (
+      <Badge className={`${COLORS[status]} capitalize`} variant="secondary">
+        {statusLabels[status]}
+      </Badge>
+    );
+  };
 
-    if (normalized === "pending") {
-      return <Badge variant="outline">Aktif</Badge>;
-    }
+  const renderStatusProgress = (status: OrderStatus) => {
+    const currentIndex = statusFlow.indexOf(status);
 
-    return <Badge variant="secondary">{status}</Badge>;
+    return (
+      <div className="flex flex-wrap items-center gap-2 text-xs">
+        {statusFlow.map((step, index) => {
+          const isReached = index <= currentIndex;
+
+          return (
+            <div key={step} className="flex items-center gap-1">
+              <span
+                className={`h-2 w-2 rounded-full ${isReached ? "bg-primary" : "bg-muted-foreground/30"}`}
+              />
+              <span className={isReached ? "text-foreground" : "text-muted-foreground"}>
+                {statusLabels[step]}
+              </span>
+              {index < statusFlow.length - 1 && <span className="text-muted-foreground">→</span>}
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   if (!user || isAdmin) {
@@ -244,10 +300,12 @@ useEffect(() => {
         {/* Pesanan Aktif */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between">
               <div>
                 <CardTitle>Pesanan Aktif</CardTitle>
-                <CardDescription>Status pending</CardDescription>
+                <CardDescription>
+                  Status pending → processed → packaged → shipped
+                </CardDescription>
               </div>
               <Badge variant="outline">{activeOrders.length} pesanan</Badge>
             </div>
@@ -272,6 +330,11 @@ useEffect(() => {
                       <p className="text-xs text-muted-foreground">{formatDate(order)}</p>
                     </div>
                     {renderOrderBadge(order.status)}
+                  </div>
+
+                  <div className="rounded-lg bg-muted/50 p-3 text-xs">
+                    <p className="mb-2 font-medium text-foreground">Perjalanan pesanan</p>
+                    {renderStatusProgress(order.status)}
                   </div>
 
                   {/* <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
@@ -301,10 +364,10 @@ useEffect(() => {
         {/* Pesanan Selesai */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between">
               <div>
                 <CardTitle>Pesanan Selesai</CardTitle>
-                <CardDescription>Status success</CardDescription>
+                <CardDescription>Status completed</CardDescription>
               </div>
               <Badge variant="secondary">{completedOrders.length} pesanan</Badge>
             </div>

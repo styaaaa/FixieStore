@@ -51,8 +51,14 @@ import {
   getProducts,
   updateProduct,
 } from "@/lib/repositories/catalogRepository";
+import {
+  fetchAllOrders,
+  mapOrderRowToOrder,
+  updateOrderStatus,
+} from "@/lib/repositories/orderRepository";
 
 import type { Product, Category } from "@/types/catalog";
+import type { Order, OrderStatus } from "@/types/order";
 
 
 // ============================
@@ -92,8 +98,10 @@ export default function AdminDashboard() {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
 
   const [loading, setLoading] = useState(true);
+  const [ordersLoading, setOrdersLoading] = useState(true);
   const [form, setForm] = useState(initialForm);
   const [saving, setSaving] = useState(false);
 
@@ -102,6 +110,62 @@ export default function AdminDashboard() {
   const [savingEdit, setSavingEdit] = useState(false);
 
   const [deleteLoading, setDeleteLoading] = useState<Record<string, boolean>>({});
+  const [orderSaving, setOrderSaving] = useState<Record<string, boolean>>({});
+
+  const statusFlow: OrderStatus[] = [
+    "pending",
+    "processed",
+    "packaged",
+    "shipped",
+    "completed",
+  ];
+
+  const statusLabels: Record<OrderStatus, string> = {
+    pending: "Pending",
+    processed: "Diproses",
+    packaged: "Dikemas",
+    shipped: "Dikirim",
+    completed: "Selesai",
+    failed: "Gagal",
+    expired: "Kedaluwarsa",
+    cancelled: "Dibatalkan",
+  };
+
+  const renderStatusBadge = (status: OrderStatus) => {
+    const COLORS: Record<OrderStatus, string> = {
+      pending: "bg-amber-100 text-amber-800",
+      processed: "bg-blue-100 text-blue-700",
+      packaged: "bg-indigo-100 text-indigo-700",
+      shipped: "bg-sky-100 text-sky-700",
+      completed: "bg-emerald-100 text-emerald-700",
+      failed: "bg-red-100 text-red-700",
+      expired: "bg-slate-100 text-slate-700",
+      cancelled: "bg-rose-100 text-rose-700",
+    };
+
+    return (
+      <Badge className={`${COLORS[status]} capitalize`} variant="secondary">
+        {statusLabels[status]}
+      </Badge>
+    );
+  };
+
+  const getNextStatus = (status: OrderStatus) => {
+    const currentIndex = statusFlow.indexOf(status);
+
+    if (currentIndex === -1 || currentIndex === statusFlow.length - 1) {
+      return null;
+    }
+
+    return statusFlow[currentIndex + 1];
+  };
+
+  const formatCurrency = (value?: number | null) =>
+    new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(value ?? 0);
 
 
   // ============================
@@ -110,16 +174,21 @@ export default function AdminDashboard() {
 
   const loadData = useCallback(async () => {
     try {
-      const [cats, prods] = await Promise.all([
+      setOrdersLoading(true);
+
+      const [cats, prods, adminOrders] = await Promise.all([
         getCategories(),
         getProducts(),
+        fetchAllOrders(),
       ]);
       setCategories(cats);
       setProducts(prods);
+      setOrders(adminOrders);
     } catch {
       toast({ variant: "destructive", title: "Gagal memuat data" });
     } finally {
       setLoading(false);
+      setOrdersLoading(false);
     }
   }, []);
 
@@ -136,7 +205,44 @@ export default function AdminDashboard() {
     }
 
     void loadData();
-  }, [authLoading, user, isAdmin]);
+  }, [authLoading, user, isAdmin, loadData, navigate]);
+
+  useEffect(() => {
+    if (!user || !isAdmin) return undefined;
+
+    const channel = supabase
+      .channel("orders-admin-dashboard")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "orders" },
+        (payload) => {
+          setOrders((current) => {
+            const mapped = mapOrderRowToOrder((payload.new ?? payload.old) as any);
+
+            if (payload.eventType === "INSERT") {
+              return [mapped, ...current];
+            }
+
+            if (payload.eventType === "UPDATE") {
+              return current.map((order) =>
+                order.id === mapped.id ? mapped : order
+              );
+            }
+
+            if (payload.eventType === "DELETE") {
+              return current.filter((order) => order.id !== mapped.id);
+            }
+
+            return current;
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isAdmin, user]);
 
 
   // ============================
@@ -291,6 +397,40 @@ export default function AdminDashboard() {
 
 
   // ============================
+  // Order Status
+  // ============================
+
+  const handleAdvanceStatus = async (order: Order) => {
+    const nextStatus = getNextStatus(order.status);
+
+    if (!nextStatus) {
+      toast({ title: "Status selesai", description: "Pesanan ini sudah completed" });
+      return;
+    }
+
+    setOrderSaving((prev) => ({ ...prev, [order.id]: true }));
+
+    try {
+      const updated = await updateOrderStatus(order.id, nextStatus);
+      setOrders((current) => current.map((o) => (o.id === updated.id ? updated : o)));
+
+      toast({
+        title: "Status diperbarui",
+        description: `${statusLabels[order.status]} → ${statusLabels[nextStatus]}`,
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Gagal memperbarui status",
+        description: error instanceof Error ? error.message : "Coba lagi nanti",
+      });
+    } finally {
+      setOrderSaving((prev) => ({ ...prev, [order.id]: false }));
+    }
+  };
+
+
+  // ============================
   // Render
   // ============================
 
@@ -329,6 +469,84 @@ export default function AdminDashboard() {
         </Badge>
       </h1>
       <p className="text-sm text-muted-foreground mb-6">Kelola produk & stok</p>
+
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Status Pesanan</CardTitle>
+          <CardDescription>
+            Pending → processed → packaged → shipped → completed. Tanpa integrasi kurir.
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          {ordersLoading ? (
+            <div className="space-y-3">
+              <div className="h-12 w-full animate-pulse rounded-md bg-muted" />
+              <div className="h-12 w-full animate-pulse rounded-md bg-muted" />
+            </div>
+          ) : orders.length === 0 ? (
+            <div className="rounded-lg border border-dashed p-6 text-sm text-muted-foreground">
+              Belum ada pesanan.
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID & Tanggal</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead className="text-right">Aksi</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {orders.map((order) => {
+                  const nextStatus = getNextStatus(order.status);
+
+                  return (
+                    <TableRow key={order.id}>
+                      <TableCell>
+                        <p className="font-semibold">{order.id}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(order.createdAt).toLocaleString("id-ID")}
+                        </p>
+                      </TableCell>
+
+                      <TableCell>
+                        <p className="font-medium">
+                          {[order.firstName, order.lastName].filter(Boolean).join(" ") || "Nama belum diisi"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{order.city || "Kota belum diisi"}</p>
+                      </TableCell>
+
+                      <TableCell>{renderStatusBadge(order.status)}</TableCell>
+
+                      <TableCell>{formatCurrency(order.totalPrice)}</TableCell>
+
+                      <TableCell className="text-right">
+                        {nextStatus ? (
+                          <Button
+                            size="sm"
+                            onClick={() => handleAdvanceStatus(order)}
+                            disabled={orderSaving[order.id]}
+                          >
+                            {orderSaving[order.id]
+                              ? "Memperbarui..."
+                              : `Ke ${statusLabels[nextStatus]}`}
+                          </Button>
+                        ) : (
+                          <Badge variant="outline">Completed</Badge>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
 
       {/* ADD PRODUCT */}
       <Card className="mb-8">

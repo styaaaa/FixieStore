@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { useUserOrders } from "@/hooks/useUserOrders";
-import type { Order } from "@/types/order";
+import type { Order, OrderStatus } from "@/types/order";
 import {
   getPurchasedProductsByOrder,
   saveProductReview,
@@ -59,7 +59,7 @@ const OrderReviews = () => {
   }, [authLoading, isAdmin, navigate, user]);
 
   const completedOrders = useMemo(
-    () => orders.filter((order) => order.status === "success"),
+    () => orders.filter((order) => order.status === "completed"),
     [orders]
   );
 
@@ -92,40 +92,56 @@ const OrderReviews = () => {
         }).format(new Date(order.createdAt))
       : "Tanggal tidak tersedia";
 
-  const renderOrderBadge = (status: string) => {
-    const normalized = status.toLowerCase();
+  const renderOrderBadge = (status: OrderStatus) => {
+    const COLORS: Record<OrderStatus, string> = {
+      pending: "bg-amber-100 text-amber-800",
+      processed: "bg-blue-100 text-blue-700",
+      packaged: "bg-indigo-100 text-indigo-700",
+      shipped: "bg-sky-100 text-sky-700",
+      completed: "bg-emerald-100 text-emerald-700",
+      failed: "bg-red-100 text-red-700",
+      expired: "bg-slate-100 text-slate-700",
+      cancelled: "bg-rose-100 text-rose-700",
+    };
 
-    if (normalized === "success") {
-      return <Badge className="bg-emerald-600 text-white">Selesai</Badge>;
-    }
+    const labels: Record<OrderStatus, string> = {
+      pending: "Pending",
+      processed: "Diproses",
+      packaged: "Dikemas",
+      shipped: "Dikirim",
+      completed: "Selesai",
+      failed: "Gagal",
+      expired: "Kedaluwarsa",
+      cancelled: "Dibatalkan",
+    };
 
-    if (normalized === "pending") {
-      return <Badge variant="outline">Aktif</Badge>;
-    }
-
-    return <Badge variant="secondary">{status}</Badge>;
+    return (
+      <Badge className={`${COLORS[status]} capitalize`} variant="secondary">
+        {labels[status]}
+      </Badge>
+    );
   };
 
   const selectedOrder = completedOrders.find((order) => order.id === selectedOrderId);
   useEffect(() => {
-  if (!selectedOrderId) {
-    setPurchasedProducts([]);
-    return;
-  }
+    if (!selectedOrderId) {
+      setPurchasedProducts([]);
+      return;
+    }
 
-  let isActive = true;
+    let isActive = true;
 
-  const fetchProducts = async () => {
-    const res = await getPurchasedProductsByOrder(selectedOrderId);
-    if (isActive) setPurchasedProducts(res ?? []);
-  };
+    const fetchProducts = async () => {
+      const res = await getPurchasedProductsByOrder(selectedOrderId);
+      if (isActive) setPurchasedProducts(res ?? []);
+    };
 
-  fetchProducts();
+    fetchProducts();
 
-  return () => {
-    isActive = false;
-  };
-}, [selectedOrderId]);
+    return () => {
+      isActive = false;
+    };
+  }, [selectedOrderId]);
 
 
   useEffect(() => {
@@ -205,7 +221,7 @@ const review = await saveProductReview({
           <CardHeader>
             <CardTitle>Kenapa ulasan penting?</CardTitle>
             <CardDescription>
-              Pesanan dengan status <strong>success</strong> di Supabase bisa kamu review di sini. Kami siapkan pengalaman
+              Pesanan dengan status <strong>completed</strong> di Supabase bisa kamu review di sini. Kami siapkan pengalaman
               yang rapi agar feedback-mu tersampaikan dengan minim error.
             </CardDescription>
           </CardHeader>
@@ -242,7 +258,7 @@ const review = await saveProductReview({
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>Pesanan selesai</CardTitle>
-              <CardDescription>Pilih pesanan berstatus success untuk diulas</CardDescription>
+              <CardDescription>Pilih pesanan berstatus completed untuk diulas</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               {ordersLoading ? (
@@ -252,7 +268,7 @@ const review = await saveProductReview({
                 </div>
               ) : completedOrders.length === 0 ? (
                 <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                  Belum ada pesanan berstatus success. Setelah checkout berhasil, ulasanmu bisa ditulis di sini.
+                  Belum ada pesanan berstatus completed. Setelah admin mengirimkan pesanan dan status berubah, ulasanmu bisa ditulis di sini.
                 </div>
               ) : (
                 completedOrders.map((order) => (

@@ -1,7 +1,17 @@
+export type OrderStatus =
+  | "pending"
+  | "processed"
+  | "packaged"
+  | "shipped"
+  | "completed"
+  | "failed"
+  | "expired"
+  | "cancelled";
+
 export interface Order {
   id: string;
   userId: string | null;
-  status: string;
+  status: OrderStatus;
   createdAt: string | null;
   paymentMethod: string | null;
   shippingMethod: string | null;
@@ -12,4 +22,10 @@ export interface Order {
   address: string | null;
   city: string | null;
   postalCode: string | null;
+  pendingAt?: string | null;
+  processedAt?: string | null;
+  packagedAt?: string | null;
+  shippedAt?: string | null;
+  completedAt?: string | null;
+  cancelledAt?: string | null;
 }
