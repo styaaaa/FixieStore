@@ -169,7 +169,7 @@ export const Header = ({
     >
       <div className="container mx-auto px-4 py-2 md:py-4">
         <div className="flex items-center justify-between gap-2 md:flex-row md:items-center md:gap-3">
-          <div className="flex items-center gap-2 md:gap-3">
+          <div className="hidden items-center gap-2 md:flex md:gap-3">
             <Link to="/" className="flex items-center gap-2" aria-label="FixieStore">
               <img
                 src="/bulat.png"
@@ -181,26 +181,18 @@ export const Header = ({
           </div>
 
           {!hideSearchControls && (
-            <div className="flex flex-1 items-center gap-2 md:hidden">
+            <div className="flex flex-1 items-center md:hidden">
               <div className="relative w-full">
                 <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={searchQuery}
                   onChange={(event) => onSearchChange(event.target.value)}
                   onKeyDown={handleSearchKeyDown}
-                  placeholder="Cari produk atau brand"
+                  placeholder="Cari produk..."
                   className="pl-9"
                 />
               </div>
-              <Button
-                variant="secondary"
-                size="icon"
-                aria-label="Cari"
-                onClick={() => handleSearchSubmit(searchQuery)}
-              >
-                <SearchIcon className="h-4 w-4" />
-              </Button>
-            </div>
+             </div>
           )}
 
           {!hideSearchControls && (
@@ -309,7 +301,7 @@ export const Header = ({
             </div>
           )}
 
-          <div className="flex items-center justify-end gap-1 md:gap-2">
+          <div className="flex items-center justify-end gap-0.5 md:gap-2">
             <Button
               variant="ghost"
               size="icon"
