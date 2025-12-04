@@ -92,7 +92,7 @@ export const HeroSection = () => {
 
   return (
     <section className="relative isolate overflow-hidden">
-      <div className="relative h-[70vh] w-full md:h-[100vh]">
+      <div className="relative h-[60vh] w-full sm:h-[70vh] md:h-[100vh]">
         <div
           className="flex h-full"
           style={{
@@ -106,7 +106,7 @@ export const HeroSection = () => {
           {slidesWithClones.map((slide, index) => (
             <article
               key={`${slide.id}-${index}`}
-              className="relative h-[70vh] w-full flex-shrink-0 bg-neutral-900 md:h-[100vh]"
+              className="relative h-[60vh] w-full flex-shrink-0 bg-neutral-900 sm:h-[70vh] md:h-[100vh]"
             >
               <img
                 src={slide.image}
