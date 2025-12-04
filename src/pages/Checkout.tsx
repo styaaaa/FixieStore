@@ -77,7 +77,7 @@ const Checkout = () => {
   }, [cartItems, directPurchase]);
 
   const [submitting, setSubmitting] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("Transfer Bank");
+  const [paymentMethod] = useState("Transfer Bank");
   const [shippingMethod, setShippingMethod] = useState("Reguler");
 
   // ====== Load keranjang ======

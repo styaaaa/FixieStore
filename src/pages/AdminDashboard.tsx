@@ -207,6 +207,7 @@ export default function AdminDashboard() {
     void loadData();
   }, [authLoading, user, isAdmin, loadData, navigate]);
 
+
   useEffect(() => {
     if (!user || !isAdmin) return undefined;
 

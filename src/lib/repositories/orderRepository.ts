@@ -166,24 +166,23 @@ export const updateOrderStatus = async (orderId: string, nextStatus: OrderStatus
       .eq("id", orderId)
       .single();
 
-    if (!data) {
-      throw new Error("Pesanan tidak ditemukan");
-    }
-
+    if (!data) throw new Error("Pesanan tidak ditemukan");
     return mapOrderRowToOrder(data as OrderRow);
   }
 
-  const isTransitionAllowed = allowedTransitions[existing.status]?.includes(nextStatus);
-
-  if (!isTransitionAllowed) {
+  const allowed = allowedTransitions[existing.status]?.includes(nextStatus);
+  if (!allowed) {
     throw new Error(`Perubahan status dari ${existing.status} ke ${nextStatus} tidak diizinkan`);
   }
 
-  const updates: Partial<OrderRow> = { status: nextStatus };
-  const timestampColumn = statusTimestampColumns[nextStatus];
+  // FIX: dictionary fleksibel
+  const updates: Record<string, any> = {
+    status: nextStatus,
+  };
 
+  const timestampColumn = statusTimestampColumns[nextStatus];
   if (timestampColumn) {
-    updates[timestampColumn] = new Date().toISOString();
+    updates[timestampColumn as string] = new Date().toISOString();
   }
 
   const { data, error } = await supabase
