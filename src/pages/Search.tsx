@@ -17,7 +17,9 @@ import { useCart } from "@/context/cart-context";
 import { toast } from "sonner";
 import { Search as SearchIcon, Shuffle, Sparkles } from "lucide-react";
 
-const ITEMS_PER_BATCH = 20;
+const ITEMS_PER_ROW = 4;
+const ROWS_PER_BATCH = 4;
+const ITEMS_PER_BATCH = ITEMS_PER_ROW * ROWS_PER_BATCH;
 
 const SearchPage = () => {
   const navigate = useNavigate();
@@ -292,18 +294,7 @@ const SearchPage = () => {
                   </div>
                 )}
               </div>
-
-                {randomSpotlight && (
-                  <div className="rounded-2xl border bg-gradient-to-br from-primary/10 via-transparent to-indigo-500/10 p-4 shadow-sm">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-primary">Pilihan acak</p>
-                    <p className="text-lg font-semibold leading-tight">{randomSpotlight.name}</p>
-                    <p className="text-sm text-muted-foreground">{randomSpotlight.brand || "Produk"}</p>
-                    <p className="mt-2 text-base font-semibold text-primary">
-                      Rp {randomSpotlight.price.toLocaleString("id-ID")}
-                    </p>
-                  </div>
-                )}
-              </div>
+            </div>
 
               <div className="space-y-4">
                 <form onSubmit={handleSearchSubmit} className="space-y-3">
