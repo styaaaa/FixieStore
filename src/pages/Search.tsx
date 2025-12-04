@@ -168,17 +168,13 @@ const SearchPage = () => {
                   </p>
                 </div>
 
-                <div className="rounded-2xl border bg-background/80 p-4 shadow-sm">
+                 <div className="rounded-2xl border bg-background/80 p-4 shadow-sm">
                   <div className="flex items-center justify-between gap-2">
                     <div>
                       <p className="text-sm font-semibold">Filter kategori</p>
                       <p className="text-xs text-muted-foreground">Gabungkan beberapa kategori untuk hasil lebih presisi.</p>
                     </div>
-                    <Button variant="outline" size="sm" onClick={() => setShuffleKey(Date.now())} className="gap-2">
-                      <Shuffle className="h-4 w-4" />
-                      Acak produk
-                    </Button>
-                  </div>
+                   </div>
 
                   <div className="mt-4 space-y-3 max-h-72 overflow-y-auto pr-1">
                     {loadingCategories ? (
