@@ -181,6 +181,29 @@ export const Header = ({
           </div>
 
           {!hideSearchControls && (
+            <div className="flex flex-1 items-center gap-2 md:hidden">
+              <div className="relative w-full">
+                <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={searchQuery}
+                  onChange={(event) => onSearchChange(event.target.value)}
+                  onKeyDown={handleSearchKeyDown}
+                  placeholder="Cari produk atau brand"
+                  className="pl-9"
+                />
+              </div>
+              <Button
+                variant="secondary"
+                size="icon"
+                aria-label="Cari"
+                onClick={() => handleSearchSubmit(searchQuery)}
+              >
+                <SearchIcon className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+
+          {!hideSearchControls && (
             <div className="hidden md:flex md:flex-1 md:items-center md:justify-center">
               <div className="flex w-full items-center gap-2 md:w-2/5 lg:w-[40%]">
                 <div className="relative w-full">

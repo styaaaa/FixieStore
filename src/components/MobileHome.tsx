@@ -23,7 +23,7 @@ export const MobileHome = ({
   return (
     <div className="md:hidden">
       {/* Quick filters */}
-      <div className="sticky top-[64px] z-40 flex gap-2 overflow-x-auto border-b bg-background px-4 py-3 scrollbar-none">
+      <div className="sticky top-14 z-40 flex gap-2 overflow-x-auto border-b bg-background px-4 py-3 scrollbar-none">
         <button
           className={`px-3 py-2 rounded-full text-sm border ${!activeCategory ? "bg-primary text-primary-foreground" : "bg-muted"}`}
           onClick={() => onCategorySelect()}
