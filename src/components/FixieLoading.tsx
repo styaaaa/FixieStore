@@ -1,145 +1,157 @@
 import { cn } from "@/lib/utils";
 
-interface FixieLoaderProps {
+type FixieLoadingSize = "sm" | "md" | "lg";
+
+type FixieLoadingVariant = "default" | "ghost";
+
+type FixieLoadingProps = {
   message?: string;
   className?: string;
-}
+  fullscreen?: boolean;
+  size?: FixieLoadingSize;
+  variant?: FixieLoadingVariant;
+};
 
-export const FixieLoader = ({
+const sizeMap: Record<FixieLoadingSize, string> = {
+  sm: "h-16 w-16",
+  md: "h-24 w-24",
+  lg: "h-32 w-32",
+};
+
+const gapMap: Record<FixieLoadingSize, string> = {
+  sm: "gap-3",
+  md: "gap-6",
+  lg: "gap-8",
+};
+
+const textMap: Record<FixieLoadingSize, string> = {
+  sm: "text-xs font-medium text-muted-foreground sm:text-sm",
+  md: "text-sm font-medium text-muted-foreground sm:text-base",
+  lg: "text-base font-semibold text-muted-foreground",
+};
+
+const inlinePaddingMap: Record<FixieLoadingSize, string> = {
+  sm: "w-full py-4",
+  md: "w-full py-6",
+  lg: "w-full py-8",
+};
+
+export const FixieLoading = ({
   message = "Memuat...",
   className,
-}: FixieLoaderProps) => {
+  fullscreen = true,
+  size = "md",
+  variant = "ghost",
+}: FixieLoadingProps) => {
+  const variantClassName: Record<FixieLoadingVariant, string> = {
+    default:
+      "text-muted-foreground/80 dark:text-muted-foreground/70",
+    ghost:
+      "text-muted-foreground/60 dark:text-muted-foreground/60",
+  };
+
   return (
     <div
       className={cn(
-        "flex flex-col items-center gap-6 py-12 text-center text-muted-foreground",
-        className,
+        "flex flex-col items-center justify-center text-center",
+        gapMap[size],
+        fullscreen ? "min-h-[60vh] sm:min-h-screen" : inlinePaddingMap[size],
+        className
       )}
     >
-      <div className="relative h-28 w-40 sm:w-48">
-        <div className="absolute inset-x-8 bottom-1 h-4 rounded-full bg-gradient-to-r from-black/30 via-black/10 to-black/30 opacity-20 blur-md animate-[fixie-shadow_1.8s_ease-in-out_infinite]" />
+      <div className="relative">
         <svg
-          viewBox="0 0 260 140"
-          className="relative h-full w-full text-primary"
-          aria-hidden="true"
+          viewBox="0 0 220 140"
+          className={cn(
+            variantClassName[variant],
+            "fixie-loading-bike",
+            sizeMap[size]
+          )}
+          role="img"
+          aria-hidden={message ? undefined : true}
+          aria-busy="true"
         >
-          <g className="animate-[fixie-bounce_1.8s_ease-in-out_infinite]">
-            <circle
-              cx="70"
-              cy="100"
-              r="42"
-              stroke="currentColor"
-              strokeWidth="6"
-              fill="none"
-              className="animate-[spin_1.2s_linear_infinite]"
-              style={{ transformOrigin: "70px 100px" }}
-            />
-            <circle
-              cx="190"
-              cy="100"
-              r="42"
-              stroke="currentColor"
-              strokeWidth="6"
-              fill="none"
-              className="animate-[spin_1.2s_linear_infinite]"
-              style={{ transformOrigin: "190px 100px" }}
-            />
-
-            <circle cx="70" cy="100" r="8" fill="hsl(var(--accent))" />
-            <circle cx="190" cy="100" r="8" fill="hsl(var(--accent))" />
-
-            <path
-              d="M70 100 L120 40 L190 70 L140 100 Z"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-
-            <line
-              x1="120"
-              y1="40"
-              x2="120"
-              y2="70"
-              stroke="currentColor"
-              strokeWidth="6"
-              strokeLinecap="round"
-            />
-
-            <rect
-              x="110"
-              y="26"
-              width="32"
-              height="8"
-              rx="4"
-              fill="hsl(var(--foreground))"
-            />
-
-            <line
-              x1="190"
-              y1="70"
-              x2="220"
-              y2="52"
-              stroke="currentColor"
-              strokeWidth="6"
-              strokeLinecap="round"
-            />
-            <line
-              x1="220"
-              y1="52"
-              x2="232"
-              y2="60"
-              stroke="currentColor"
-              strokeWidth="4"
-              strokeLinecap="round"
-            />
-
-            <g
-              className="animate-[fixie-pedal_1s_linear_infinite]"
-              style={{ transformOrigin: "140px 92px" }}
-            >
-              <circle cx="140" cy="92" r="12" fill="hsl(var(--accent))" />
-              <line
-                x1="140"
-                y1="92"
-                x2="140"
-                y2="62"
-                stroke="hsl(var(--accent))"
-                strokeWidth="6"
-                strokeLinecap="round"
-              />
-              <circle cx="140" cy="62" r="6" fill="hsl(var(--accent))" />
+          <g
+            stroke="currentColor"
+            strokeWidth="6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          >
+            <g className="fixie-loading-wheel">
+              <circle cx="60" cy="94" r="36" />
             </g>
+            <g className="fixie-loading-wheel">
+              <circle cx="160" cy="94" r="36" />
+            </g>
+          </g>
 
-            <line
-              x1="70"
-              y1="100"
-              x2="140"
-              y2="92"
-              stroke="currentColor"
-              strokeWidth="4"
-              strokeLinecap="round"
-            />
-            <line
-              x1="190"
-              y1="100"
-              x2="140"
-              y2="92"
-              stroke="currentColor"
-              strokeWidth="4"
-              strokeLinecap="round"
-            />
+          <g
+            stroke="currentColor"
+            strokeWidth="6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          >
+            <path d="M60 94L96 40L152 40L160 94L108 94L60 94Z" />
+            <path d="M96 40L108 94" />
+            <path d="M96 40L160 94" />
+            <line x1="94" y1="42" x2="84" y2="26" />
+            <line x1="152" y1="40" x2="174" y2="32" />
+          </g>
+
+          <g
+            className="fixie-loading-crank"
+            stroke="currentColor"
+            strokeWidth="6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          >
+            <circle cx="108" cy="84" r="12" />
+            <line x1="108" y1="84" x2="138" y2="84" />
+            <line x1="138" y1="84" x2="148" y2="92" />
+            <line x1="108" y1="84" x2="82" y2="84" />
+            <line x1="82" y1="84" x2="72" y2="76" />
+          </g>
+
+          <g
+            className="fixie-loading-chain"
+            stroke="currentColor"
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          >
+            <path d="M108 84L60 94" />
+            <path d="M108 84L160 94" />
+          </g>
+
+          <g
+            className="fixie-loading-seat"
+            stroke="currentColor"
+            strokeWidth="5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          >
+            <line x1="86" y1="28" x2="108" y2="24" />
+            <line x1="108" y1="24" x2="122" y2="24" />
           </g>
         </svg>
+
+        <div
+          className={cn(
+            "fixie-loading-trail",
+            variant === "ghost" && "fixie-loading-trail-ghost"
+          )}
+          aria-hidden
+        />
       </div>
 
-      <p className="text-base font-medium text-foreground sm:text-lg">{message}</p>
-      <p className="max-w-xs text-sm text-muted-foreground">
-        
-      </p>
+      {message && <p className={textMap[size]}>{message}</p>}
     </div>
   );
 };
 
-export default FixieLoader;
+export default FixieLoading;
