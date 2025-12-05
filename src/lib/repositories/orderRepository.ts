@@ -2,7 +2,7 @@
 import { supabase } from "@/lib/supabaseClient";
 import type { Order, OrderStatus } from "@/types/order";
 
-export type OrderRow = {
+type OrderRow = {
   id: string;
   user_id: string;
   status: OrderStatus;
@@ -166,23 +166,24 @@ export const updateOrderStatus = async (orderId: string, nextStatus: OrderStatus
       .eq("id", orderId)
       .single();
 
-    if (!data) throw new Error("Pesanan tidak ditemukan");
+    if (!data) {
+      throw new Error("Pesanan tidak ditemukan");
+    }
+
     return mapOrderRowToOrder(data as OrderRow);
   }
 
-  const allowed = allowedTransitions[existing.status]?.includes(nextStatus);
-  if (!allowed) {
+  const isTransitionAllowed = allowedTransitions[existing.status]?.includes(nextStatus);
+
+  if (!isTransitionAllowed) {
     throw new Error(`Perubahan status dari ${existing.status} ke ${nextStatus} tidak diizinkan`);
   }
 
-  // FIX: dictionary fleksibel
-  const updates: Record<string, any> = {
-    status: nextStatus,
-  };
-
+  const updates: Partial<OrderRow> = { status: nextStatus };
   const timestampColumn = statusTimestampColumns[nextStatus];
+
   if (timestampColumn) {
-    updates[timestampColumn as string] = new Date().toISOString();
+    updates[timestampColumn] = new Date().toISOString();
   }
 
   const { data, error } = await supabase
