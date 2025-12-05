@@ -437,14 +437,14 @@ export default function AdminDashboard() {
   };
 
 
-  // ============================
-  // Render
-  // ============================
+    // ============================
+    // Render
+    // ============================
 
-  const inventoryValue = useMemo(
-    () => products.reduce((s, p) => s + p.price * p.stock, 0),
-    [products]
-  );
+    const inventoryValue = useMemo(
+      () => products.reduce((s, p) => s + p.price * p.stock, 0),
+      [products]
+    );
 
   const totalProducts = useMemo(() => products.length, [products]);
   const lowStockCount = useMemo(
@@ -457,30 +457,27 @@ export default function AdminDashboard() {
     [orders]
   );
 
-  const revenue = useMemo(
-    () => orders.reduce((sum, order) => sum + order.totalPrice, 0),
-    [orders]
-  );
+    const revenue = useMemo(
+      () => orders.reduce((sum, order) => sum + order.totalPrice, 0),
+      [orders]
+    );
 
-  if (!user || !isAdmin) return null;
+    if (!user || !isAdmin) return null;
 
-  return (
+    return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50">
-      <div className="max-w-6xl mx-auto p-6 space-y-6">
+      <div className="max-w-6xl mx-auto p-6">
         {/* TOP BAR */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
             <Button
               variant="outline"
               onClick={() => navigate("/")}
-              className="bg-white/80 backdrop-blur border-indigo-100 shadow-sm"
+              className="bg-white/70 backdrop-blur border-indigo-100 shadow-sm"
             >
               <Home className="h-4 w-4 mr-2" />
               Kembali ke Home
             </Button>
-            <Badge variant="secondary" className="bg-indigo-100 text-indigo-700 hidden sm:inline-flex">
-              Mode Admin
-            </Badge>
           </div>
 
           <Button
@@ -492,83 +489,68 @@ export default function AdminDashboard() {
           </Button>
         </div>
 
-        {/* HERO */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-400 px-6 py-8 text-white shadow-lg">
-          <div className="absolute inset-0 bg-grid-white/10 [mask-image:radial-gradient(black,transparent_70%)]" />
-          <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-11 w-11 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center shadow-inner">
-                <ShieldCheck className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-sm text-white/80">Panel kendali penjual</p>
-                <h1 className="text-3xl font-bold leading-tight">Dashboard Admin</h1>
-              </div>
+        {/* HEADER */}
+        <div className="flex flex-col gap-2 mb-6">
+          <div className="flex items-center gap-2">
+            <div className="h-11 w-11 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shadow-sm">
+              <ShieldCheck className="h-5 w-5" />
             </div>
-
-            <div className="flex flex-wrap gap-3 text-sm">
-              <div className="rounded-full bg-white/15 px-3 py-2 backdrop-blur border border-white/20">
-                Produk aktif: {totalProducts}
-              </div>
-              <div className="rounded-full bg-white/15 px-3 py-2 backdrop-blur border border-white/20">
-                Pesanan aktif: {pendingOrders}
-              </div>
+            <div>
+              <h1 className="text-3xl font-bold">Dashboard Admin</h1>
+              <p className="text-sm text-muted-foreground">Kelola produk & stok</p>
             </div>
           </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+            <Card className="bg-gradient-to-br from-white to-indigo-50 border-indigo-100 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-muted-foreground">Produk</CardTitle>
+                <div className="flex items-end justify-between">
+                  <span className="text-2xl font-semibold">{totalProducts}</span>
+                  <Badge variant="secondary" className="bg-indigo-100 text-indigo-700">
+                    Total
+                  </Badge>
+                </div>
+              </CardHeader>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-white to-amber-50 border-amber-100 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-muted-foreground">Stok Rendah</CardTitle>
+                <div className="flex items-end justify-between">
+                  <span className="text-2xl font-semibold">{lowStockCount}</span>
+                  <Badge variant="secondary" className="bg-amber-100 text-amber-700">
+                    ≤5 unit
+                  </Badge>
+                </div>
+              </CardHeader>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-white to-emerald-50 border-emerald-100 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-muted-foreground">Nilai Inventaris</CardTitle>
+                <div className="flex items-end justify-between">
+                  <span className="text-2xl font-semibold">{formatCurrency(inventoryValue)}</span>
+                  <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">
+                    IDR
+                  </Badge>
+                </div>
+              </CardHeader>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-white to-blue-50 border-blue-100 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-muted-foreground">Pesanan Aktif</CardTitle>
+                <div className="flex items-end justify-between">
+                  <span className="text-2xl font-semibold">{pendingOrders}</span>
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                    Belum selesai
+                  </Badge>
+                </div>
+              </CardHeader>
+            </Card>
+          </div>
         </div>
-
-        {/* METRICS */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Card className="bg-white border-0 shadow-sm ring-1 ring-indigo-100">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">Produk</CardTitle>
-              <div className="flex items-end justify-between">
-                <span className="text-2xl font-semibold">{totalProducts}</span>
-                <Badge variant="secondary" className="bg-indigo-100 text-indigo-700">
-                  Total
-                </Badge>
-              </div>
-            </CardHeader>
-          </Card>
-
-          <Card className="bg-white border-0 shadow-sm ring-1 ring-amber-100">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">Stok Rendah</CardTitle>
-              <div className="flex items-end justify-between">
-                <span className="text-2xl font-semibold">{lowStockCount}</span>
-                <Badge variant="secondary" className="bg-amber-100 text-amber-700">
-                  ≤5 unit
-                </Badge>
-              </div>
-            </CardHeader>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-white to-emerald-50 border-emerald-100 shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">Nilai Inventaris</CardTitle>
-              <div className="flex items-end justify-between">
-                <span className="text-2xl font-semibold">{formatCurrency(inventoryValue)}</span>
-                <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">
-                  IDR
-                </Badge>
-              </div>
-            </CardHeader>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-white to-blue-50 border-blue-100 shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">Pesanan Aktif</CardTitle>
-              <div className="flex items-end justify-between">
-                <span className="text-2xl font-semibold">{pendingOrders}</span>
-                <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                  Belum selesai
-                </Badge>
-              </div>
-            </CardHeader>
-          </Card>
-        </div>
-
-        {/* CONTENT */}
 
         <div className="grid lg:grid-cols-3 gap-6 mb-8">
           <Card className="lg:col-span-2 border-indigo-100 shadow-sm">
@@ -657,13 +639,13 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-            <Card className="mb-8 border-0 shadow-sm ring-1 ring-indigo-50 bg-white/70 backdrop-blur">
-              <CardHeader>
-                <CardTitle>Tambah Produk</CardTitle>
-                <CardDescription>Upload gambar ke Supabase Storage</CardDescription>
-              </CardHeader>
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Tambah Produk</CardTitle>
+              <CardDescription>Upload gambar ke Supabase Storage</CardDescription>
+            </CardHeader>
 
-              <CardContent>
+            <CardContent>
               <form onSubmit={handleCreate} className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   <Input
@@ -729,23 +711,23 @@ export default function AdminDashboard() {
                   onChange={(e) => setField("longDescription", e.target.value)}
                 />
 
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <p className="text-sm text-muted-foreground flex items-center gap-2">
-                      <RefreshCcw className="h-4 w-4" /> Data disimpan otomatis.
-                    </p>
+                <div className="flex justify-between items-center">
+                  <p className="text-sm text-muted-foreground flex items-center gap-2">
+                    <RefreshCcw className="h-4 w-4" /> Data disimpan otomatis.
+                  </p>
 
-                    <Button type="submit" disabled={saving}>
-                      {saving ? "Menyimpan..." : "Tambah"}
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
+                  <Button type="submit" disabled={saving}>
+                    {saving ? "Menyimpan..." : "Tambah"}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
 
-            <Card className="border-0 shadow-sm ring-1 ring-slate-100 bg-white/80 backdrop-blur">
-              <CardHeader>
-                <CardTitle>Daftar Produk</CardTitle>
-                <CardDescription>
+          <Card>
+            <CardHeader>
+              <CardTitle>Daftar Produk</CardTitle>
+              <CardDescription>
                 Total nilai inventaris: Rp {inventoryValue.toLocaleString("id-ID")}
               </CardDescription>
             </CardHeader>
@@ -766,7 +748,7 @@ export default function AdminDashboard() {
 
                   <TableBody>
                     {products.map((p) => (
-                      <TableRow key={p.id} className="hover:bg-slate-50/60">
+                      <TableRow key={p.id}>
                         <TableCell>
                           <p className="font-semibold">{p.name}</p>
                           <p className="text-sm text-muted-foreground">{p.brand}</p>
