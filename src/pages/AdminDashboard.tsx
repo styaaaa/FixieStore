@@ -608,7 +608,7 @@ export default function AdminDashboard() {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="gap-2 border-primary/30 bg-primary/5 text-primary transition hover:-translate-y-[1px] hover:border-primary/50 hover:bg-primary/10 dark:border-primary/50 dark:bg-primary/10 dark:text-primary-foreground dark:hover:border-primary/70"
+                  className="gap-2 border-primary/30 bg-primary/5 text-primary transition hover:-translate-y-[1px] hover:border-primary/50 hover:bg-primary/10 dark:border-amber-300/60 dark:bg-amber-400/15 dark:text-amber-50 dark:hover:border-amber-200/70 dark:hover:bg-amber-400/25"
                   onClick={() => navigate("/")}
                 >
                   <Home className="h-4 w-4" /> Kembali ke Home
@@ -629,9 +629,9 @@ export default function AdminDashboard() {
               </div>
             ) : (
               <div className="overflow-hidden rounded-lg border border-amber-100/80 shadow-sm dark:border-slate-800">
-                <Table>
+                <Table className="text-sm">
                   <TableHeader className="bg-gradient-to-r from-white to-amber-50/70 text-slate-700 dark:from-slate-900 dark:to-slate-900/80 dark:text-slate-200">
-                    <TableRow>
+                    <TableRow className="text-xs uppercase tracking-wide text-muted-foreground">
                       <TableHead>ID & Tanggal</TableHead>
                       <TableHead>Customer</TableHead>
                       <TableHead>Status</TableHead>
@@ -645,26 +645,29 @@ export default function AdminDashboard() {
                       const nextStatus = getNextStatus(order.status);
 
                       return (
-                        <TableRow key={order.id} className="transition hover:bg-primary/5 dark:hover:bg-slate-800">
-                          <TableCell>
+                         <TableRow
+                          key={order.id}
+                          className="align-middle transition hover:bg-primary/5 dark:hover:bg-slate-800"
+                        >
+                          <TableCell className="align-middle">
                             <p className="font-semibold">{order.id}</p>
                             <p className="text-xs text-muted-foreground">
                               {new Date(order.createdAt).toLocaleString("id-ID")}
                             </p>
                           </TableCell>
 
-                          <TableCell>
+                          <TableCell className="align-middle">
                             <p className="font-medium">
                               {[order.firstName, order.lastName].filter(Boolean).join(" ") || "Nama belum diisi"}
                             </p>
                             <p className="text-xs text-muted-foreground">{order.city || "Kota belum diisi"}</p>
                           </TableCell>
 
-                          <TableCell>{renderStatusBadge(order.status)}</TableCell>
+                          <TableCell className="align-middle">{renderStatusBadge(order.status)}</TableCell>
 
-                          <TableCell className="font-medium">{formatCurrency(order.totalPrice)}</TableCell>
+                          <TableCell className="align-middle font-medium">{formatCurrency(order.totalPrice)}</TableCell>
 
-                          <TableCell className="text-right">
+                          <TableCell className="align-middle text-right">
                             {nextStatus ? (
                               <Button
                                 size="sm"
@@ -769,34 +772,37 @@ export default function AdminDashboard() {
           <CardContent>
             {loading ? <p>Memuat...</p> : (
               <div className="overflow-hidden rounded-lg border border-amber-100/80 shadow-sm dark:border-slate-800">
-                <Table>
+                <Table className="text-sm">
                   <TableHeader className="bg-gradient-to-r from-white to-amber-50/70 text-slate-700 dark:from-slate-900 dark:to-slate-900/80 dark:text-slate-200">
-                    <TableRow>
+                    <TableRow className="text-xs uppercase tracking-wide text-muted-foreground">
                       <TableHead>Nama</TableHead>
                       <TableHead>Harga</TableHead>
                       <TableHead>Stok</TableHead>
-                      <TableHead></TableHead>
+                      <TableHead className="text-right">Aksi</TableHead>
                     </TableRow>
                   </TableHeader>
 
                   <TableBody>
                     {products.map((p) => (
-                      <TableRow key={p.id} className="transition hover:bg-primary/5 dark:hover:bg-slate-800">
+                      <TableRow
+                        key={p.id}
+                        className="align-middle transition hover:bg-primary/5 dark:hover:bg-slate-800"
+                      >
 
-                        <TableCell>
+                        <TableCell className="align-middle">
                           <p className="font-semibold">{p.name}</p>
                           <p className="text-sm text-muted-foreground">{p.brand}</p>
                         </TableCell>
 
-                        <TableCell>Rp {p.price.toLocaleString("id-ID")}</TableCell>
+                        <TableCell className="align-middle">Rp {p.price.toLocaleString("id-ID")}</TableCell>
 
-                        <TableCell>
+                        <TableCell className="align-middle">
                           <Badge variant={p.stock <= 5 ? "destructive" : "outline"}>
                             {p.stock} unit
                           </Badge>
                         </TableCell>
 
-                        <TableCell className="flex justify-end gap-2">
+                        <TableCell className="flex justify-end gap-2 align-middle">
 
                           {/* EDIT */}
                           <Button
