@@ -601,9 +601,19 @@ export default function AdminDashboard() {
                   Pending → processed → packaged → shipped → completed. Tanpa integrasi kurir.
                 </CardDescription>
               </div>
-              <Badge variant="secondary" className="border-amber-200 bg-amber-50 text-amber-900 dark:border-primary/40 dark:bg-primary/10 dark:text-primary-foreground">
-                Realtime
-              </Badge>
+              <div className="flex items-center gap-3">
+                <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700 shadow-sm shadow-emerald-100/60 dark:border-emerald-400/70 dark:bg-emerald-500/15 dark:text-emerald-50">
+                  Realtime Aktif
+                </Badge>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-2 border-primary/30 bg-primary/5 text-primary transition hover:-translate-y-[1px] hover:border-primary/50 hover:bg-primary/10 dark:border-primary/50 dark:bg-primary/10 dark:text-primary-foreground dark:hover:border-primary/70"
+                  onClick={() => navigate("/")}
+                >
+                  <Home className="h-4 w-4" /> Kembali ke Home
+                </Button>
+              </div>
             </div>
           </CardHeader>
 
