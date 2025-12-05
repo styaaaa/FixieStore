@@ -2,7 +2,7 @@
 import { supabase } from "@/lib/supabaseClient";
 import type { Order, OrderStatus } from "@/types/order";
 
-export type OrderRow = {
+type OrderRow = {
   id: string;
   user_id: string;
   status: OrderStatus;
