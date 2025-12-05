@@ -82,14 +82,19 @@ const Index = () => {
     }
   }, []);
 
-  const bestSellerProducts = useMemo(
-    () => products.slice(0, 4),
+  const displayedProducts = useMemo(
+    () => products.slice(0, 8),
     [products]
   );
 
+const bestSellerProducts = useMemo(
+    () => displayedProducts.slice(0, 4),
+    [displayedProducts]
+  );
+
   const newArrivalProducts = useMemo(
-    () => (products.length > 4 ? products.slice(4) : []),
-    [products]
+    () => displayedProducts.slice(4, 8),
+    [displayedProducts]
   );
 
   const handleAddToCart = useCallback(
@@ -209,9 +214,9 @@ const Index = () => {
               {/* Best Seller */}
               <div className="mb-12">
                 <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-                  Best Seller
+                  New Arrival
                 </p>
-                <h2 className="text-3xl font-bold mb-6">Pilihan Produk Terlaris</h2>
+                <h2 className="text-3xl font-bold mb-6">Pilihan Produk Terbaru</h2>
 
 
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
