@@ -467,50 +467,77 @@ export default function AdminDashboard() {
   if (!user || !isAdmin) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-50">
+    <div className="min-h-screen bg-gradient-to-br from-stone-100 via-white to-amber-50 text-slate-900 transition-colors dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100">
       <div className="mx-auto max-w-6xl space-y-8 px-4 py-8">
         {/* HERO */}
-        <div className="overflow-hidden rounded-3xl border bg-white/60 shadow-lg backdrop-blur">
-          <div className="grid gap-6 bg-gradient-to-br from-primary/10 via-white to-primary/5 p-6 md:grid-cols-[1.2fr,1fr] md:items-center">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+        <div className="relative overflow-hidden rounded-3xl border border-amber-200/60 bg-white/70 shadow-xl backdrop-blur dark:border-slate-800 dark:bg-slate-900/70">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(251,191,36,0.15),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(14,165,233,0.12),transparent_32%)] dark:bg-[radial-gradient(circle_at_20%_20%,rgba(251,191,36,0.12),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(56,189,248,0.12),transparent_32%)]" />
+          <div className="relative grid gap-6 bg-gradient-to-br from-primary/5 via-white/80 to-amber-50/60 p-6 md:grid-cols-[1.2fr,1fr] md:items-center dark:from-slate-900/40 dark:via-slate-900/80 dark:to-slate-950">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-primary dark:text-amber-300">
                 <ShieldCheck className="h-4 w-4" />
                 Mode Admin Aktif
               </div>
               <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-bold leading-tight">Dashboard Admin</h1>
-                <Badge variant="secondary">Terproteksi</Badge>
+                <h1 className="text-3xl font-bold leading-tight tracking-tight">Dashboard Admin</h1>
+                <Badge variant="secondary" className="border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-300/50 dark:bg-amber-300/20 dark:text-amber-100">Terproteksi</Badge>
               </div>
               <p className="text-sm text-muted-foreground">
                 Pantau pesanan terbaru, perbarui status pengiriman, dan kelola inventaris dalam satu tampilan yang lebih rapi.
               </p>
               <div className="flex flex-wrap gap-3">
-                <Button variant="default" onClick={() => navigate("/")} className="shadow-sm">
+                <Button
+                  variant="default"
+                  onClick={() => navigate("/")}
+                  className="shadow-sm shadow-amber-200 transition hover:-translate-y-[1px] dark:shadow-slate-900"
+                >
                   <Home className="mr-2 h-4 w-4" />
                   Kembali ke Home
                 </Button>
-                <Button variant="secondary" onClick={() => navigate("/dashboard")}>Dashboard User</Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => navigate("/dashboard")}
+                  className="border-amber-200/80 bg-white/80 text-primary transition hover:-translate-y-[1px] hover:border-primary/40 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-100"
+                >
+                  Dashboard User
+                </Button>
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 rounded-2xl border border-primary/10 bg-white/70 p-4 shadow-sm">
+            <div className="flex flex-col gap-3 rounded-2xl border border-amber-200/80 bg-white/80 p-4 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-none">
               <div className="flex items-center justify-between text-sm font-medium text-muted-foreground">
                 <span>Kontrol Cepat</span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary dark:bg-primary/20">
                   Aktif
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" className="justify-start gap-2" onClick={() => navigate("/logout")}> 
+                <Button
+                  variant="outline"
+                  className="justify-start gap-2 border-amber-200/80 bg-white/60 text-primary shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-amber-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:hover:border-primary/50"
+                  onClick={() => navigate("/logout")}
+                >
                   <LogOut className="h-4 w-4" /> Keluar
                 </Button>
-                <Button variant="outline" className="justify-start gap-2" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+                <Button
+                  variant="outline"
+                  className="justify-start gap-2 border-amber-200/80 bg-white/60 text-primary shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-amber-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:hover:border-primary/50"
+                  onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                >
                   <ClipboardList className="h-4 w-4" /> Pesanan
                 </Button>
-                <Button variant="outline" className="justify-start gap-2" onClick={() => document.getElementById("add-product")?.scrollIntoView({ behavior: "smooth" })}>
+                <Button
+                  variant="outline"
+                  className="justify-start gap-2 border-amber-200/80 bg-white/60 text-primary shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-amber-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:hover:border-primary/50"
+                  onClick={() => document.getElementById("add-product")?.scrollIntoView({ behavior: "smooth" })}
+                >
                   <Package className="h-4 w-4" /> Produk
                 </Button>
-                <Button variant="outline" className="justify-start gap-2" onClick={() => document.getElementById("product-table")?.scrollIntoView({ behavior: "smooth" })}>
+                <Button
+                  variant="outline"
+                  className="justify-start gap-2 border-amber-200/80 bg-white/60 text-primary shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-amber-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:hover:border-primary/50"
+                  onClick={() => document.getElementById("product-table")?.scrollIntoView({ behavior: "smooth" })}
+                >
                   <TrendingUp className="h-4 w-4" /> Inventaris
                 </Button>
               </div>
@@ -520,7 +547,7 @@ export default function AdminDashboard() {
 
         {/* STATS */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="border border-primary/10 bg-white/80 shadow-sm">
+          <Card className="border border-amber-200/70 bg-white/80 shadow-sm shadow-amber-200/40 transition hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Nilai Inventaris</CardTitle>
               <TrendingUp className="h-4 w-4 text-primary" />
@@ -531,7 +558,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="border bg-white/80 shadow-sm">
+          <Card className="border border-amber-200/70 bg-white/80 shadow-sm shadow-amber-200/40 transition hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Produk</CardTitle>
               <Package className="h-4 w-4 text-primary" />
@@ -542,7 +569,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="border bg-white/80 shadow-sm">
+          <Card className="border border-amber-200/70 bg-white/80 shadow-sm shadow-amber-200/40 transition hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Stok Rendah</CardTitle>
               <AlertTriangle className="h-4 w-4 text-amber-500" />
@@ -553,7 +580,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="border bg-white/80 shadow-sm">
+          <Card className="border border-amber-200/70 bg-white/80 shadow-sm shadow-amber-200/40 transition hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pesanan Aktif</CardTitle>
               <CheckCircle2 className="h-4 w-4 text-primary" />
@@ -565,7 +592,7 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        <Card className="border border-primary/10 bg-white/80 shadow-sm">
+        <Card className="border border-amber-200/70 bg-white/85 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
           <CardHeader>
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -574,24 +601,26 @@ export default function AdminDashboard() {
                   Pending → processed → packaged → shipped → completed. Tanpa integrasi kurir.
                 </CardDescription>
               </div>
-              <Badge variant="secondary">Realtime</Badge>
+              <Badge variant="secondary" className="border-amber-200 bg-amber-50 text-amber-900 dark:border-primary/40 dark:bg-primary/10 dark:text-primary-foreground">
+                Realtime
+              </Badge>
             </div>
           </CardHeader>
 
           <CardContent className="space-y-4">
             {ordersLoading ? (
               <div className="space-y-3">
-                <div className="h-12 w-full animate-pulse rounded-md bg-muted" />
-                <div className="h-12 w-full animate-pulse rounded-md bg-muted" />
+                <div className="h-12 w-full animate-pulse rounded-md bg-muted/60" />
+                <div className="h-12 w-full animate-pulse rounded-md bg-muted/60" />
               </div>
             ) : orders.length === 0 ? (
               <div className="rounded-lg border border-dashed bg-muted/30 p-6 text-sm text-muted-foreground">
                 Belum ada pesanan.
               </div>
             ) : (
-              <div className="overflow-hidden rounded-lg border">
+              <div className="overflow-hidden rounded-lg border border-amber-100/80 shadow-sm dark:border-slate-800">
                 <Table>
-                  <TableHeader className="bg-muted/50">
+                  <TableHeader className="bg-gradient-to-r from-white to-amber-50/70 text-slate-700 dark:from-slate-900 dark:to-slate-900/80 dark:text-slate-200">
                     <TableRow>
                       <TableHead>ID & Tanggal</TableHead>
                       <TableHead>Customer</TableHead>
@@ -606,7 +635,7 @@ export default function AdminDashboard() {
                       const nextStatus = getNextStatus(order.status);
 
                       return (
-                        <TableRow key={order.id}>
+                        <TableRow key={order.id} className="transition hover:bg-primary/5 dark:hover:bg-slate-800">
                           <TableCell>
                             <p className="font-semibold">{order.id}</p>
                             <p className="text-xs text-muted-foreground">
@@ -651,14 +680,14 @@ export default function AdminDashboard() {
         </Card>
 
         {/* ADD PRODUCT */}
-        <Card id="add-product" className="border bg-white/80 shadow-sm">
+        <Card id="add-product" className="border border-amber-200/70 bg-white/85 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
           <CardHeader>
             <div className="flex items-start justify-between gap-2">
               <div>
                 <CardTitle className="text-lg">Tambah Produk</CardTitle>
                 <CardDescription>Upload gambar ke Supabase Storage</CardDescription>
               </div>
-              <Badge variant="secondary">Inventaris</Badge>
+              <Badge variant="secondary" className="border-amber-200 bg-amber-50 text-amber-900 dark:border-primary/40 dark:bg-primary/10 dark:text-primary-foreground"></Badge>
             </div>
           </CardHeader>
 
@@ -683,24 +712,24 @@ export default function AdminDashboard() {
               </div>
 
               <div className="grid gap-3 md:grid-cols-2">
-                <div className="space-y-2 rounded-xl border bg-muted/30 p-3">
-                  <Label className="text-sm font-medium">Gambar</Label>
-                  <Input type="file" accept="image/*" onChange={(e) => setField("file", e.target.files?.[0] ?? null)} />
-                  <p className="text-xs text-muted-foreground">Format JPG/PNG. Maksimal 5MB.</p>
+                  <div className="space-y-2 rounded-xl border border-amber-100/80 bg-muted/30 p-3 dark:border-slate-800/80">
+                    <Label className="text-sm font-medium">Gambar</Label>
+                    <Input type="file" accept="image/*" onChange={(e) => setField("file", e.target.files?.[0] ?? null)} />
+                    <p className="text-xs text-muted-foreground">Format JPG/PNG. Maksimal 5MB.</p>
+                  </div>
+
+                  <div className="space-y-2 rounded-xl border border-amber-100/80 bg-muted/30 p-3 dark:border-slate-800/80">
+                    <Label className="text-sm font-medium">Deskripsi singkat</Label>
+                    <Input placeholder="Ringkasan produk" value={form.description} onChange={(e) => setField("description", e.target.value)} />
+                    <Label className="text-sm font-medium">Deskripsi panjang</Label>
+                    <Textarea rows={4} placeholder="Detail fitur & material" value={form.longDescription} onChange={(e) => setField("longDescription", e.target.value)} />
+                  </div>
                 </div>
 
-                <div className="space-y-2 rounded-xl border bg-muted/30 p-3">
-                  <Label className="text-sm font-medium">Deskripsi singkat</Label>
-                  <Input placeholder="Ringkasan produk" value={form.description} onChange={(e) => setField("description", e.target.value)} />
-                  <Label className="text-sm font-medium">Deskripsi panjang</Label>
-                  <Textarea rows={4} placeholder="Detail fitur & material" value={form.longDescription} onChange={(e) => setField("longDescription", e.target.value)} />
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-muted/30 px-4 py-3">
-                <p className="text-sm text-muted-foreground flex items-center gap-2">
-                  <RefreshCcw className="h-4 w-4" /> Data disimpan otomatis ketika berhasil.
-                </p>
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-100/80 bg-muted/30 px-4 py-3 dark:border-slate-800/80">
+                  <p className="text-sm text-muted-foreground flex items-center gap-2">
+                    <RefreshCcw className="h-4 w-4" /> Data disimpan otomatis ketika berhasil.
+                  </p>
 
                 <Button type="submit" disabled={saving} className="min-w-[140px]">
                   {saving ? "Menyimpan..." : "Tambah Produk"}
@@ -712,7 +741,7 @@ export default function AdminDashboard() {
         </Card>
 
         {/* PRODUCT TABLE */}
-        <Card id="product-table" className="border bg-white/80 shadow-sm">
+        <Card id="product-table" className="border border-amber-200/70 bg-white/80 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
           <CardHeader>
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -721,15 +750,17 @@ export default function AdminDashboard() {
                   Total nilai inventaris: Rp {inventoryValue.toLocaleString("id-ID")}
                 </CardDescription>
               </div>
-              <Badge variant="outline" className="text-primary">Perbarui secara berkala</Badge>
+              <Badge variant="outline" className="border-amber-200/80 text-primary dark:border-primary/40 dark:text-primary-foreground">
+                Perbarui secara berkala
+              </Badge>
             </div>
           </CardHeader>
 
           <CardContent>
             {loading ? <p>Memuat...</p> : (
-              <div className="overflow-hidden rounded-lg border">
+              <div className="overflow-hidden rounded-lg border border-amber-100/80 shadow-sm dark:border-slate-800">
                 <Table>
-                  <TableHeader className="bg-muted/50">
+                  <TableHeader className="bg-gradient-to-r from-white to-amber-50/70 text-slate-700 dark:from-slate-900 dark:to-slate-900/80 dark:text-slate-200">
                     <TableRow>
                       <TableHead>Nama</TableHead>
                       <TableHead>Harga</TableHead>
@@ -740,7 +771,7 @@ export default function AdminDashboard() {
 
                   <TableBody>
                     {products.map((p) => (
-                      <TableRow key={p.id}>
+                      <TableRow key={p.id} className="transition hover:bg-primary/5 dark:hover:bg-slate-800">
 
                         <TableCell>
                           <p className="font-semibold">{p.name}</p>
@@ -755,10 +786,15 @@ export default function AdminDashboard() {
                           </Badge>
                         </TableCell>
 
-                        <TableCell className="flex gap-2 justify-end">
+                        <TableCell className="flex justify-end gap-2">
 
                           {/* EDIT */}
-                          <Button size="sm" variant="secondary" onClick={() => startEdit(p)}>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            className="border-amber-200/70 bg-white/90 text-primary shadow-sm hover:border-primary/40 hover:text-primary/80 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-100"
+                            onClick={() => startEdit(p)}
+                          >
                             <Pencil className="h-4 w-4" />
                           </Button>
 
