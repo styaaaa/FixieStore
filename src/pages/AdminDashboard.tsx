@@ -442,161 +442,84 @@ export default function AdminDashboard() {
     [products]
   );
 
-  const totalProducts = useMemo(() => products.length, [products]);
-  const lowStockCount = useMemo(
-    () => products.filter((p) => p.stock <= 5).length,
-    [products]
-  );
-
-  const pendingOrders = useMemo(
-    () => orders.filter((o) => o.status !== "completed").length,
-    [orders]
-  );
-
-  const revenue = useMemo(
-    () => orders.reduce((sum, order) => sum + order.totalPrice, 0),
-    [orders]
-  );
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50">
-      <div className="max-w-6xl mx-auto p-6">
+    <div className="p-6 max-w-6xl mx-auto">
 
-        {/* TOP BAR */}
-        <div className="flex justify-between items-center mb-6">
+      {/* TOP BAR */}
+      <div className="flex justify-between items-center mb-6">
 
-          {/* Left buttons */}
-          <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={() => navigate("/")}
-              className="bg-white/70 backdrop-blur border-indigo-100 shadow-sm">
-              <Home className="h-4 w-4 mr-2" />
-              Kembali ke Home
-            </Button>
-          </div>
-
-          {/* Right button */}
-          <Button
-            variant="destructive"
-            onClick={() => navigate("/logout")}
-            className="shadow-sm"
-          >
-            Keluar
+        {/* Left buttons */}
+        <div className="flex items-center gap-3">
+          <Button variant="outline" onClick={() => navigate("/")}>
+            <Home className="h-4 w-4 mr-2" />
+            Kembali ke Home
           </Button>
         </div>
 
-        {/* TITLE */}
-        <div className="flex flex-col gap-2 mb-6">
-          <div className="flex items-center gap-2">
-            <div className="h-11 w-11 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shadow-sm">
-              <ShieldCheck className="h-5 w-5" />
+        {/* Right button */}
+        <Button variant="destructive" onClick={() => navigate("/logout")}>
+          Keluar
+        </Button>
+      </div>
+
+      {/* TITLE */}
+      <h1 className="text-3xl font-bold flex items-center gap-2 mb-1">
+        Dashboard Admin
+        <Badge variant="secondary">
+          <ShieldCheck className="h-4 w-4" /> Admin
+        </Badge>
+      </h1>
+      <p className="text-sm text-muted-foreground mb-6">Kelola produk & stok</p>
+
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Status Pesanan</CardTitle>
+          <CardDescription>
+            Pending → processed → packaged → shipped → completed. Tanpa integrasi kurir.
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          {ordersLoading ? (
+            <div className="space-y-3">
+              <div className="h-12 w-full animate-pulse rounded-md bg-muted" />
+              <div className="h-12 w-full animate-pulse rounded-md bg-muted" />
             </div>
-            <div>
-              <h1 className="text-3xl font-bold">Dashboard Admin</h1>
-              <p className="text-sm text-muted-foreground">Kelola produk & stok</p>
+          ) : orders.length === 0 ? (
+            <div className="rounded-lg border border-dashed p-6 text-sm text-muted-foreground">
+              Belum ada pesanan.
             </div>
-          </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID & Tanggal</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead className="text-right">Aksi</TableHead>
+                </TableRow>
+              </TableHeader>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-            <Card className="bg-gradient-to-br from-white to-indigo-50 border-indigo-100 shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-muted-foreground">Produk</CardTitle>
-                <div className="flex items-end justify-between">
-                  <span className="text-2xl font-semibold">{totalProducts}</span>
-                  <Badge variant="secondary" className="bg-indigo-100 text-indigo-700">Total</Badge>
-                </div>
-              </CardHeader>
-            </Card>
+              <TableBody>
+                {orders.map((order) => {
+                  const nextStatus = getNextStatus(order.status);
 
-            <Card className="bg-gradient-to-br from-white to-amber-50 border-amber-100 shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-muted-foreground">Stok Rendah</CardTitle>
-                <div className="flex items-end justify-between">
-                  <span className="text-2xl font-semibold">{lowStockCount}</span>
-                  <Badge variant="secondary" className="bg-amber-100 text-amber-700">≤5 unit</Badge>
-                </div>
-              </CardHeader>
-            </Card>
+                  return (
+                    <TableRow key={order.id}>
+                      <TableCell>
+                        <p className="font-semibold">{order.id}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(order.createdAt).toLocaleString("id-ID")}
+                        </p>
+                      </TableCell>
 
-            <Card className="bg-gradient-to-br from-white to-emerald-50 border-emerald-100 shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-muted-foreground">Nilai Inventaris</CardTitle>
-                <div className="flex items-end justify-between">
-                  <span className="text-2xl font-semibold">{formatCurrency(inventoryValue)}</span>
-                  <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">IDR</Badge>
-                </div>
-              </CardHeader>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-white to-blue-50 border-blue-100 shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-muted-foreground">Pesanan Aktif</CardTitle>
-                <div className="flex items-end justify-between">
-                  <span className="text-2xl font-semibold">{pendingOrders}</span>
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-700">Belum selesai</Badge>
-                </div>
-              </CardHeader>
-            </Card>
-          </div>
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-6 mb-8">
-          <Card className="lg:col-span-2 border-indigo-100 shadow-sm">
-            <CardHeader className="pb-4 border-b bg-white/60 backdrop-blur">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <CardTitle>Status Pesanan</CardTitle>
-                  <CardDescription className="flex flex-col gap-1 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
-                    <span>Pending → processed → packaged → shipped → completed. Tanpa integrasi kurir.</span>
-                    <span className="text-indigo-700 font-medium">Pendapatan: {formatCurrency(revenue)}</span>
-                  </CardDescription>
-                </div>
-                <Badge variant="secondary" className="bg-indigo-100 text-indigo-700">
-                  Total: {orders.length}
-                </Badge>
-              </div>
-            </CardHeader>
-
-            <CardContent className="p-0">
-              {ordersLoading ? (
-                <div className="space-y-3 p-6">
-                  <div className="h-12 w-full animate-pulse rounded-lg bg-muted" />
-                  <div className="h-12 w-full animate-pulse rounded-lg bg-muted" />
-                </div>
-              ) : orders.length === 0 ? (
-                <div className="rounded-lg border border-dashed m-6 p-6 text-sm text-muted-foreground bg-white">
-                  Belum ada pesanan.
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-slate-50/80">
-                      <TableHead>ID & Tanggal</TableHead>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Total</TableHead>
-                      <TableHead className="text-right">Aksi</TableHead>
-                    </TableRow>
-                  </TableHeader>
-
-                  <TableBody>
-                    {orders.map((order) => {
-                      const nextStatus = getNextStatus(order.status);
-
-                      return (
-                        <TableRow key={order.id} className="hover:bg-slate-50/60">
-                          <TableCell>
-                            <p className="font-semibold">{order.id}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(order.createdAt).toLocaleString("id-ID")}
-                            </p>
-                          </TableCell>
-
-                          <TableCell>
-                            <p className="font-medium">
-                              {[order.firstName, order.lastName].filter(Boolean).join(" ") || "Nama belum diisi"}
-                            </p>
-                            <p className="text-xs text-muted-foreground">{order.city || "Kota belum diisi"}</p>
-                          </TableCell>
+                      <TableCell>
+                        <p className="font-medium">
+                          {[order.firstName, order.lastName].filter(Boolean).join(" ") || "Nama belum diisi"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{order.city || "Kota belum diisi"}</p>
+                      </TableCell>
 
                       <TableCell>{renderStatusBadge(order.status)}</TableCell>
 
@@ -786,7 +709,6 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      </div>
     </div>
   );
 }
