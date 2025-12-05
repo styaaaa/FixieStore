@@ -6,7 +6,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AlertTriangle,
-  ClipboardList,
   Home,
   RefreshCcw,
   LogOut,
@@ -511,7 +510,7 @@ export default function AdminDashboard() {
                   Aktif
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 <Button
                   variant="outline"
                   className="justify-start gap-2 border-amber-200/80 bg-white/60 text-primary shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-amber-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:hover:border-primary/50"
@@ -519,13 +518,7 @@ export default function AdminDashboard() {
                 >
                   <LogOut className="h-4 w-4" /> Keluar
                 </Button>
-                <Button
-                  variant="outline"
-                  className="justify-start gap-2 border-amber-200/80 bg-white/60 text-primary shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-amber-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:hover:border-primary/50"
-                  onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                >
-                  <ClipboardList className="h-4 w-4" /> Pesanan
-                </Button>
+      
                 <Button
                   variant="outline"
                   className="justify-start gap-2 border-amber-200/80 bg-white/60 text-primary shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-amber-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:hover:border-primary/50"
