@@ -2,7 +2,7 @@
 // Admin Dashboard (Final)
 // ============================
 
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Pencil,
@@ -44,7 +44,6 @@ import { toast } from "@/components/ui/use-toast";
 
 import { useAuth } from "@/context/auth-context";
 import { supabase } from "@/lib/supabaseClient";
-import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import {
   createProduct,
   deleteProduct,
@@ -56,7 +55,6 @@ import {
   fetchAllOrders,
   mapOrderRowToOrder,
   updateOrderStatus,
-  type OrderRow,
 } from "@/lib/repositories/orderRepository";
 
 import type { Product, Category } from "@/types/catalog";
@@ -218,9 +216,9 @@ export default function AdminDashboard() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "orders" },
-        (payload: RealtimePostgresChangesPayload<OrderRow>) => {
+        (payload) => {
           setOrders((current) => {
-            const mapped = mapOrderRowToOrder((payload.new ?? payload.old) as OrderRow);
+            const mapped = mapOrderRowToOrder((payload.new ?? payload.old) as any);
 
             if (payload.eventType === "INSERT") {
               return [mapped, ...current];
@@ -252,15 +250,11 @@ export default function AdminDashboard() {
   // Helpers
   // ============================
 
-  const setField = (
-    field: keyof ProductFormState,
-    value: ProductFormState[keyof ProductFormState]
-  ) => setForm((previous) => ({ ...previous, [field]: value }));
+  const setField = (f: keyof ProductFormState, v: any) =>
+    setForm((p) => ({ ...p, [f]: v }));
 
-  const setEditField = (
-    field: keyof ProductFormState,
-    value: ProductFormState[keyof ProductFormState]
-  ) => setEditForm((previous) => (previous ? { ...previous, [field]: value } : previous));
+  const setEditField = (f: keyof ProductFormState, v: any) =>
+    setEditForm((p) => (p ? { ...p, [f]: v } : p));
 
 
   // ============================
@@ -291,8 +285,8 @@ export default function AdminDashboard() {
   // Create Product
   // ============================
 
-  const handleCreate = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleCreate = async (e: any) => {
+    e.preventDefault();
 
     if (!form.name.trim() || !form.file) {
       toast({ variant: "destructive", title: "Nama dan file wajib" });
@@ -346,8 +340,8 @@ export default function AdminDashboard() {
     });
   };
 
-  const handleUpdate = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleUpdate = async (e: any) => {
+    e.preventDefault();
 
     if (!editing || !editForm) return;
 
@@ -437,14 +431,16 @@ export default function AdminDashboard() {
   };
 
 
-    // ============================
-    // Render
-    // ============================
+  // ============================
+  // Render
+  // ============================
 
-    const inventoryValue = useMemo(
-      () => products.reduce((s, p) => s + p.price * p.stock, 0),
-      [products]
-    );
+  if (!user || !isAdmin) return null;
+
+  const inventoryValue = useMemo(
+    () => products.reduce((s, p) => s + p.price * p.stock, 0),
+    [products]
+  );
 
   const totalProducts = useMemo(() => products.length, [products]);
   const lowStockCount = useMemo(
@@ -457,29 +453,28 @@ export default function AdminDashboard() {
     [orders]
   );
 
-    const revenue = useMemo(
-      () => orders.reduce((sum, order) => sum + order.totalPrice, 0),
-      [orders]
-    );
+  const revenue = useMemo(
+    () => orders.reduce((sum, order) => sum + order.totalPrice, 0),
+    [orders]
+  );
 
-    if (!user || !isAdmin) return null;
-
-    return (
+  return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50">
       <div className="max-w-6xl mx-auto p-6">
+
         {/* TOP BAR */}
         <div className="flex justify-between items-center mb-6">
+
+          {/* Left buttons */}
           <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              onClick={() => navigate("/")}
-              className="bg-white/70 backdrop-blur border-indigo-100 shadow-sm"
-            >
+            <Button variant="outline" onClick={() => navigate("/")}
+              className="bg-white/70 backdrop-blur border-indigo-100 shadow-sm">
               <Home className="h-4 w-4 mr-2" />
               Kembali ke Home
             </Button>
           </div>
 
+          {/* Right button */}
           <Button
             variant="destructive"
             onClick={() => navigate("/logout")}
@@ -489,7 +484,7 @@ export default function AdminDashboard() {
           </Button>
         </div>
 
-        {/* HEADER */}
+        {/* TITLE */}
         <div className="flex flex-col gap-2 mb-6">
           <div className="flex items-center gap-2">
             <div className="h-11 w-11 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shadow-sm">
@@ -507,9 +502,7 @@ export default function AdminDashboard() {
                 <CardTitle className="text-sm text-muted-foreground">Produk</CardTitle>
                 <div className="flex items-end justify-between">
                   <span className="text-2xl font-semibold">{totalProducts}</span>
-                  <Badge variant="secondary" className="bg-indigo-100 text-indigo-700">
-                    Total
-                  </Badge>
+                  <Badge variant="secondary" className="bg-indigo-100 text-indigo-700">Total</Badge>
                 </div>
               </CardHeader>
             </Card>
@@ -519,9 +512,7 @@ export default function AdminDashboard() {
                 <CardTitle className="text-sm text-muted-foreground">Stok Rendah</CardTitle>
                 <div className="flex items-end justify-between">
                   <span className="text-2xl font-semibold">{lowStockCount}</span>
-                  <Badge variant="secondary" className="bg-amber-100 text-amber-700">
-                    ≤5 unit
-                  </Badge>
+                  <Badge variant="secondary" className="bg-amber-100 text-amber-700">≤5 unit</Badge>
                 </div>
               </CardHeader>
             </Card>
@@ -531,9 +522,7 @@ export default function AdminDashboard() {
                 <CardTitle className="text-sm text-muted-foreground">Nilai Inventaris</CardTitle>
                 <div className="flex items-end justify-between">
                   <span className="text-2xl font-semibold">{formatCurrency(inventoryValue)}</span>
-                  <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">
-                    IDR
-                  </Badge>
+                  <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">IDR</Badge>
                 </div>
               </CardHeader>
             </Card>
@@ -543,9 +532,7 @@ export default function AdminDashboard() {
                 <CardTitle className="text-sm text-muted-foreground">Pesanan Aktif</CardTitle>
                 <div className="flex items-end justify-between">
                   <span className="text-2xl font-semibold">{pendingOrders}</span>
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                    Belum selesai
-                  </Badge>
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-700">Belum selesai</Badge>
                 </div>
               </CardHeader>
             </Card>
@@ -611,253 +598,194 @@ export default function AdminDashboard() {
                             <p className="text-xs text-muted-foreground">{order.city || "Kota belum diisi"}</p>
                           </TableCell>
 
-                          <TableCell>{renderStatusBadge(order.status)}</TableCell>
+                      <TableCell>{renderStatusBadge(order.status)}</TableCell>
 
-                          <TableCell>{formatCurrency(order.totalPrice)}</TableCell>
+                      <TableCell>{formatCurrency(order.totalPrice)}</TableCell>
 
-                          <TableCell className="text-right">
-                            {nextStatus ? (
-                              <Button
-                                size="sm"
-                                onClick={() => handleAdvanceStatus(order)}
-                                disabled={orderSaving[order.id]}
-                              >
-                                {orderSaving[order.id]
-                                  ? "Memperbarui..."
-                                  : `Ke ${statusLabels[nextStatus]}`}
-                              </Button>
-                            ) : (
-                              <Badge variant="outline">Completed</Badge>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
+                      <TableCell className="text-right">
+                        {nextStatus ? (
+                          <Button
+                            size="sm"
+                            onClick={() => handleAdvanceStatus(order)}
+                            disabled={orderSaving[order.id]}
+                          >
+                            {orderSaving[order.id]
+                              ? "Memperbarui..."
+                              : `Ke ${statusLabels[nextStatus]}`}
+                          </Button>
+                        ) : (
+                          <Badge variant="outline">Completed</Badge>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
 
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>Tambah Produk</CardTitle>
-              <CardDescription>Upload gambar ke Supabase Storage</CardDescription>
-            </CardHeader>
+      {/* ADD PRODUCT */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Tambah Produk</CardTitle>
+          <CardDescription>Upload gambar ke Supabase Storage</CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          <form onSubmit={handleCreate} className="space-y-4">
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <Input placeholder="Nama" value={form.name} onChange={(e) => setField("name", e.target.value)} />
+              <Input placeholder="Brand" value={form.brand} onChange={(e) => setField("brand", e.target.value)} />
+
+              <Input type="number" placeholder="Harga" value={form.price} onChange={(e) => setField("price", e.target.value)} />
+              <Input type="number" placeholder="Stok" value={form.stock} onChange={(e) => setField("stock", e.target.value)} />
+
+              <Select value={form.categoryId ?? "none"} onValueChange={(v) => setField("categoryId", v === "none" ? null : v)}>
+                <SelectTrigger><SelectValue placeholder="Kategori" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Tanpa kategori</SelectItem>
+                  {categories.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Gambar</Label>
+              <Input type="file" accept="image/*" onChange={(e) => setField("file", e.target.files?.[0] ?? null)} />
+            </div>
+
+            <Input placeholder="Deskripsi singkat" value={form.description} onChange={(e) => setField("description", e.target.value)} />
+            <Textarea rows={4} placeholder="Deskripsi panjang" value={form.longDescription} onChange={(e) => setField("longDescription", e.target.value)} />
+
+            <div className="flex justify-between items-center">
+              <p className="text-sm text-muted-foreground flex items-center gap-2">
+                <RefreshCcw className="h-4 w-4" /> Data disimpan otomatis.
+              </p>
+
+              <Button type="submit" disabled={saving}>
+                {saving ? "Menyimpan..." : "Tambah"}
+              </Button>
+            </div>
+
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* PRODUCT TABLE */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Daftar Produk</CardTitle>
+          <CardDescription>
+            Total nilai inventaris: Rp {inventoryValue.toLocaleString("id-ID")}
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          {loading ? <p>Memuat...</p> : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nama</TableHead>
+                  <TableHead>Harga</TableHead>
+                  <TableHead>Stok</TableHead>
+                  <TableHead></TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {products.map((p) => (
+                  <TableRow key={p.id}>
+
+                    <TableCell>
+                      <p className="font-semibold">{p.name}</p>
+                      <p className="text-sm text-muted-foreground">{p.brand}</p>
+                    </TableCell>
+
+                    <TableCell>Rp {p.price.toLocaleString("id-ID")}</TableCell>
+
+                    <TableCell>
+                      <Badge variant={p.stock <= 5 ? "destructive" : "outline"}>
+                        {p.stock} unit
+                      </Badge>
+                    </TableCell>
+
+                    <TableCell className="flex gap-2 justify-end">
+
+                      {/* EDIT */}
+                      <Button size="sm" variant="secondary" onClick={() => startEdit(p)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+
+                      {/* DELETE */}
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDelete(p.id)}
+                        disabled={deleteLoading[p.id]}
+                      >
+                        {deleteLoading[p.id] ? "..." : <Trash2 className="h-4 w-4" />}
+                      </Button>
+
+                    </TableCell>
+
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+
+      {/* EDIT MODAL */}
+      {editing && editForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm p-4">
+          <Card className="max-w-xl w-full">
+            <CardHeader><CardTitle>Edit Produk</CardTitle></CardHeader>
 
             <CardContent>
-              <form onSubmit={handleCreate} className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <Input
-                    placeholder="Nama"
-                    value={form.name}
-                    onChange={(e) => setField("name", e.target.value)}
-                  />
-                  <Input
-                    placeholder="Brand"
-                    value={form.brand}
-                    onChange={(e) => setField("brand", e.target.value)}
-                  />
+              <form onSubmit={handleUpdate} className="space-y-4">
 
-                  <Input
-                    type="number"
-                    placeholder="Harga"
-                    value={form.price}
-                    onChange={(e) => setField("price", e.target.value)}
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Stok"
-                    value={form.stock}
-                    onChange={(e) => setField("stock", e.target.value)}
-                  />
+                <Input value={editForm.name} onChange={(e) => setEditField("name", e.target.value)} />
+                <Input value={editForm.brand} onChange={(e) => setEditField("brand", e.target.value)} />
+                <Input type="number" value={editForm.price} onChange={(e) => setEditField("price", e.target.value)} />
+                <Input type="number" value={editForm.stock} onChange={(e) => setEditField("stock", e.target.value)} />
 
-                  <Select
-                    value={form.categoryId ?? "none"}
-                    onValueChange={(v) => setField("categoryId", v === "none" ? null : v)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Kategori" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Tanpa kategori</SelectItem>
-                      {categories.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>
-                          {c.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <Select value={editForm.categoryId ?? "none"} onValueChange={(v) => setEditField("categoryId", v === "none" ? null : v)}>
+                  <SelectTrigger><SelectValue placeholder="Kategori" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Tanpa kategori</SelectItem>
+                    {categories.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
                 <div>
-                  <Label>Gambar</Label>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setField("file", e.target.files?.[0] ?? null)}
-                  />
+                  <Label>Gambar baru (opsional)</Label>
+                  <Input type="file" accept="image/*" onChange={(e) => setEditField("file", e.target.files?.[0] ?? null)} />
                 </div>
 
-                <Input
-                  placeholder="Deskripsi singkat"
-                  value={form.description}
-                  onChange={(e) => setField("description", e.target.value)}
-                />
-                <Textarea
-                  rows={4}
-                  placeholder="Deskripsi panjang"
-                  value={form.longDescription}
-                  onChange={(e) => setField("longDescription", e.target.value)}
-                />
+                <Textarea rows={4} value={editForm.longDescription} onChange={(e) => setEditField("longDescription", e.target.value)} />
 
                 <div className="flex justify-between items-center">
-                  <p className="text-sm text-muted-foreground flex items-center gap-2">
-                    <RefreshCcw className="h-4 w-4" /> Data disimpan otomatis.
-                  </p>
-
-                  <Button type="submit" disabled={saving}>
-                    {saving ? "Menyimpan..." : "Tambah"}
+                  <Button type="button" variant="outline" onClick={() => setEditing(null)}>Batal</Button>
+                  <Button type="submit" disabled={savingEdit}>
+                    {savingEdit ? ".." : "Simpan"}
                   </Button>
                 </div>
+
               </form>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Daftar Produk</CardTitle>
-              <CardDescription>
-                Total nilai inventaris: Rp {inventoryValue.toLocaleString("id-ID")}
-              </CardDescription>
-            </CardHeader>
-
-            <CardContent>
-              {loading ? (
-                <p>Memuat...</p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nama</TableHead>
-                      <TableHead>Harga</TableHead>
-                      <TableHead>Stok</TableHead>
-                      <TableHead></TableHead>
-                    </TableRow>
-                  </TableHeader>
-
-                  <TableBody>
-                    {products.map((p) => (
-                      <TableRow key={p.id}>
-                        <TableCell>
-                          <p className="font-semibold">{p.name}</p>
-                          <p className="text-sm text-muted-foreground">{p.brand}</p>
-                        </TableCell>
-
-                        <TableCell>Rp {p.price.toLocaleString("id-ID")}</TableCell>
-
-                        <TableCell>
-                          <Badge variant={p.stock <= 5 ? "destructive" : "outline"}>
-                            {p.stock} unit
-                          </Badge>
-                        </TableCell>
-
-                        <TableCell className="flex gap-2 justify-end">
-                          <Button size="sm" variant="secondary" onClick={() => startEdit(p)}>
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDelete(p.id)}
-                            disabled={deleteLoading[p.id]}
-                          >
-                            {deleteLoading[p.id] ? "..." : <Trash2 className="h-4 w-4" />}
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-
-          {editing && editForm && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm p-4">
-              <Card className="max-w-xl w-full">
-                <CardHeader>
-                  <CardTitle>Edit Produk</CardTitle>
-                </CardHeader>
-
-                <CardContent>
-                  <form onSubmit={handleUpdate} className="space-y-4">
-                    <Input
-                      value={editForm.name}
-                      onChange={(e) => setEditField("name", e.target.value)}
-                    />
-                    <Input
-                      value={editForm.brand}
-                      onChange={(e) => setEditField("brand", e.target.value)}
-                    />
-                    <Input
-                      type="number"
-                      value={editForm.price}
-                      onChange={(e) => setEditField("price", e.target.value)}
-                    />
-                    <Input
-                      type="number"
-                      value={editForm.stock}
-                      onChange={(e) => setEditField("stock", e.target.value)}
-                    />
-
-                    <Select
-                      value={editForm.categoryId ?? "none"}
-                      onValueChange={(v) => setEditField("categoryId", v === "none" ? null : v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Kategori" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Tanpa kategori</SelectItem>
-                        {categories.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    <div>
-                      <Label>Gambar baru (opsional)</Label>
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => setEditField("file", e.target.files?.[0] ?? null)}
-                      />
-                    </div>
-
-                    <Textarea
-                      rows={4}
-                      value={editForm.longDescription}
-                      onChange={(e) => setEditField("longDescription", e.target.value)}
-                    />
-
-                    <div className="flex justify-between items-center">
-                      <Button type="button" variant="outline" onClick={() => setEditing(null)}>
-                        Batal
-                      </Button>
-                      <Button type="submit" disabled={savingEdit}>
-                        {savingEdit ? ".." : "Simpan"}
-                      </Button>
-                    </div>
-                  </form>
-                </CardContent>
-              </Card>
-            </div>
-          )}
         </div>
+      )}
+
       </div>
     </div>
   );
