@@ -3,20 +3,31 @@ import { cn } from "@/lib/utils";
 interface FixieLoaderProps {
   message?: string;
   className?: string;
+  fullscreen?: boolean;
+  size?: "sm" | "md" | "lg";
 }
 
 export const FixieLoading = ({
   message = "Memuat...",
   className,
+  fullscreen = false,
+  size = "md",
 }: FixieLoaderProps) => {
-  return (
+  const sizeClass = {
+    sm: "h-20 w-28 sm:w-32",
+    md: "h-28 w-40 sm:w-48",
+    lg: "h-32 w-48 sm:w-56",
+  }[size];
+
+  const content = (
     <div
       className={cn(
         "flex flex-col items-center gap-6 py-12 text-center text-muted-foreground",
         className,
       )}
+      role="status"
     >
-      <div className="relative h-28 w-40 sm:w-48">
+      <div className={cn("relative", sizeClass)}>
         <div className="absolute inset-x-8 bottom-1 h-4 rounded-full bg-gradient-to-r from-black/30 via-black/10 to-black/30 opacity-20 blur-md animate-[fixie-shadow_1.8s_ease-in-out_infinite]" />
         <svg
           viewBox="0 0 260 140"
@@ -136,8 +147,16 @@ export const FixieLoading = ({
 
       <p className="text-base font-medium text-foreground sm:text-lg">{message}</p>
       <p className="max-w-xs text-sm text-muted-foreground">
-        
+
       </p>
+    </div>
+  );
+
+  if (!fullscreen) return content;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+      <div className="w-full max-w-xl px-6">{content}</div>
     </div>
   );
 };
