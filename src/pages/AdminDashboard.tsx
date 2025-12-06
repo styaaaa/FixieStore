@@ -4,7 +4,22 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Home, LayoutDashboard, ListChecks, Menu, PlusCircle, RefreshCcw } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Home,
+  LayoutDashboard,
+  ListChecks,
+  LogOut,
+  Menu,
+  Package,
+  Pencil,
+  PlusCircle,
+  RefreshCcw,
+  ShieldCheck,
+  Trash2,
+  TrendingUp,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import {
@@ -38,10 +53,6 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 
-import AdminAddProduct from "@/pages/admin/AdminAddProduct";
-import AdminMonitoring from "@/pages/admin/AdminMonitoring";
-import AdminOrderStatus from "@/pages/admin/AdminOrderStatus";
-import AdminProductList from "@/pages/admin/AdminProductList";
 import { useAuth } from "@/context/auth-context";
 import { supabase } from "@/lib/supabaseClient";
 import {
@@ -59,11 +70,21 @@ import {
 
 import type { Product, Category } from "@/types/catalog";
 import type { Order, OrderStatus } from "@/types/order";
-import type { DashboardView, ProductFormState } from "@/types/admin-dashboard";
 
 // ============================
 // Form State
 // ============================
+
+interface ProductFormState {
+  name: string;
+  brand: string;
+  price: string;
+  stock: string;
+  description: string;
+  longDescription: string;
+  categoryId: string | null;
+  file: File | null;
+}
 
 const initialForm: ProductFormState = {
   name: "",
@@ -75,6 +96,8 @@ const initialForm: ProductFormState = {
   categoryId: null,
   file: null,
 };
+
+type DashboardView = "monitoring" | "order-status" | "add-product" | "product-table";
 
 type NavLink = {
   id: DashboardView;
@@ -491,58 +514,406 @@ export default function AdminDashboard() {
 
   if (!user || !isAdmin) return null;
 
+  const renderMonitoring = () => (
+    <div className="space-y-6">
+      <div className="relative overflow-hidden rounded-3xl border border-amber-200/60 bg-white/70 shadow-xl backdrop-blur dark:border-slate-800 dark:bg-slate-900/70">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(251,191,36,0.15),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(14,165,233,0.12),transparent_32%)] dark:bg-[radial-gradient(circle_at_20%_20%,rgba(251,191,36,0.12),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(56,189,248,0.12),transparent_32%)]" />
+        <div className="relative grid gap-6 bg-gradient-to-br from-primary/5 via-white/80 to-amber-50/60 p-6 md:grid-cols-[1.2fr,1fr] md:items-center dark:from-slate-900/40 dark:via-slate-900/80 dark:to-slate-950">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-primary dark:text-white">
+              <ShieldCheck className="h-4 w-4" />
+              Mode Admin Aktif
+            </div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold leading-tight tracking-tight">Dashboard Admin</h1>
+              <Badge variant="secondary" className="border-amber-200 bg-amber-50 text-amber-900 dark:border-white dark:bg-gray-800 dark:text-white">Terproteksi</Badge>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <Button
+                variant="default"
+                onClick={() => navigate("/")}
+                className="shadow-sm shadow-amber-200 transition hover:-translate-y-[1px] dark:shadow-slate-900"
+              >
+                <Home className="mr-2 h-4 w-4" />
+                Kembali ke Home
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 rounded-2xl border border-amber-200/80 bg-white/80 p-4 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-none">
+            <div className="flex items-center justify-between text-sm font-medium text-muted-foreground">
+              <span>Kontrol Cepat</span>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <Button
+                variant="outline"
+                className="justify-start gap-2 border-amber-200/80 bg-white/60 text-primary shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-amber-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:hover:border-primary/50"
+                onClick={() => navigate("/logout")}
+              >
+                <LogOut className="h-4 w-4" /> Keluar
+              </Button>
+
+              <Button
+                variant="outline"
+                className="justify-start gap-2 border-amber-200/80 bg-white/60 text-primary shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-amber-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:hover:border-primary/50"
+                onClick={() => navigateToView("add-product")}
+              >
+                <Package className="h-4 w-4" />Tambah Produk
+              </Button>
+              <Button
+                variant="outline"
+                className="justify-start gap-2 border-amber-200/80 bg-white/60 text-primary shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-amber-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:hover:border-primary/50"
+                onClick={() => navigateToView("product-table")}
+              >
+                <TrendingUp className="h-4 w-4" /> x`` Produk
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="border border-amber-200/70 bg-white/80 shadow-sm shadow-amber-200/40 transition hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Nilai Inventaris</CardTitle>
+            <TrendingUp className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(inventoryValue)}</div>
+            <p className="text-xs text-muted-foreground">Harga x stok seluruh produk</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-amber-200/70 bg-white/80 shadow-sm shadow-amber-200/40 transition hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Produk</CardTitle>
+            <Package className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{products.length}</div>
+            <p className="text-xs text-muted-foreground">Kategori aktif: {categories.length || "-"}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-amber-200/70 bg-white/80 shadow-sm shadow-amber-200/40 transition hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Stok Rendah</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-amber-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{lowStockProducts}</div>
+            <p className="text-xs text-muted-foreground">Produk dengan stok ≤ 5 unit</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-amber-200/70 bg-white/80 shadow-sm shadow-amber-200/40 transition hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pesanan Aktif</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{activeOrders}</div>
+            <p className="text-xs text-muted-foreground">Selesai: {completedOrders}</p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+
+  const renderOrders = () => (
+    <Card className="border border-amber-200/70 bg-white/85 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
+      <CardHeader>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-lg">Status Pesanan</CardTitle>
+            <CardDescription>
+              Pending → processed → packaged → shipped → completed.
+            </CardDescription>
+          </div>
+          <div className="flex items-center gap-3">
+            <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700 shadow-sm shadow-emerald-100/60 dark:border-emerald-400/70 dark:bg-emerald-500/15 dark:text-emerald-50">
+              Realtime Aktif
+            </Badge>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+        {ordersLoading ? (
+          <div className="space-y-3">
+            <div className="h-12 w-full animate-pulse rounded-md bg-muted/60" />
+            <div className="h-12 w-full animate-pulse rounded-md bg-muted/60" />
+          </div>
+        ) : orders.length === 0 ? (
+          <div className="rounded-lg border border-dashed bg-muted/30 p-6 text-sm text-muted-foreground">
+            Belum ada pesanan.
+          </div>
+        ) : (
+          <div className="overflow-hidden rounded-lg border border-amber-100/80 shadow-sm dark:border-slate-800">
+            <Table className="text-sm">
+              <TableHeader className="bg-gradient-to-r from-white to-amber-50/70 text-slate-700 dark:from-slate-900 dark:to-slate-900/80 dark:text-slate-200">
+                <TableRow className="text-xs uppercase tracking-wide text-muted-foreground">
+                  <TableHead>ID & Tanggal</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead className="text-right">Aksi</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {orders.map((order) => {
+                  const nextStatus = getNextStatus(order.status);
+
+                  return (
+                    <TableRow
+                      key={order.id}
+                      className="align-middle transition hover:bg-primary/5 dark:hover:bg-slate-800"
+                    >
+                      <TableCell className="align-middle">
+                        <p className="font-semibold">{order.id}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(order.createdAt).toLocaleString("id-ID")}
+                        </p>
+                      </TableCell>
+
+                      <TableCell className="align-middle">
+                        <p className="font-medium">
+                          {[order.firstName, order.lastName].filter(Boolean).join(" ") || "Nama belum diisi"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{order.city || "Kota belum diisi"}</p>
+                      </TableCell>
+
+                      <TableCell className="align-middle">{renderStatusBadge(order.status)}</TableCell>
+
+                      <TableCell className="align-middle font-medium">{formatCurrency(order.totalPrice)}</TableCell>
+
+                      <TableCell className="align-middle text-right">
+                        {nextStatus ? (
+                          <Button
+                            size="sm"
+                            onClick={() => handleAdvanceStatus(order)}
+                            disabled={orderSaving[order.id]}
+                          >
+                            {orderSaving[order.id]
+                              ? "Memperbarui..."
+                              : `Ke ${statusLabels[nextStatus]}`}
+                          </Button>
+                        ) : (
+                          <Badge variant="outline">Completed</Badge>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  const renderAddProduct = () => (
+    <Card className="border border-amber-200/70 bg-white/85 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
+      <CardHeader>
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <CardTitle className="text-lg">Tambah Produk</CardTitle>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent>
+        <form onSubmit={handleCreate} className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Nama Produk</Label>
+              <Input
+                placeholder="Contoh: Sneakers Alpha"
+                value={form.name}
+                onChange={(e) => setField("name", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Brand</Label>
+              <Input
+                placeholder="Contoh: HyperX"
+                value={form.brand}
+                onChange={(e) => setField("brand", e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="space-y-2">
+              <Label>Harga</Label>
+              <Input
+                type="number"
+                placeholder="250000"
+                value={form.price}
+                onChange={(e) => setField("price", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Stok</Label>
+              <Input
+                type="number"
+                value={form.stock}
+                onChange={(e) => setField("stock", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Kategori</Label>
+              <Select
+                value={form.categoryId ?? "none"}
+                onValueChange={(v) => setField("categoryId", v === "none" ? null : v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih kategori" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Tanpa kategori</SelectItem>
+                  {categories.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Deskripsi Singkat</Label>
+            <Textarea
+              rows={2}
+              value={form.description}
+              onChange={(e) => setField("description", e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Deskripsi Panjang</Label>
+            <Textarea
+              rows={4}
+              value={form.longDescription}
+              onChange={(e) => setField("longDescription", e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Gambar Produk</Label>
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setField("file", e.target.files?.[0] ?? null)}
+            />
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setForm(initialForm)}
+              className="border-amber-200/70"
+            >
+              Reset
+            </Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Menyimpan..." : "Tambah Produk"}
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  );
+
+  const renderProductTable = () => (
+    <Card className="border border-amber-200/70 bg-white/85 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
+      <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <CardTitle>Daftar Produk</CardTitle>
+        </div>
+      </CardHeader>
+
+      <CardContent>
+        {loading ? (
+          <p>Memuat...</p>
+        ) : (
+          <div className="overflow-hidden rounded-lg border border-amber-100/80 shadow-sm dark:border-slate-800">
+            <Table className="text-sm">
+              <TableHeader className="bg-gradient-to-r from-white to-amber-50/70 text-slate-700 dark:from-slate-900 dark:to-slate-900/80 dark:text-slate-200">
+                <TableRow className="text-xs uppercase tracking-wide text-muted-foreground">
+                  <TableHead>Nama</TableHead>
+                  <TableHead>Harga</TableHead>
+                  <TableHead>Stok</TableHead>
+                  <TableHead className="text-right">Aksi</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {products.map((p) => (
+                  <TableRow
+                    key={p.id}
+                    className="align-middle transition hover:bg-primary/5 dark:hover:bg-slate-800"
+                  >
+                    <TableCell className="align-middle">
+                      <p className="font-semibold">{p.name}</p>
+                      <p className="text-sm text-muted-foreground">{p.brand}</p>
+                    </TableCell>
+
+                    <TableCell className="align-middle">Rp {p.price.toLocaleString("id-ID")}</TableCell>
+
+                    <TableCell className="align-middle">
+                      <Badge variant={p.stock <= 5 ? "destructive" : "outline"}>
+                        {p.stock} unit
+                      </Badge>
+                    </TableCell>
+
+                    <TableCell className="flex justify-end gap-2 align-middle">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="border-amber-200/70 bg-white/90 text-primary shadow-sm hover:border-primary/40 hover:text-primary/80 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-100"
+                        onClick={() => startEdit(p)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDelete(p.id)}
+                        disabled={deleteLoading[p.id]}
+                      >
+                        {deleteLoading[p.id] ? "..." : <Trash2 className="h-4 w-4" />}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
   const renderContent = () => {
     switch (activeView) {
       case "order-status":
-        return (
-          <AdminOrderStatus
-            orders={orders}
-            ordersLoading={ordersLoading}
-            getNextStatus={getNextStatus}
-            renderStatusBadge={renderStatusBadge}
-            handleAdvanceStatus={handleAdvanceStatus}
-            orderSaving={orderSaving}
-            statusLabels={statusLabels}
-            formatCurrency={formatCurrency}
-          />
-        );
+        return renderOrders();
       case "add-product":
-        return (
-          <AdminAddProduct
-            categories={categories}
-            form={form}
-            saving={saving}
-            onSubmit={handleCreate}
-            onReset={() => setForm(initialForm)}
-            setField={setField}
-          />
-        );
+        return renderAddProduct();
       case "product-table":
-        return (
-          <AdminProductList
-            products={products}
-            loading={loading}
-            startEdit={startEdit}
-            handleDelete={handleDelete}
-            deleteLoading={deleteLoading}
-          />
-        );
+        return renderProductTable();
       default:
-        return (
-          <AdminMonitoring
-            categories={categories}
-            products={products}
-            inventoryValue={inventoryValue}
-            lowStockProducts={lowStockProducts}
-            activeOrders={activeOrders}
-            completedOrders={completedOrders}
-            onGoHome={() => navigate("/")}
-            onLogout={() => navigate("/logout")}
-            onAddProduct={() => navigateToView("add-product")}
-            onViewProducts={() => navigateToView("product-table")}
-            formatCurrency={formatCurrency}
-          />
-        );
+        return renderMonitoring();
     }
   };
 
