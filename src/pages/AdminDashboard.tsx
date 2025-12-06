@@ -528,9 +528,7 @@ export default function AdminDashboard() {
               <h1 className="text-3xl font-bold leading-tight tracking-tight">Dashboard Admin</h1>
               <Badge variant="secondary" className="border-amber-200 bg-amber-50 text-amber-900 dark:border-white dark:bg-gray-800 dark:text-white">Terproteksi</Badge>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Pantau pesanan terbaru, perbarui status pengiriman, dan kelola inventaris dalam satu tampilan yang lebih rapi.
-            </p>
+
             <div className="flex flex-wrap gap-3">
               <Button
                 variant="default"
@@ -546,9 +544,6 @@ export default function AdminDashboard() {
           <div className="flex flex-col gap-3 rounded-2xl border border-amber-200/80 bg-white/80 p-4 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-none">
             <div className="flex items-center justify-between text-sm font-medium text-muted-foreground">
               <span>Kontrol Cepat</span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary dark:bg-primary/20">
-                Aktif
-              </span>
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <Button
@@ -564,14 +559,14 @@ export default function AdminDashboard() {
                 className="justify-start gap-2 border-amber-200/80 bg-white/60 text-primary shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-amber-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:hover:border-primary/50"
                 onClick={() => navigateToView("add-product")}
               >
-                <Package className="h-4 w-4" /> Produk
+                <Package className="h-4 w-4" />Tambah Produk
               </Button>
               <Button
                 variant="outline"
                 className="justify-start gap-2 border-amber-200/80 bg-white/60 text-primary shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-amber-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:hover:border-primary/50"
                 onClick={() => navigateToView("product-table")}
               >
-                <TrendingUp className="h-4 w-4" /> Inventaris
+                <TrendingUp className="h-4 w-4" /> Daftar Produk
               </Button>
             </div>
           </div>
@@ -633,7 +628,7 @@ export default function AdminDashboard() {
           <div>
             <CardTitle className="flex items-center gap-2 text-lg">Status Pesanan</CardTitle>
             <CardDescription>
-              Pending → processed → packaged → shipped → completed. Tanpa integrasi kurir.
+              Pending → processed → packaged → shipped → completed.
             </CardDescription>
           </div>
           <div className="flex items-center gap-3">
@@ -726,11 +721,7 @@ export default function AdminDashboard() {
         <div className="flex items-start justify-between gap-2">
           <div>
             <CardTitle className="text-lg">Tambah Produk</CardTitle>
-            <CardDescription>Upload gambar ke Supabase Storage</CardDescription>
           </div>
-          <Badge variant="outline" className="border-primary/30 text-primary dark:border-primary/40 dark:text-primary-foreground">
-            Upload Aman
-          </Badge>
         </div>
       </CardHeader>
 
@@ -847,13 +838,7 @@ export default function AdminDashboard() {
       <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
           <CardTitle>Daftar Produk</CardTitle>
-          <CardDescription>
-            Total nilai inventaris: Rp {inventoryValue.toLocaleString("id-ID")}
-          </CardDescription>
         </div>
-        <Badge variant="outline" className="border-amber-200/80 text-primary dark:border-primary/40 dark:text-primary-foreground">
-          Perbarui secara berkala
-        </Badge>
       </CardHeader>
 
       <CardContent>

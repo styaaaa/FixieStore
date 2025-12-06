@@ -337,16 +337,6 @@ useEffect(() => {
                     {renderStatusProgress(order.status)}
                   </div>
 
-                  {/* <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                    <span>{order.shippingMethod || ""}</span>
-                    <Separator orientation="vertical" className="hidden h-4 sm:inline" />
-                    <span>{order.paymentMethod || "Menunggu pembayaran"}</span>
-                    <Separator orientation="vertical" className="hidden h-4 sm:inline" />
-                    <span className="font-semibold text-foreground">
-                      {formatCurrency(order.totalPrice)}
-                    </span>
-                  </div> */}
-
                   <div className="flex flex-wrap gap-2">
                     <Button variant="secondary" size="sm" asChild>
                       <Link to="/checkout">Bayar sekarang</Link>

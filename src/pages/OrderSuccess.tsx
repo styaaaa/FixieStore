@@ -11,7 +11,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { supabase } from "@/lib/supabaseClient";
-import type { Order } from "@/lib/repositories/orderRepository";
+import type { Order } from "@/types/order";
+
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("id-ID", {
@@ -80,7 +81,7 @@ return (
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Total</span>
                   <span className="font-semibold text-base">
-                    {formatCurrency(order.total_price)}
+                    {formatCurrency(order.totalPrice)}
                   </span>
                 </div>
 
