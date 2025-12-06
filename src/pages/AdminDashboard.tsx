@@ -15,7 +15,10 @@ import {
   TrendingUp,
   Package,
   CheckCircle2,
+  ListChecks,
+  PlusCircle,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 import {
   Card,
@@ -46,6 +49,7 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
 
 import { useAuth } from "@/context/auth-context";
 import { supabase } from "@/lib/supabaseClient";
@@ -92,6 +96,13 @@ const initialForm: ProductFormState = {
   file: null,
 };
 
+type SectionLink = {
+  id: string;
+  label: string;
+  description: string;
+  icon: LucideIcon;
+};
+
 
 // ============================
 // Component
@@ -116,6 +127,31 @@ export default function AdminDashboard() {
 
   const [deleteLoading, setDeleteLoading] = useState<Record<string, boolean>>({});
   const [orderSaving, setOrderSaving] = useState<Record<string, boolean>>({});
+
+  const sectionLinks = useMemo<SectionLink[]>(
+    () => [
+      {
+        id: "order-status",
+        label: "Status Pesanan",
+        description: "Pantau alur pemrosesan pesanan",
+        icon: RefreshCcw,
+      },
+      {
+        id: "add-product",
+        label: "Tambah Produk",
+        description: "Unggah gambar & detail produk baru",
+        icon: PlusCircle,
+      },
+      {
+        id: "product-table",
+        label: "Daftar Produk",
+        description: "Kelola stok, harga, dan brand",
+        icon: ListChecks,
+      },
+    ],
+    []
+  );
+  const [activeSection, setActiveSection] = useState(sectionLinks[0]?.id ?? "order-status");
 
   const statusFlow: OrderStatus[] = [
     "pending",
@@ -251,9 +287,34 @@ export default function AdminDashboard() {
   }, [isAdmin, user]);
 
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: "-50% 0px -40%" }
+    );
+
+    sectionLinks.forEach(({ id }) => {
+      const element = document.getElementById(id);
+      if (element) observer.observe(element);
+    });
+
+    return () => observer.disconnect();
+  }, [sectionLinks]);
+
+
   // ============================
   // Helpers
   // ============================
+
+  const handleScrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const setField = (f: keyof ProductFormState, v: any) =>
     setForm((p) => ({ ...p, [f]: v }));
@@ -515,14 +576,14 @@ export default function AdminDashboard() {
                 <Button
                   variant="outline"
                   className="justify-start gap-2 border-amber-200/80 bg-white/60 text-primary shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-amber-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:hover:border-primary/50"
-                  onClick={() => document.getElementById("add-product")?.scrollIntoView({ behavior: "smooth" })}
+                  onClick={() => handleScrollTo("add-product")}
                 >
                   <Package className="h-4 w-4" /> Produk
                 </Button>
                 <Button
                   variant="outline"
                   className="justify-start gap-2 border-amber-200/80 bg-white/60 text-primary shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-amber-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:hover:border-primary/50"
-                  onClick={() => document.getElementById("product-table")?.scrollIntoView({ behavior: "smooth" })}
+                  onClick={() => handleScrollTo("product-table")}
                 >
                   <TrendingUp className="h-4 w-4" /> Inventaris
                 </Button>
@@ -578,240 +639,284 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        <Card className="border border-amber-200/70 bg-white/85 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
-          <CardHeader>
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <CardTitle className="flex items-center gap-2 text-lg">Status Pesanan</CardTitle>
-                <CardDescription>
-                  Pending → processed → packaged → shipped → completed. Tanpa integrasi kurir.
-                </CardDescription>
-              </div>
-              <div className="flex items-center gap-3">
-                <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700 shadow-sm shadow-emerald-100/60 dark:border-emerald-400/70 dark:bg-emerald-500/15 dark:text-emerald-50">
-                  Realtime Aktif
-                </Badge>
-              </div>
-            </div>
-          </CardHeader>
+        <div className="grid gap-6 lg:grid-cols-[260px,1fr]">
+          <aside className="self-start">
+            <Card className="sticky top-6 border border-amber-200/70 bg-white/80 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
+              <CardHeader>
+                <CardTitle className="text-base">Navigasi Panel</CardTitle>
+                <CardDescription>Loncat cepat ke tiap bagian.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {sectionLinks.map(({ id, label, description, icon: Icon }) => (
+                  <Button
+                    key={id}
+                    variant="ghost"
+                    className={cn(
+                      "w-full justify-start gap-3 rounded-xl border border-transparent bg-white/70 text-left shadow-sm transition hover:-translate-y-[1px] hover:border-primary/40 hover:shadow-amber-100 dark:bg-slate-900/70",
+                      activeSection === id
+                        ? "border-primary/60 bg-primary/10 text-primary dark:border-primary/50"
+                        : "text-slate-900 dark:text-slate-100"
+                    )}
+                    onClick={() => handleScrollTo(id)}
+                    aria-current={activeSection === id ? "page" : undefined}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <div className="flex flex-col items-start gap-0.5">
+                      <span className="font-semibold leading-tight">{label}</span>
+                      <span className="text-xs text-muted-foreground">{description}</span>
+                    </div>
+                  </Button>
+                ))}
+              </CardContent>
+            </Card>
+          </aside>
 
-          <CardContent className="space-y-4">
-            {ordersLoading ? (
-              <div className="space-y-3">
-                <div className="h-12 w-full animate-pulse rounded-md bg-muted/60" />
-                <div className="h-12 w-full animate-pulse rounded-md bg-muted/60" />
-              </div>
-            ) : orders.length === 0 ? (
-              <div className="rounded-lg border border-dashed bg-muted/30 p-6 text-sm text-muted-foreground">
-                Belum ada pesanan.
-              </div>
-            ) : (
-              <div className="overflow-hidden rounded-lg border border-amber-100/80 shadow-sm dark:border-slate-800">
-                <Table className="text-sm">
-                  <TableHeader className="bg-gradient-to-r from-white to-amber-50/70 text-slate-700 dark:from-slate-900 dark:to-slate-900/80 dark:text-slate-200">
-                    <TableRow className="text-xs uppercase tracking-wide text-muted-foreground">
-                      <TableHead>ID & Tanggal</TableHead>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Total</TableHead>
-                      <TableHead className="text-right">Aksi</TableHead>
-                    </TableRow>
-                  </TableHeader>
-
-                  <TableBody>
-                    {orders.map((order) => {
-                      const nextStatus = getNextStatus(order.status);
-
-                      return (
-                         <TableRow
-                          key={order.id}
-                          className="align-middle transition hover:bg-primary/5 dark:hover:bg-slate-800"
-                        >
-                          <TableCell className="align-middle">
-                            <p className="font-semibold">{order.id}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(order.createdAt).toLocaleString("id-ID")}
-                            </p>
-                          </TableCell>
-
-                          <TableCell className="align-middle">
-                            <p className="font-medium">
-                              {[order.firstName, order.lastName].filter(Boolean).join(" ") || "Nama belum diisi"}
-                            </p>
-                            <p className="text-xs text-muted-foreground">{order.city || "Kota belum diisi"}</p>
-                          </TableCell>
-
-                          <TableCell className="align-middle">{renderStatusBadge(order.status)}</TableCell>
-
-                          <TableCell className="align-middle font-medium">{formatCurrency(order.totalPrice)}</TableCell>
-
-                          <TableCell className="align-middle text-right">
-                            {nextStatus ? (
-                              <Button
-                                size="sm"
-                                onClick={() => handleAdvanceStatus(order)}
-                                disabled={orderSaving[order.id]}
-                              >
-                                {orderSaving[order.id]
-                                  ? "Memperbarui..."
-                                  : `Ke ${statusLabels[nextStatus]}`}
-                              </Button>
-                            ) : (
-                              <Badge variant="outline">Completed</Badge>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* ADD PRODUCT */}
-        <Card id="add-product" className="border border-amber-200/70 bg-white/85 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
-          <CardHeader>
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <CardTitle className="text-lg">Tambah Produk</CardTitle>
-                <CardDescription>Upload gambar ke Supabase Storage</CardDescription>
-              </div>
-              <Badge variant="secondary" className="border-amber-200 bg-amber-50 text-amber-900 dark:border-primary/40 dark:bg-primary/10 dark:text-primary-foreground"></Badge>
-            </div>
-          </CardHeader>
-
-          <CardContent>
-            <form onSubmit={handleCreate} className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <Input placeholder="Nama" value={form.name} onChange={(e) => setField("name", e.target.value)} />
-                <Input placeholder="Brand" value={form.brand} onChange={(e) => setField("brand", e.target.value)} />
-
-                <Input type="number" placeholder="Harga" value={form.price} onChange={(e) => setField("price", e.target.value)} />
-                <Input type="number" placeholder="Stok" value={form.stock} onChange={(e) => setField("stock", e.target.value)} />
-
-                <Select value={form.categoryId ?? "none"} onValueChange={(v) => setField("categoryId", v === "none" ? null : v)}>
-                  <SelectTrigger><SelectValue placeholder="Kategori" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Tanpa kategori</SelectItem>
-                    {categories.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid gap-3 md:grid-cols-2">
-                  <div className="space-y-2 rounded-xl border border-amber-100/80 bg-muted/30 p-3 dark:border-slate-800/80">
-                    <Label className="text-sm font-medium">Gambar</Label>
-                    <Input type="file" accept="image/*" onChange={(e) => setField("file", e.target.files?.[0] ?? null)} />
-                    <p className="text-xs text-muted-foreground">Format JPG/PNG. Maksimal 5MB.</p>
+          <div className="space-y-6">
+            <Card
+              id="order-status"
+              className="border border-amber-200/70 bg-white/85 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none"
+            >
+              <CardHeader>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <CardTitle className="flex items-center gap-2 text-lg">Status Pesanan</CardTitle>
+                    <CardDescription>
+                      Pending → processed → packaged → shipped → completed. Tanpa integrasi kurir.
+                    </CardDescription>
                   </div>
-
-                  <div className="space-y-2 rounded-xl border border-amber-100/80 bg-muted/30 p-3 dark:border-slate-800/80">
-                    <Label className="text-sm font-medium">Deskripsi singkat</Label>
-                    <Input placeholder="Ringkasan produk" value={form.description} onChange={(e) => setField("description", e.target.value)} />
-                    <Label className="text-sm font-medium">Deskripsi panjang</Label>
-                    <Textarea rows={4} placeholder="Detail fitur & material" value={form.longDescription} onChange={(e) => setField("longDescription", e.target.value)} />
+                  <div className="flex items-center gap-3">
+                    <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700 shadow-sm shadow-emerald-100/60 dark:border-emerald-400/70 dark:bg-emerald-500/15 dark:text-emerald-50">
+                      Realtime Aktif
+                    </Badge>
                   </div>
                 </div>
+              </CardHeader>
 
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-100/80 bg-muted/30 px-4 py-3 dark:border-slate-800/80">
-                  <p className="text-sm text-muted-foreground flex items-center gap-2">
-                    <RefreshCcw className="h-4 w-4" /> Data disimpan otomatis ketika berhasil.
-                  </p>
+              <CardContent className="space-y-4">
+                {ordersLoading ? (
+                  <div className="space-y-3">
+                    <div className="h-12 w-full animate-pulse rounded-md bg-muted/60" />
+                    <div className="h-12 w-full animate-pulse rounded-md bg-muted/60" />
+                  </div>
+                ) : orders.length === 0 ? (
+                  <div className="rounded-lg border border-dashed bg-muted/30 p-6 text-sm text-muted-foreground">
+                    Belum ada pesanan.
+                  </div>
+                ) : (
+                  <div className="overflow-hidden rounded-lg border border-amber-100/80 shadow-sm dark:border-slate-800">
+                    <Table className="text-sm">
+                      <TableHeader className="bg-gradient-to-r from-white to-amber-50/70 text-slate-700 dark:from-slate-900 dark:to-slate-900/80 dark:text-slate-200">
+                        <TableRow className="text-xs uppercase tracking-wide text-muted-foreground">
+                          <TableHead>ID & Tanggal</TableHead>
+                          <TableHead>Customer</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Total</TableHead>
+                          <TableHead className="text-right">Aksi</TableHead>
+                        </TableRow>
+                      </TableHeader>
 
-                <Button type="submit" disabled={saving} className="min-w-[140px]">
-                  {saving ? "Menyimpan..." : "Tambah Produk"}
-                </Button>
-              </div>
+                      <TableBody>
+                        {orders.map((order) => {
+                          const nextStatus = getNextStatus(order.status);
 
-            </form>
-          </CardContent>
-        </Card>
+                          return (
+                            <TableRow
+                              key={order.id}
+                              className="align-middle transition hover:bg-primary/5 dark:hover:bg-slate-800"
+                            >
+                              <TableCell className="align-middle">
+                                <p className="font-semibold">{order.id}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {new Date(order.createdAt).toLocaleString("id-ID")}
+                                </p>
+                              </TableCell>
 
-        {/* PRODUCT TABLE */}
-        <Card id="product-table" className="border border-amber-200/70 bg-white/80 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
-          <CardHeader>
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <CardTitle>Daftar Produk</CardTitle>
-                <CardDescription>
-                  Total nilai inventaris: Rp {inventoryValue.toLocaleString("id-ID")}
-                </CardDescription>
-              </div>
-              <Badge variant="outline" className="border-amber-200/80 text-primary dark:border-primary/40 dark:text-primary-foreground">
-                Perbarui secara berkala
-              </Badge>
-            </div>
-          </CardHeader>
+                              <TableCell className="align-middle">
+                                <p className="font-medium">
+                                  {[order.firstName, order.lastName].filter(Boolean).join(" ") || "Nama belum diisi"}
+                                </p>
+                                <p className="text-xs text-muted-foreground">{order.city || "Kota belum diisi"}</p>
+                              </TableCell>
 
-          <CardContent>
-            {loading ? <p>Memuat...</p> : (
-              <div className="overflow-hidden rounded-lg border border-amber-100/80 shadow-sm dark:border-slate-800">
-                <Table className="text-sm">
-                  <TableHeader className="bg-gradient-to-r from-white to-amber-50/70 text-slate-700 dark:from-slate-900 dark:to-slate-900/80 dark:text-slate-200">
-                    <TableRow className="text-xs uppercase tracking-wide text-muted-foreground">
-                      <TableHead>Nama</TableHead>
-                      <TableHead>Harga</TableHead>
-                      <TableHead>Stok</TableHead>
-                      <TableHead className="text-right">Aksi</TableHead>
-                    </TableRow>
-                  </TableHeader>
+                              <TableCell className="align-middle">{renderStatusBadge(order.status)}</TableCell>
 
-                  <TableBody>
-                    {products.map((p) => (
-                      <TableRow
-                        key={p.id}
-                        className="align-middle transition hover:bg-primary/5 dark:hover:bg-slate-800"
-                      >
+                              <TableCell className="align-middle font-medium">{formatCurrency(order.totalPrice)}</TableCell>
 
-                        <TableCell className="align-middle">
-                          <p className="font-semibold">{p.name}</p>
-                          <p className="text-sm text-muted-foreground">{p.brand}</p>
-                        </TableCell>
+                              <TableCell className="align-middle text-right">
+                                {nextStatus ? (
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleAdvanceStatus(order)}
+                                    disabled={orderSaving[order.id]}
+                                  >
+                                    {orderSaving[order.id]
+                                      ? "Memperbarui..."
+                                      : `Ke ${statusLabels[nextStatus]}`}
+                                  </Button>
+                                ) : (
+                                  <Badge variant="outline">Completed</Badge>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-                        <TableCell className="align-middle">Rp {p.price.toLocaleString("id-ID")}</TableCell>
+            {/* ADD PRODUCT */}
+            <Card
+              id="add-product"
+              className="border border-amber-200/70 bg-white/85 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none"
+            >
+              <CardHeader>
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <CardTitle className="text-lg">Tambah Produk</CardTitle>
+                    <CardDescription>Upload gambar ke Supabase Storage</CardDescription>
+                  </div>
+                  <Badge variant="secondary" className="border-amber-200 bg-amber-50 text-amber-900 dark:border-primary/40 dark:bg-primary/10 dark:text-primary-foreground" />
+                </div>
+              </CardHeader>
 
-                        <TableCell className="align-middle">
-                          <Badge variant={p.stock <= 5 ? "destructive" : "outline"}>
-                            {p.stock} unit
-                          </Badge>
-                        </TableCell>
+              <CardContent>
+                <form onSubmit={handleCreate} className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <Input placeholder="Nama" value={form.name} onChange={(e) => setField("name", e.target.value)} />
+                    <Input placeholder="Brand" value={form.brand} onChange={(e) => setField("brand", e.target.value)} />
 
-                        <TableCell className="flex justify-end gap-2 align-middle">
+                    <Input type="number" placeholder="Harga" value={form.price} onChange={(e) => setField("price", e.target.value)} />
+                    <Input type="number" placeholder="Stok" value={form.stock} onChange={(e) => setField("stock", e.target.value)} />
 
-                          {/* EDIT */}
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            className="border-amber-200/70 bg-white/90 text-primary shadow-sm hover:border-primary/40 hover:text-primary/80 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-100"
-                            onClick={() => startEdit(p)}
+                    <Select value={form.categoryId ?? "none"} onValueChange={(v) => setField("categoryId", v === "none" ? null : v)}>
+                      <SelectTrigger><SelectValue placeholder="Kategori" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Tanpa kategori</SelectItem>
+                        {categories.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div className="space-y-2 rounded-xl border border-amber-100/80 bg-muted/30 p-3 dark:border-slate-800/80">
+                      <Label className="text-sm font-medium">Gambar</Label>
+                      <Input type="file" accept="image/*" onChange={(e) => setField("file", e.target.files?.[0] ?? null)} />
+                      <p className="text-xs text-muted-foreground">Format JPG/PNG. Maksimal 5MB.</p>
+                    </div>
+
+                    <div className="space-y-2 rounded-xl border border-amber-100/80 bg-muted/30 p-3 dark:border-slate-800/80">
+                      <Label className="text-sm font-medium">Deskripsi singkat</Label>
+                      <Input placeholder="Ringkasan produk" value={form.description} onChange={(e) => setField("description", e.target.value)} />
+                      <Label className="text-sm font-medium">Deskripsi panjang</Label>
+                      <Textarea rows={4} placeholder="Detail fitur & material" value={form.longDescription} onChange={(e) => setField("longDescription", e.target.value)} />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-100/80 bg-muted/30 px-4 py-3 dark:border-slate-800/80">
+                    <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <RefreshCcw className="h-4 w-4" /> Data disimpan otomatis ketika berhasil.
+                    </p>
+
+                    <Button type="submit" disabled={saving} className="min-w-[140px]">
+                      {saving ? "Menyimpan..." : "Tambah Produk"}
+                    </Button>
+                  </div>
+
+                </form>
+              </CardContent>
+            </Card>
+
+            {/* PRODUCT TABLE */}
+            <Card
+              id="product-table"
+              className="border border-amber-200/70 bg-white/80 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none"
+            >
+              <CardHeader>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <CardTitle>Daftar Produk</CardTitle>
+                    <CardDescription>
+                      Total nilai inventaris: Rp {inventoryValue.toLocaleString("id-ID")}
+                    </CardDescription>
+                  </div>
+                  <Badge variant="outline" className="border-amber-200/80 text-primary dark:border-primary/40 dark:text-primary-foreground">
+                    Perbarui secara berkala
+                  </Badge>
+                </div>
+              </CardHeader>
+
+              <CardContent>
+                {loading ? <p>Memuat...</p> : (
+                  <div className="overflow-hidden rounded-lg border border-amber-100/80 shadow-sm dark:border-slate-800">
+                    <Table className="text-sm">
+                      <TableHeader className="bg-gradient-to-r from-white to-amber-50/70 text-slate-700 dark:from-slate-900 dark:to-slate-900/80 dark:text-slate-200">
+                        <TableRow className="text-xs uppercase tracking-wide text-muted-foreground">
+                          <TableHead>Nama</TableHead>
+                          <TableHead>Harga</TableHead>
+                          <TableHead>Stok</TableHead>
+                          <TableHead className="text-right">Aksi</TableHead>
+                        </TableRow>
+                      </TableHeader>
+
+                      <TableBody>
+                        {products.map((p) => (
+                          <TableRow
+                            key={p.id}
+                            className="align-middle transition hover:bg-primary/5 dark:hover:bg-slate-800"
                           >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
 
-                          {/* DELETE */}
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDelete(p.id)}
-                            disabled={deleteLoading[p.id]}
-                          >
-                            {deleteLoading[p.id] ? "..." : <Trash2 className="h-4 w-4" />}
-                          </Button>
+                            <TableCell className="align-middle">
+                              <p className="font-semibold">{p.name}</p>
+                              <p className="text-sm text-muted-foreground">{p.brand}</p>
+                            </TableCell>
 
-                        </TableCell>
+                            <TableCell className="align-middle">Rp {p.price.toLocaleString("id-ID")}</TableCell>
 
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                            <TableCell className="align-middle">
+                              <Badge variant={p.stock <= 5 ? "destructive" : "outline"}>
+                                {p.stock} unit
+                              </Badge>
+                            </TableCell>
+
+                            <TableCell className="flex justify-end gap-2 align-middle">
+
+                              {/* EDIT */}
+                              <Button
+                                size="sm"
+                                variant="secondary"
+                                className="border-amber-200/70 bg-white/90 text-primary shadow-sm hover:border-primary/40 hover:text-primary/80 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-100"
+                                onClick={() => startEdit(p)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+
+                              {/* DELETE */}
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleDelete(p.id)}
+                                disabled={deleteLoading[p.id]}
+                              >
+                                {deleteLoading[p.id] ? "..." : <Trash2 className="h-4 w-4" />}
+                              </Button>
+
+                            </TableCell>
+
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
 
 
       {/* EDIT MODAL */}
