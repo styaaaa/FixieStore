@@ -12,7 +12,7 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import UserDashboard from "./pages/UserDashboard";
-import AdminDashboard from "./pages/AdminDashboard";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import OrderReviews from "./pages/OrderReviews";
