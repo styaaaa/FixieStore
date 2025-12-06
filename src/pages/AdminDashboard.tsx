@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   ListChecks,
   LogOut,
+  Menu,
   Package,
   Pencil,
   PlusCircle,
@@ -159,6 +160,7 @@ export default function AdminDashboard() {
     []
   );
   const [activeView, setActiveView] = useState<DashboardView>(navItems[0]?.id ?? "monitoring");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const statusFlow: OrderStatus[] = [
     "pending",
@@ -218,7 +220,11 @@ export default function AdminDashboard() {
   const navigateToView = (view: DashboardView) => {
     setActiveView(view);
     window.scrollTo({ top: 0, behavior: "smooth" });
+    setIsSidebarOpen(false);
   };
+
+  const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
+  const closeSidebar = () => setIsSidebarOpen(false);  
 
   // ============================
   // Load Data
@@ -920,8 +926,42 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-100 via-white to-amber-50 text-slate-900 transition-colors dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100">
-      <div className="grid min-h-screen lg:grid-cols-[260px,1fr]">
-        <aside className="border-r border-slate-200/60 bg-slate-950 text-slate-100 shadow-xl dark:border-slate-800">
+      <div className="flex items-center gap-3 px-4 py-4 lg:hidden">
+        <Button
+          variant="outline"
+          className="flex items-center gap-2 border-slate-200 bg-white/80 text-slate-900 shadow-sm hover:bg-white dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+          onClick={toggleSidebar}
+          aria-expanded={isSidebarOpen}
+          aria-controls="admin-sidebar"
+        >
+          <Menu className="h-5 w-5" />
+          <span>{isSidebarOpen ? "Tutup Menu" : "Menu"}</span>
+        </Button>
+
+        <div className="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300">
+          <LayoutDashboard className="h-4 w-4" />
+          <span>Admin Panel</span>
+        </div>
+      </div>
+
+      {isSidebarOpen && (
+        <button
+          type="button"
+          aria-label="Tutup sidebar"
+          className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm lg:hidden"
+          onClick={closeSidebar}
+        />
+      )}
+
+      <div className="min-h-screen lg:grid lg:grid-cols-[260px,1fr]">
+        <aside
+          id="admin-sidebar"
+          className={cn(
+            "fixed inset-y-0 left-0 z-40 w-64 border-r border-slate-200/60 bg-slate-950 text-slate-100 shadow-xl transition-transform duration-200 ease-in-out dark:border-slate-800",
+            isSidebarOpen ? "translate-x-0" : "-translate-x-full",
+            "lg:static lg:w-full lg:translate-x-0 lg:transform-none"
+          )}
+        >
           <div className="flex h-full flex-col gap-6 px-4 py-6">
             <div className="space-y-1">
               <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Application</p>
@@ -956,7 +996,10 @@ export default function AdminDashboard() {
               <Button
                 variant="outline"
                 className="w-full justify-start gap-2 border-slate-800 bg-slate-900 text-slate-100 hover:bg-slate-800"
-                onClick={() => navigate("/")}
+                onClick={() => {
+                  closeSidebar();
+                  navigate("/");
+                }}
               >
                 <Home className="h-4 w-4" />
                 Kembali ke Home
@@ -965,7 +1008,7 @@ export default function AdminDashboard() {
           </div>
         </aside>
 
-        <main className="space-y-6 px-4 py-8 lg:px-8">
+        <main className="space-y-6 px-4 py-8 lg:col-start-2 lg:px-8">
           {renderContent()}
         </main>
       </div>
