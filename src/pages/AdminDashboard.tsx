@@ -493,13 +493,6 @@ export default function AdminDashboard() {
                   <Home className="mr-2 h-4 w-4" />
                   Kembali ke Home
                 </Button>
-                <Button
-                  variant="secondary"
-                  onClick={() => navigate("/dashboard")}
-                  className="border-amber-200/80 bg-white/80 text-primary transition hover:-translate-y-[1px] hover:border-primary/40 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-100"
-                >
-                  Dashboard User
-                </Button>
               </div>
             </div>
 
@@ -598,14 +591,6 @@ export default function AdminDashboard() {
                 <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700 shadow-sm shadow-emerald-100/60 dark:border-emerald-400/70 dark:bg-emerald-500/15 dark:text-emerald-50">
                   Realtime Aktif
                 </Badge>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="gap-2 border-primary/30 bg-primary/5 text-primary transition hover:-translate-y-[1px] hover:border-primary/50 hover:bg-primary/10 dark:border-amber-300/60 dark:bg-amber-400/15 dark:text-amber-50 dark:hover:border-amber-200/70 dark:hover:bg-amber-400/25"
-                  onClick={() => navigate("/")}
-                >
-                  <Home className="h-4 w-4" /> Kembali ke Home
-                </Button>
               </div>
             </div>
           </CardHeader>
