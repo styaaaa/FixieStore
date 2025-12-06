@@ -135,25 +135,25 @@ export default function AdminDashboard() {
       {
         id: "monitoring",
         label: "Monitoring",
-        description: "Ringkasan performa & kontrol",
+        description: "",
         icon: LayoutDashboard,
       },
       {
         id: "order-status",
         label: "Status Pesanan",
-        description: "Pantau alur pemrosesan",
+        description: "",
         icon: RefreshCcw,
       },
       {
         id: "add-product",
         label: "Tambah Produk",
-        description: "Unggah gambar & detail",
+        description: "",
         icon: PlusCircle,
       },
       {
         id: "product-table",
         label: "Daftar Produk",
-        description: "Kelola stok & harga",
+        description: "",
         icon: ListChecks,
       },
     ],
@@ -217,14 +217,22 @@ export default function AdminDashboard() {
       minimumFractionDigits: 0,
     }).format(value ?? 0);
 
+    const isDesktopView = () => window.matchMedia("(min-width: 1024px)").matches;
+
   const navigateToView = (view: DashboardView) => {
     setActiveView(view);
     window.scrollTo({ top: 0, behavior: "smooth" });
-    setIsSidebarOpen(false);
+    if (!isDesktopView()) {
+      setIsSidebarOpen(false);
+    }
   };
 
   const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
-  const closeSidebar = () => setIsSidebarOpen(false);  
+  const closeSidebar = () => setIsSidebarOpen(false);
+
+  useEffect(() => {
+    setIsSidebarOpen(isDesktopView());
+  }, []);  
 
   // ============================
   // Load Data
@@ -953,13 +961,19 @@ export default function AdminDashboard() {
         />
       )}
 
-      <div className="min-h-screen lg:grid lg:grid-cols-[260px,1fr]">
+      <div
+        className={cn(
+          "min-h-screen lg:grid",
+          isSidebarOpen ? "lg:grid-cols-[260px,1fr]" : "lg:grid-cols-1"
+        )}
+      >
         <aside
           id="admin-sidebar"
           className={cn(
             "fixed inset-y-0 left-0 z-40 w-64 border-r border-slate-200/60 bg-slate-950 text-slate-100 shadow-xl transition-transform duration-200 ease-in-out dark:border-slate-800",
             isSidebarOpen ? "translate-x-0" : "-translate-x-full",
-            "lg:static lg:w-full lg:translate-x-0 lg:transform-none"
+            "lg:static lg:w-full lg:border-r lg:shadow-none",
+            isSidebarOpen ? "lg:translate-x-0" : "lg:-translate-x-full lg:hidden"
           )}
         >
           <div className="flex h-full flex-col gap-6 px-4 py-6">
@@ -1008,7 +1022,27 @@ export default function AdminDashboard() {
           </div>
         </aside>
 
-        <main className="space-y-6 px-4 py-8 lg:col-start-2 lg:px-8">
+        <main
+          className={cn(
+            "space-y-6 px-4 py-8 lg:px-8",
+            isSidebarOpen ? "lg:col-start-2" : "lg:col-start-1"
+          )}
+        >
+          <div className="mb-2 hidden items-center gap-3 lg:flex">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 rounded-full border border-slate-200/60 bg-white/70 text-slate-700 shadow-sm hover:bg-white dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+              onClick={toggleSidebar}
+              aria-expanded={isSidebarOpen}
+              aria-controls="admin-sidebar"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+
+            <div className="text-sm font-semibold text-slate-600 dark:text-slate-300">
+            </div>
+          </div>
           {renderContent()}
         </main>
       </div>
