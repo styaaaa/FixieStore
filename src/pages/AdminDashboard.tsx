@@ -473,13 +473,13 @@ export default function AdminDashboard() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(251,191,36,0.15),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(14,165,233,0.12),transparent_32%)] dark:bg-[radial-gradient(circle_at_20%_20%,rgba(251,191,36,0.12),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(56,189,248,0.12),transparent_32%)]" />
           <div className="relative grid gap-6 bg-gradient-to-br from-primary/5 via-white/80 to-amber-50/60 p-6 md:grid-cols-[1.2fr,1fr] md:items-center dark:from-slate-900/40 dark:via-slate-900/80 dark:to-slate-950">
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm font-semibold text-primary dark:text-amber-300">
+              <div className="flex items-center gap-2 text-sm font-semibold text-primary dark:text-white">
                 <ShieldCheck className="h-4 w-4" />
                 Mode Admin Aktif
               </div>
               <div className="flex items-center gap-3">
                 <h1 className="text-3xl font-bold leading-tight tracking-tight">Dashboard Admin</h1>
-                <Badge variant="secondary" className="border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-300/50 dark:bg-amber-300/20 dark:text-amber-100">Terproteksi</Badge>
+                <Badge variant="secondary" className="border-amber-200 bg-amber-50 text-amber-900 dark:border-white dark:bg-gray-800 dark:text-white">Terproteksi</Badge>
               </div>
               <p className="text-sm text-muted-foreground">
                 Pantau pesanan terbaru, perbarui status pengiriman, dan kelola inventaris dalam satu tampilan yang lebih rapi.
