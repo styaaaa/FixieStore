@@ -6,17 +6,18 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AlertTriangle,
+  CheckCircle2,
   Home,
-  RefreshCcw,
+  LayoutDashboard,
+  ListChecks,
   LogOut,
+  Package,
   Pencil,
+  PlusCircle,
+  RefreshCcw,
   ShieldCheck,
   Trash2,
   TrendingUp,
-  Package,
-  CheckCircle2,
-  ListChecks,
-  PlusCircle,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -44,7 +45,7 @@ import {
   SelectTrigger,
   SelectValue,
   SelectContent,
-  SelectItem
+  SelectItem,
 } from "@/components/ui/select";
 
 import { Badge } from "@/components/ui/badge";
@@ -68,7 +69,6 @@ import {
 
 import type { Product, Category } from "@/types/catalog";
 import type { Order, OrderStatus } from "@/types/order";
-
 
 // ============================
 // Form State
@@ -96,13 +96,14 @@ const initialForm: ProductFormState = {
   file: null,
 };
 
-type SectionLink = {
-  id: string;
+type DashboardView = "monitoring" | "order-status" | "add-product" | "product-table";
+
+type NavLink = {
+  id: DashboardView;
   label: string;
   description: string;
   icon: LucideIcon;
 };
-
 
 // ============================
 // Component
@@ -128,30 +129,36 @@ export default function AdminDashboard() {
   const [deleteLoading, setDeleteLoading] = useState<Record<string, boolean>>({});
   const [orderSaving, setOrderSaving] = useState<Record<string, boolean>>({});
 
-  const sectionLinks = useMemo<SectionLink[]>(
+  const navItems = useMemo<NavLink[]>(
     () => [
+      {
+        id: "monitoring",
+        label: "Monitoring",
+        description: "Ringkasan performa & kontrol",
+        icon: LayoutDashboard,
+      },
       {
         id: "order-status",
         label: "Status Pesanan",
-        description: "Pantau alur pemrosesan pesanan",
+        description: "Pantau alur pemrosesan",
         icon: RefreshCcw,
       },
       {
         id: "add-product",
         label: "Tambah Produk",
-        description: "Unggah gambar & detail produk baru",
+        description: "Unggah gambar & detail",
         icon: PlusCircle,
       },
       {
         id: "product-table",
         label: "Daftar Produk",
-        description: "Kelola stok, harga, dan brand",
+        description: "Kelola stok & harga",
         icon: ListChecks,
       },
     ],
     []
   );
-  const [activeSection, setActiveSection] = useState(sectionLinks[0]?.id ?? "order-status");
+  const [activeView, setActiveView] = useState<DashboardView>(navItems[0]?.id ?? "monitoring");
 
   const statusFlow: OrderStatus[] = [
     "pending",
@@ -208,6 +215,10 @@ export default function AdminDashboard() {
       minimumFractionDigits: 0,
     }).format(value ?? 0);
 
+  const navigateToView = (view: DashboardView) => {
+    setActiveView(view);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   // ============================
   // Load Data
@@ -248,7 +259,6 @@ export default function AdminDashboard() {
     void loadData();
   }, [authLoading, user, isAdmin, loadData, navigate]);
 
-
   useEffect(() => {
     if (!user || !isAdmin) return undefined;
 
@@ -286,42 +296,11 @@ export default function AdminDashboard() {
     };
   }, [isAdmin, user]);
 
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
-          }
-        });
-      },
-      { rootMargin: "-50% 0px -40%" }
-    );
-
-    sectionLinks.forEach(({ id }) => {
-      const element = document.getElementById(id);
-      if (element) observer.observe(element);
-    });
-
-    return () => observer.disconnect();
-  }, [sectionLinks]);
-
-
-  // ============================
-  // Helpers
-  // ============================
-
-  const handleScrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
   const setField = (f: keyof ProductFormState, v: any) =>
     setForm((p) => ({ ...p, [f]: v }));
 
   const setEditField = (f: keyof ProductFormState, v: any) =>
     setEditForm((p) => (p ? { ...p, [f]: v } : p));
-
 
   // ============================
   // Supabase Upload
@@ -345,7 +324,6 @@ export default function AdminDashboard() {
 
     return data.publicUrl;
   };
-
 
   // ============================
   // Create Product
@@ -386,7 +364,6 @@ export default function AdminDashboard() {
 
     setSaving(false);
   };
-
 
   // ============================
   // Edit Product
@@ -443,7 +420,6 @@ export default function AdminDashboard() {
     setSavingEdit(false);
   };
 
-
   // ============================
   // Delete Product
   // ============================
@@ -461,7 +437,6 @@ export default function AdminDashboard() {
 
     setDeleteLoading((s) => ({ ...s, [id]: false }));
   };
-
 
   // ============================
   // Order Status
@@ -496,9 +471,8 @@ export default function AdminDashboard() {
     }
   };
 
-
   // ============================
-  // Render
+  // Render Helpers
   // ============================
 
   const inventoryValue = useMemo(
@@ -526,419 +500,500 @@ export default function AdminDashboard() {
 
   if (!user || !isAdmin) return null;
 
+  const renderMonitoring = () => (
+    <div className="space-y-6">
+      <div className="relative overflow-hidden rounded-3xl border border-amber-200/60 bg-white/70 shadow-xl backdrop-blur dark:border-slate-800 dark:bg-slate-900/70">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(251,191,36,0.15),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(14,165,233,0.12),transparent_32%)] dark:bg-[radial-gradient(circle_at_20%_20%,rgba(251,191,36,0.12),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(56,189,248,0.12),transparent_32%)]" />
+        <div className="relative grid gap-6 bg-gradient-to-br from-primary/5 via-white/80 to-amber-50/60 p-6 md:grid-cols-[1.2fr,1fr] md:items-center dark:from-slate-900/40 dark:via-slate-900/80 dark:to-slate-950">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-primary dark:text-white">
+              <ShieldCheck className="h-4 w-4" />
+              Mode Admin Aktif
+            </div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold leading-tight tracking-tight">Dashboard Admin</h1>
+              <Badge variant="secondary" className="border-amber-200 bg-amber-50 text-amber-900 dark:border-white dark:bg-gray-800 dark:text-white">Terproteksi</Badge>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Pantau pesanan terbaru, perbarui status pengiriman, dan kelola inventaris dalam satu tampilan yang lebih rapi.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                variant="default"
+                onClick={() => navigate("/")}
+                className="shadow-sm shadow-amber-200 transition hover:-translate-y-[1px] dark:shadow-slate-900"
+              >
+                <Home className="mr-2 h-4 w-4" />
+                Kembali ke Home
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 rounded-2xl border border-amber-200/80 bg-white/80 p-4 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-none">
+            <div className="flex items-center justify-between text-sm font-medium text-muted-foreground">
+              <span>Kontrol Cepat</span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary dark:bg-primary/20">
+                Aktif
+              </span>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <Button
+                variant="outline"
+                className="justify-start gap-2 border-amber-200/80 bg-white/60 text-primary shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-amber-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:hover:border-primary/50"
+                onClick={() => navigate("/logout")}
+              >
+                <LogOut className="h-4 w-4" /> Keluar
+              </Button>
+
+              <Button
+                variant="outline"
+                className="justify-start gap-2 border-amber-200/80 bg-white/60 text-primary shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-amber-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:hover:border-primary/50"
+                onClick={() => navigateToView("add-product")}
+              >
+                <Package className="h-4 w-4" /> Produk
+              </Button>
+              <Button
+                variant="outline"
+                className="justify-start gap-2 border-amber-200/80 bg-white/60 text-primary shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-amber-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:hover:border-primary/50"
+                onClick={() => navigateToView("product-table")}
+              >
+                <TrendingUp className="h-4 w-4" /> Inventaris
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="border border-amber-200/70 bg-white/80 shadow-sm shadow-amber-200/40 transition hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Nilai Inventaris</CardTitle>
+            <TrendingUp className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(inventoryValue)}</div>
+            <p className="text-xs text-muted-foreground">Harga x stok seluruh produk</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-amber-200/70 bg-white/80 shadow-sm shadow-amber-200/40 transition hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Produk</CardTitle>
+            <Package className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{products.length}</div>
+            <p className="text-xs text-muted-foreground">Kategori aktif: {categories.length || "-"}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-amber-200/70 bg-white/80 shadow-sm shadow-amber-200/40 transition hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Stok Rendah</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-amber-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{lowStockProducts}</div>
+            <p className="text-xs text-muted-foreground">Produk dengan stok ≤ 5 unit</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-amber-200/70 bg-white/80 shadow-sm shadow-amber-200/40 transition hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pesanan Aktif</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{activeOrders}</div>
+            <p className="text-xs text-muted-foreground">Selesai: {completedOrders}</p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+
+  const renderOrders = () => (
+    <Card className="border border-amber-200/70 bg-white/85 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
+      <CardHeader>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-lg">Status Pesanan</CardTitle>
+            <CardDescription>
+              Pending → processed → packaged → shipped → completed. Tanpa integrasi kurir.
+            </CardDescription>
+          </div>
+          <div className="flex items-center gap-3">
+            <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700 shadow-sm shadow-emerald-100/60 dark:border-emerald-400/70 dark:bg-emerald-500/15 dark:text-emerald-50">
+              Realtime Aktif
+            </Badge>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+        {ordersLoading ? (
+          <div className="space-y-3">
+            <div className="h-12 w-full animate-pulse rounded-md bg-muted/60" />
+            <div className="h-12 w-full animate-pulse rounded-md bg-muted/60" />
+          </div>
+        ) : orders.length === 0 ? (
+          <div className="rounded-lg border border-dashed bg-muted/30 p-6 text-sm text-muted-foreground">
+            Belum ada pesanan.
+          </div>
+        ) : (
+          <div className="overflow-hidden rounded-lg border border-amber-100/80 shadow-sm dark:border-slate-800">
+            <Table className="text-sm">
+              <TableHeader className="bg-gradient-to-r from-white to-amber-50/70 text-slate-700 dark:from-slate-900 dark:to-slate-900/80 dark:text-slate-200">
+                <TableRow className="text-xs uppercase tracking-wide text-muted-foreground">
+                  <TableHead>ID & Tanggal</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead className="text-right">Aksi</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {orders.map((order) => {
+                  const nextStatus = getNextStatus(order.status);
+
+                  return (
+                    <TableRow
+                      key={order.id}
+                      className="align-middle transition hover:bg-primary/5 dark:hover:bg-slate-800"
+                    >
+                      <TableCell className="align-middle">
+                        <p className="font-semibold">{order.id}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(order.createdAt).toLocaleString("id-ID")}
+                        </p>
+                      </TableCell>
+
+                      <TableCell className="align-middle">
+                        <p className="font-medium">
+                          {[order.firstName, order.lastName].filter(Boolean).join(" ") || "Nama belum diisi"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{order.city || "Kota belum diisi"}</p>
+                      </TableCell>
+
+                      <TableCell className="align-middle">{renderStatusBadge(order.status)}</TableCell>
+
+                      <TableCell className="align-middle font-medium">{formatCurrency(order.totalPrice)}</TableCell>
+
+                      <TableCell className="align-middle text-right">
+                        {nextStatus ? (
+                          <Button
+                            size="sm"
+                            onClick={() => handleAdvanceStatus(order)}
+                            disabled={orderSaving[order.id]}
+                          >
+                            {orderSaving[order.id]
+                              ? "Memperbarui..."
+                              : `Ke ${statusLabels[nextStatus]}`}
+                          </Button>
+                        ) : (
+                          <Badge variant="outline">Completed</Badge>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  const renderAddProduct = () => (
+    <Card className="border border-amber-200/70 bg-white/85 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
+      <CardHeader>
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <CardTitle className="text-lg">Tambah Produk</CardTitle>
+            <CardDescription>Upload gambar ke Supabase Storage</CardDescription>
+          </div>
+          <Badge variant="outline" className="border-primary/30 text-primary dark:border-primary/40 dark:text-primary-foreground">
+            Upload Aman
+          </Badge>
+        </div>
+      </CardHeader>
+
+      <CardContent>
+        <form onSubmit={handleCreate} className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Nama Produk</Label>
+              <Input
+                placeholder="Contoh: Sneakers Alpha"
+                value={form.name}
+                onChange={(e) => setField("name", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Brand</Label>
+              <Input
+                placeholder="Contoh: HyperX"
+                value={form.brand}
+                onChange={(e) => setField("brand", e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="space-y-2">
+              <Label>Harga</Label>
+              <Input
+                type="number"
+                placeholder="250000"
+                value={form.price}
+                onChange={(e) => setField("price", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Stok</Label>
+              <Input
+                type="number"
+                value={form.stock}
+                onChange={(e) => setField("stock", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Kategori</Label>
+              <Select
+                value={form.categoryId ?? "none"}
+                onValueChange={(v) => setField("categoryId", v === "none" ? null : v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih kategori" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Tanpa kategori</SelectItem>
+                  {categories.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Deskripsi Singkat</Label>
+            <Textarea
+              rows={2}
+              value={form.description}
+              onChange={(e) => setField("description", e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Deskripsi Panjang</Label>
+            <Textarea
+              rows={4}
+              value={form.longDescription}
+              onChange={(e) => setField("longDescription", e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Gambar Produk</Label>
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setField("file", e.target.files?.[0] ?? null)}
+            />
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setForm(initialForm)}
+              className="border-amber-200/70"
+            >
+              Reset
+            </Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Menyimpan..." : "Tambah Produk"}
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  );
+
+  const renderProductTable = () => (
+    <Card className="border border-amber-200/70 bg-white/85 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
+      <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <CardTitle>Daftar Produk</CardTitle>
+          <CardDescription>
+            Total nilai inventaris: Rp {inventoryValue.toLocaleString("id-ID")}
+          </CardDescription>
+        </div>
+        <Badge variant="outline" className="border-amber-200/80 text-primary dark:border-primary/40 dark:text-primary-foreground">
+          Perbarui secara berkala
+        </Badge>
+      </CardHeader>
+
+      <CardContent>
+        {loading ? (
+          <p>Memuat...</p>
+        ) : (
+          <div className="overflow-hidden rounded-lg border border-amber-100/80 shadow-sm dark:border-slate-800">
+            <Table className="text-sm">
+              <TableHeader className="bg-gradient-to-r from-white to-amber-50/70 text-slate-700 dark:from-slate-900 dark:to-slate-900/80 dark:text-slate-200">
+                <TableRow className="text-xs uppercase tracking-wide text-muted-foreground">
+                  <TableHead>Nama</TableHead>
+                  <TableHead>Harga</TableHead>
+                  <TableHead>Stok</TableHead>
+                  <TableHead className="text-right">Aksi</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {products.map((p) => (
+                  <TableRow
+                    key={p.id}
+                    className="align-middle transition hover:bg-primary/5 dark:hover:bg-slate-800"
+                  >
+                    <TableCell className="align-middle">
+                      <p className="font-semibold">{p.name}</p>
+                      <p className="text-sm text-muted-foreground">{p.brand}</p>
+                    </TableCell>
+
+                    <TableCell className="align-middle">Rp {p.price.toLocaleString("id-ID")}</TableCell>
+
+                    <TableCell className="align-middle">
+                      <Badge variant={p.stock <= 5 ? "destructive" : "outline"}>
+                        {p.stock} unit
+                      </Badge>
+                    </TableCell>
+
+                    <TableCell className="flex justify-end gap-2 align-middle">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="border-amber-200/70 bg-white/90 text-primary shadow-sm hover:border-primary/40 hover:text-primary/80 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-100"
+                        onClick={() => startEdit(p)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDelete(p.id)}
+                        disabled={deleteLoading[p.id]}
+                      >
+                        {deleteLoading[p.id] ? "..." : <Trash2 className="h-4 w-4" />}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  const renderContent = () => {
+    switch (activeView) {
+      case "order-status":
+        return renderOrders();
+      case "add-product":
+        return renderAddProduct();
+      case "product-table":
+        return renderProductTable();
+      default:
+        return renderMonitoring();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-100 via-white to-amber-50 text-slate-900 transition-colors dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100">
-      <div className="mx-auto max-w-6xl space-y-8 px-4 py-8">
-        {/* HERO */}
-        <div className="relative overflow-hidden rounded-3xl border border-amber-200/60 bg-white/70 shadow-xl backdrop-blur dark:border-slate-800 dark:bg-slate-900/70">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(251,191,36,0.15),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(14,165,233,0.12),transparent_32%)] dark:bg-[radial-gradient(circle_at_20%_20%,rgba(251,191,36,0.12),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(56,189,248,0.12),transparent_32%)]" />
-          <div className="relative grid gap-6 bg-gradient-to-br from-primary/5 via-white/80 to-amber-50/60 p-6 md:grid-cols-[1.2fr,1fr] md:items-center dark:from-slate-900/40 dark:via-slate-900/80 dark:to-slate-950">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm font-semibold text-primary dark:text-white">
-                <ShieldCheck className="h-4 w-4" />
-                Mode Admin Aktif
-              </div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-bold leading-tight tracking-tight">Dashboard Admin</h1>
-                <Badge variant="secondary" className="border-amber-200 bg-amber-50 text-amber-900 dark:border-white dark:bg-gray-800 dark:text-white">Terproteksi</Badge>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Pantau pesanan terbaru, perbarui status pengiriman, dan kelola inventaris dalam satu tampilan yang lebih rapi.
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  variant="default"
-                  onClick={() => navigate("/")}
-                  className="shadow-sm shadow-amber-200 transition hover:-translate-y-[1px] dark:shadow-slate-900"
-                >
-                  <Home className="mr-2 h-4 w-4" />
-                  Kembali ke Home
-                </Button>
+      <div className="grid min-h-screen lg:grid-cols-[260px,1fr]">
+        <aside className="border-r border-slate-200/60 bg-slate-950 text-slate-100 shadow-xl dark:border-slate-800">
+          <div className="flex h-full flex-col gap-6 px-4 py-6">
+            <div className="space-y-1">
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Application</p>
+              <div className="flex items-center gap-2 font-semibold text-white">
+                <LayoutDashboard className="h-4 w-4" /> Admin Panel
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 rounded-2xl border border-amber-200/80 bg-white/80 p-4 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-none">
-              <div className="flex items-center justify-between text-sm font-medium text-muted-foreground">
-                <span>Kontrol Cepat</span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary dark:bg-primary/20">
-                  Aktif
-                </span>
-              </div>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <nav className="space-y-2">
+              {navItems.map(({ id, label, description, icon: Icon }) => (
                 <Button
-                  variant="outline"
-                  className="justify-start gap-2 border-amber-200/80 bg-white/60 text-primary shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-amber-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:hover:border-primary/50"
-                  onClick={() => navigate("/logout")}
+                  key={id}
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-3 rounded-xl bg-transparent px-3 py-3 text-left text-sm font-medium text-slate-200 transition hover:bg-slate-800/80",
+                    activeView === id &&
+                      "bg-slate-800/80 text-white shadow-inner shadow-primary/20"
+                  )}
+                  onClick={() => navigateToView(id)}
+                  aria-current={activeView === id ? "page" : undefined}
                 >
-                  <LogOut className="h-4 w-4" /> Keluar
+                  <Icon className="h-4 w-4" />
+                  <div className="flex flex-col items-start leading-tight">
+                    <span>{label}</span>
+                    <span className="text-xs text-slate-400">{description}</span>
+                  </div>
                 </Button>
-      
-                <Button
-                  variant="outline"
-                  className="justify-start gap-2 border-amber-200/80 bg-white/60 text-primary shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-amber-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:hover:border-primary/50"
-                  onClick={() => handleScrollTo("add-product")}
-                >
-                  <Package className="h-4 w-4" /> Produk
-                </Button>
-                <Button
-                  variant="outline"
-                  className="justify-start gap-2 border-amber-200/80 bg-white/60 text-primary shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-amber-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:hover:border-primary/50"
-                  onClick={() => handleScrollTo("product-table")}
-                >
-                  <TrendingUp className="h-4 w-4" /> Inventaris
-                </Button>
-              </div>
+              ))}
+            </nav>
+
+            <div className="mt-auto">
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2 border-slate-800 bg-slate-900 text-slate-100 hover:bg-slate-800"
+                onClick={() => navigate("/")}
+              >
+                <Home className="h-4 w-4" />
+                Kembali ke Home
+              </Button>
             </div>
           </div>
-        </div>
+        </aside>
 
-        {/* STATS */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="border border-amber-200/70 bg-white/80 shadow-sm shadow-amber-200/40 transition hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Nilai Inventaris</CardTitle>
-              <TrendingUp className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(inventoryValue)}</div>
-              <p className="text-xs text-muted-foreground">Harga x stok seluruh produk</p>
-            </CardContent>
-          </Card>
+        <main className="space-y-6 px-4 py-8 lg:px-8">
+          {renderContent()}
+        </main>
+      </div>
 
-          <Card className="border border-amber-200/70 bg-white/80 shadow-sm shadow-amber-200/40 transition hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Produk</CardTitle>
-              <Package className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{products.length}</div>
-              <p className="text-xs text-muted-foreground">Kategori aktif: {categories.length || "-"}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border border-amber-200/70 bg-white/80 shadow-sm shadow-amber-200/40 transition hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Stok Rendah</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{lowStockProducts}</div>
-              <p className="text-xs text-muted-foreground">Produk dengan stok ≤ 5 unit</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border border-amber-200/70 bg-white/80 shadow-sm shadow-amber-200/40 transition hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pesanan Aktif</CardTitle>
-              <CheckCircle2 className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{activeOrders}</div>
-              <p className="text-xs text-muted-foreground">Selesai: {completedOrders}</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-[260px,1fr]">
-          <aside className="self-start">
-            <Card className="sticky top-6 border border-amber-200/70 bg-white/80 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
-              <CardHeader>
-                <CardTitle className="text-base">Navigasi Panel</CardTitle>
-                <CardDescription>Loncat cepat ke tiap bagian.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {sectionLinks.map(({ id, label, description, icon: Icon }) => (
-                  <Button
-                    key={id}
-                    variant="ghost"
-                    className={cn(
-                      "w-full justify-start gap-3 rounded-xl border border-transparent bg-white/70 text-left shadow-sm transition hover:-translate-y-[1px] hover:border-primary/40 hover:shadow-amber-100 dark:bg-slate-900/70",
-                      activeSection === id
-                        ? "border-primary/60 bg-primary/10 text-primary dark:border-primary/50"
-                        : "text-slate-900 dark:text-slate-100"
-                    )}
-                    onClick={() => handleScrollTo(id)}
-                    aria-current={activeSection === id ? "page" : undefined}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <div className="flex flex-col items-start gap-0.5">
-                      <span className="font-semibold leading-tight">{label}</span>
-                      <span className="text-xs text-muted-foreground">{description}</span>
-                    </div>
-                  </Button>
-                ))}
-              </CardContent>
-            </Card>
-          </aside>
-
-          <div className="space-y-6">
-            <Card
-              id="order-status"
-              className="border border-amber-200/70 bg-white/85 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none"
-            >
-              <CardHeader>
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <CardTitle className="flex items-center gap-2 text-lg">Status Pesanan</CardTitle>
-                    <CardDescription>
-                      Pending → processed → packaged → shipped → completed. Tanpa integrasi kurir.
-                    </CardDescription>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700 shadow-sm shadow-emerald-100/60 dark:border-emerald-400/70 dark:bg-emerald-500/15 dark:text-emerald-50">
-                      Realtime Aktif
-                    </Badge>
-                  </div>
-                </div>
-              </CardHeader>
-
-              <CardContent className="space-y-4">
-                {ordersLoading ? (
-                  <div className="space-y-3">
-                    <div className="h-12 w-full animate-pulse rounded-md bg-muted/60" />
-                    <div className="h-12 w-full animate-pulse rounded-md bg-muted/60" />
-                  </div>
-                ) : orders.length === 0 ? (
-                  <div className="rounded-lg border border-dashed bg-muted/30 p-6 text-sm text-muted-foreground">
-                    Belum ada pesanan.
-                  </div>
-                ) : (
-                  <div className="overflow-hidden rounded-lg border border-amber-100/80 shadow-sm dark:border-slate-800">
-                    <Table className="text-sm">
-                      <TableHeader className="bg-gradient-to-r from-white to-amber-50/70 text-slate-700 dark:from-slate-900 dark:to-slate-900/80 dark:text-slate-200">
-                        <TableRow className="text-xs uppercase tracking-wide text-muted-foreground">
-                          <TableHead>ID & Tanggal</TableHead>
-                          <TableHead>Customer</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Total</TableHead>
-                          <TableHead className="text-right">Aksi</TableHead>
-                        </TableRow>
-                      </TableHeader>
-
-                      <TableBody>
-                        {orders.map((order) => {
-                          const nextStatus = getNextStatus(order.status);
-
-                          return (
-                            <TableRow
-                              key={order.id}
-                              className="align-middle transition hover:bg-primary/5 dark:hover:bg-slate-800"
-                            >
-                              <TableCell className="align-middle">
-                                <p className="font-semibold">{order.id}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {new Date(order.createdAt).toLocaleString("id-ID")}
-                                </p>
-                              </TableCell>
-
-                              <TableCell className="align-middle">
-                                <p className="font-medium">
-                                  {[order.firstName, order.lastName].filter(Boolean).join(" ") || "Nama belum diisi"}
-                                </p>
-                                <p className="text-xs text-muted-foreground">{order.city || "Kota belum diisi"}</p>
-                              </TableCell>
-
-                              <TableCell className="align-middle">{renderStatusBadge(order.status)}</TableCell>
-
-                              <TableCell className="align-middle font-medium">{formatCurrency(order.totalPrice)}</TableCell>
-
-                              <TableCell className="align-middle text-right">
-                                {nextStatus ? (
-                                  <Button
-                                    size="sm"
-                                    onClick={() => handleAdvanceStatus(order)}
-                                    disabled={orderSaving[order.id]}
-                                  >
-                                    {orderSaving[order.id]
-                                      ? "Memperbarui..."
-                                      : `Ke ${statusLabels[nextStatus]}`}
-                                  </Button>
-                                ) : (
-                                  <Badge variant="outline">Completed</Badge>
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* ADD PRODUCT */}
-            <Card
-              id="add-product"
-              className="border border-amber-200/70 bg-white/85 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none"
-            >
-              <CardHeader>
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <CardTitle className="text-lg">Tambah Produk</CardTitle>
-                    <CardDescription>Upload gambar ke Supabase Storage</CardDescription>
-                  </div>
-                  <Badge variant="secondary" className="border-amber-200 bg-amber-50 text-amber-900 dark:border-primary/40 dark:bg-primary/10 dark:text-primary-foreground" />
-                </div>
-              </CardHeader>
-
-              <CardContent>
-                <form onSubmit={handleCreate} className="space-y-4">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <Input placeholder="Nama" value={form.name} onChange={(e) => setField("name", e.target.value)} />
-                    <Input placeholder="Brand" value={form.brand} onChange={(e) => setField("brand", e.target.value)} />
-
-                    <Input type="number" placeholder="Harga" value={form.price} onChange={(e) => setField("price", e.target.value)} />
-                    <Input type="number" placeholder="Stok" value={form.stock} onChange={(e) => setField("stock", e.target.value)} />
-
-                    <Select value={form.categoryId ?? "none"} onValueChange={(v) => setField("categoryId", v === "none" ? null : v)}>
-                      <SelectTrigger><SelectValue placeholder="Kategori" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Tanpa kategori</SelectItem>
-                        {categories.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="grid gap-3 md:grid-cols-2">
-                    <div className="space-y-2 rounded-xl border border-amber-100/80 bg-muted/30 p-3 dark:border-slate-800/80">
-                      <Label className="text-sm font-medium">Gambar</Label>
-                      <Input type="file" accept="image/*" onChange={(e) => setField("file", e.target.files?.[0] ?? null)} />
-                      <p className="text-xs text-muted-foreground">Format JPG/PNG. Maksimal 5MB.</p>
-                    </div>
-
-                    <div className="space-y-2 rounded-xl border border-amber-100/80 bg-muted/30 p-3 dark:border-slate-800/80">
-                      <Label className="text-sm font-medium">Deskripsi singkat</Label>
-                      <Input placeholder="Ringkasan produk" value={form.description} onChange={(e) => setField("description", e.target.value)} />
-                      <Label className="text-sm font-medium">Deskripsi panjang</Label>
-                      <Textarea rows={4} placeholder="Detail fitur & material" value={form.longDescription} onChange={(e) => setField("longDescription", e.target.value)} />
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-100/80 bg-muted/30 px-4 py-3 dark:border-slate-800/80">
-                    <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <RefreshCcw className="h-4 w-4" /> Data disimpan otomatis ketika berhasil.
-                    </p>
-
-                    <Button type="submit" disabled={saving} className="min-w-[140px]">
-                      {saving ? "Menyimpan..." : "Tambah Produk"}
-                    </Button>
-                  </div>
-
-                </form>
-              </CardContent>
-            </Card>
-
-            {/* PRODUCT TABLE */}
-            <Card
-              id="product-table"
-              className="border border-amber-200/70 bg-white/80 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none"
-            >
-              <CardHeader>
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <CardTitle>Daftar Produk</CardTitle>
-                    <CardDescription>
-                      Total nilai inventaris: Rp {inventoryValue.toLocaleString("id-ID")}
-                    </CardDescription>
-                  </div>
-                  <Badge variant="outline" className="border-amber-200/80 text-primary dark:border-primary/40 dark:text-primary-foreground">
-                    Perbarui secara berkala
-                  </Badge>
-                </div>
-              </CardHeader>
-
-              <CardContent>
-                {loading ? <p>Memuat...</p> : (
-                  <div className="overflow-hidden rounded-lg border border-amber-100/80 shadow-sm dark:border-slate-800">
-                    <Table className="text-sm">
-                      <TableHeader className="bg-gradient-to-r from-white to-amber-50/70 text-slate-700 dark:from-slate-900 dark:to-slate-900/80 dark:text-slate-200">
-                        <TableRow className="text-xs uppercase tracking-wide text-muted-foreground">
-                          <TableHead>Nama</TableHead>
-                          <TableHead>Harga</TableHead>
-                          <TableHead>Stok</TableHead>
-                          <TableHead className="text-right">Aksi</TableHead>
-                        </TableRow>
-                      </TableHeader>
-
-                      <TableBody>
-                        {products.map((p) => (
-                          <TableRow
-                            key={p.id}
-                            className="align-middle transition hover:bg-primary/5 dark:hover:bg-slate-800"
-                          >
-
-                            <TableCell className="align-middle">
-                              <p className="font-semibold">{p.name}</p>
-                              <p className="text-sm text-muted-foreground">{p.brand}</p>
-                            </TableCell>
-
-                            <TableCell className="align-middle">Rp {p.price.toLocaleString("id-ID")}</TableCell>
-
-                            <TableCell className="align-middle">
-                              <Badge variant={p.stock <= 5 ? "destructive" : "outline"}>
-                                {p.stock} unit
-                              </Badge>
-                            </TableCell>
-
-                            <TableCell className="flex justify-end gap-2 align-middle">
-
-                              {/* EDIT */}
-                              <Button
-                                size="sm"
-                                variant="secondary"
-                                className="border-amber-200/70 bg-white/90 text-primary shadow-sm hover:border-primary/40 hover:text-primary/80 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-100"
-                                onClick={() => startEdit(p)}
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-
-                              {/* DELETE */}
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => handleDelete(p.id)}
-                                disabled={deleteLoading[p.id]}
-                              >
-                                {deleteLoading[p.id] ? "..." : <Trash2 className="h-4 w-4" />}
-                              </Button>
-
-                            </TableCell>
-
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-
-      {/* EDIT MODAL */}
       {editing && editForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm p-4">
-          <Card className="max-w-xl w-full">
-            <CardHeader><CardTitle>Edit Produk</CardTitle></CardHeader>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <Card className="w-full max-w-xl">
+            <CardHeader>
+              <CardTitle>Edit Produk</CardTitle>
+            </CardHeader>
 
             <CardContent>
               <form onSubmit={handleUpdate} className="space-y-4">
-
                 <Input value={editForm.name} onChange={(e) => setEditField("name", e.target.value)} />
                 <Input value={editForm.brand} onChange={(e) => setEditField("brand", e.target.value)} />
                 <Input type="number" value={editForm.price} onChange={(e) => setEditField("price", e.target.value)} />
                 <Input type="number" value={editForm.stock} onChange={(e) => setEditField("stock", e.target.value)} />
 
                 <Select value={editForm.categoryId ?? "none"} onValueChange={(v) => setEditField("categoryId", v === "none" ? null : v)}>
-                  <SelectTrigger><SelectValue placeholder="Kategori" /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Kategori" />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Tanpa kategori</SelectItem>
                     {categories.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -950,20 +1005,19 @@ export default function AdminDashboard() {
 
                 <Textarea rows={4} value={editForm.longDescription} onChange={(e) => setEditField("longDescription", e.target.value)} />
 
-                <div className="flex justify-between items-center">
-                  <Button type="button" variant="outline" onClick={() => setEditing(null)}>Batal</Button>
+                <div className="flex items-center justify-between">
+                  <Button type="button" variant="outline" onClick={() => setEditing(null)}>
+                    Batal
+                  </Button>
                   <Button type="submit" disabled={savingEdit}>
                     {savingEdit ? ".." : "Simpan"}
                   </Button>
                 </div>
-
               </form>
             </CardContent>
           </Card>
         </div>
       )}
-
-      </div>
     </div>
   );
 }
