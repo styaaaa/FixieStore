@@ -183,14 +183,14 @@ export default function AdminDashboard() {
 
   const renderStatusBadge = (status: OrderStatus) => {
     const COLORS: Record<OrderStatus, string> = {
-      pending: "bg-amber-100 text-amber-800",
-      processed: "bg-blue-100 text-blue-700",
-      packaged: "bg-indigo-100 text-indigo-700",
-      shipped: "bg-sky-100 text-sky-700",
-      completed: "bg-emerald-100 text-emerald-700",
-      failed: "bg-red-100 text-red-700",
-      expired: "bg-slate-100 text-slate-700",
-      cancelled: "bg-rose-100 text-rose-700",
+  pending: "bg-[#1c1c1c] text-white",
+  processed: "bg-[#1c1c1c] text-white",
+  packaged: "bg-[#1c1c1c] text-white",
+  shipped: "bg-[#1c1c1c] text-white",
+  completed: "bg-[#1c1c1c] text-white",
+  failed: "bg-[#1c1c1c] text-white",
+  expired: "bg-[#1c1c1c] text-white",
+  cancelled: "bg-[#1c1c1c] text-white",
     };
 
     return (
@@ -566,7 +566,7 @@ export default function AdminDashboard() {
                 className="justify-start gap-2 border-amber-200/80 bg-white/60 text-primary shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-amber-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:hover:border-primary/50"
                 onClick={() => navigateToView("product-table")}
               >
-                <TrendingUp className="h-4 w-4" /> x`` Produk
+                <TrendingUp className="h-4 w-4" />Daftar Produk
               </Button>
             </div>
           </div>
@@ -574,7 +574,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border border-amber-200/70 bg-white/80 shadow-sm shadow-amber-200/40 transition hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
+        <Card className="border border-[#2a2a2a] bg-[#111111] shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Nilai Inventaris</CardTitle>
             <TrendingUp className="h-4 w-4 text-primary" />
@@ -585,7 +585,7 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="border border-amber-200/70 bg-white/80 shadow-sm shadow-amber-200/40 transition hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
+        <Card className="border border-[#2a2a2a] bg-[#111111] shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Produk</CardTitle>
             <Package className="h-4 w-4 text-primary" />
@@ -596,7 +596,7 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="border border-amber-200/70 bg-white/80 shadow-sm shadow-amber-200/40 transition hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
+       <Card className="border border-[#2a2a2a] bg-[#111111] shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Stok Rendah</CardTitle>
             <AlertTriangle className="h-4 w-4 text-amber-500" />
@@ -607,7 +607,7 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="border border-amber-200/70 bg-white/80 shadow-sm shadow-amber-200/40 transition hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
+        <Card className="border border-[#2a2a2a] bg-[#111111] shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pesanan Aktif</CardTitle>
             <CheckCircle2 className="h-4 w-4 text-primary" />
@@ -622,7 +622,7 @@ export default function AdminDashboard() {
   );
 
   const renderOrders = () => (
-    <Card className="border border-amber-200/70 bg-white/85 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
+    <Card className="border border-[#2a2a2a] bg-[#111111] shadow-none">
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -716,7 +716,7 @@ export default function AdminDashboard() {
   );
 
   const renderAddProduct = () => (
-    <Card className="border border-amber-200/70 bg-white/85 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
+    <Card className="border border-[#2a2a2a] bg-[#111111] shadow-none">
       <CardHeader>
         <div className="flex items-start justify-between gap-2">
           <div>
@@ -731,7 +731,7 @@ export default function AdminDashboard() {
             <div className="space-y-2">
               <Label>Nama Produk</Label>
               <Input
-                placeholder="Contoh: Sneakers Alpha"
+                placeholder=""
                 value={form.name}
                 onChange={(e) => setField("name", e.target.value)}
               />
@@ -740,7 +740,7 @@ export default function AdminDashboard() {
             <div className="space-y-2">
               <Label>Brand</Label>
               <Input
-                placeholder="Contoh: HyperX"
+                placeholder=""
                 value={form.brand}
                 onChange={(e) => setField("brand", e.target.value)}
               />
@@ -752,7 +752,7 @@ export default function AdminDashboard() {
               <Label>Harga</Label>
               <Input
                 type="number"
-                placeholder="250000"
+                placeholder=""
                 value={form.price}
                 onChange={(e) => setField("price", e.target.value)}
               />
@@ -777,7 +777,7 @@ export default function AdminDashboard() {
                   <SelectValue placeholder="Pilih kategori" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Tanpa kategori</SelectItem>
+                  <SelectItem value="none">Pilih kategori</SelectItem>
                   {categories.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
                       {c.name}
@@ -834,7 +834,7 @@ export default function AdminDashboard() {
   );
 
   const renderProductTable = () => (
-    <Card className="border border-amber-200/70 bg-white/85 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-none">
+    <Card className="border border-[#2a2a2a] bg-[#111111] shadow-none">
       <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
           <CardTitle>Daftar Produk</CardTitle>
@@ -918,7 +918,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-100 via-white to-amber-50 text-slate-900 transition-colors dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100">
+    <div className="min-h-screen bg-[#0a0a0a] text-white transition-colors">
       <div className="flex items-center gap-3 px-4 py-4 lg:hidden">
         <Button
           variant="outline"
