@@ -516,24 +516,24 @@ export default function AdminDashboard() {
 
   const renderMonitoring = () => (
     <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-3xl border border-amber-200/60 bg-white/70 shadow-xl backdrop-blur dark:border-slate-800 dark:bg-slate-900/70">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(251,191,36,0.15),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(14,165,233,0.12),transparent_32%)] dark:bg-[radial-gradient(circle_at_20%_20%,rgba(251,191,36,0.12),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(56,189,248,0.12),transparent_32%)]" />
-        <div className="relative grid gap-6 bg-gradient-to-br from-primary/5 via-white/80 to-amber-50/60 p-6 md:grid-cols-[1.2fr,1fr] md:items-center dark:from-slate-900/40 dark:via-slate-900/80 dark:to-slate-950">
+      <div className="relative overflow-hidden rounded-3xl border border-gray-200/80 bg-white/70 shadow-xl backdrop-blur dark:border-gray-800 dark:bg-gray-900/70">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(0,0,0,0.06),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(0,0,0,0.05),transparent_32%)] dark:bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.06),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(255,255,255,0.05),transparent_32%)]" />
+        <div className="relative grid gap-6 bg-gradient-to-br from-gray-50/50 via-white/80 to-gray-100/70 p-6 md:grid-cols-[1.2fr,1fr] md:items-center dark:from-gray-900/40 dark:via-gray-900/80 dark:to-black">
           <div className="space-y-4">
-            <div className="flex items-center gap-2 text-sm font-semibold text-primary dark:text-white">
+            <div className="flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-white">
               <ShieldCheck className="h-4 w-4" />
               Mode Admin Aktif
             </div>
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold leading-tight tracking-tight">Dashboard Admin</h1>
-              <Badge variant="secondary" className="border-amber-200 bg-amber-50 text-amber-900 dark:border-white dark:bg-gray-800 dark:text-white">Terproteksi</Badge>
+              <Badge variant="secondary" className="border-gray-300 bg-gray-100 text-gray-800 dark:border-gray-600 dark:bg-gray-800 dark:text-white">Terproteksi</Badge>
             </div>
 
             <div className="flex flex-wrap gap-3">
               <Button
                 variant="default"
                 onClick={() => navigate("/")}
-                className="shadow-sm shadow-amber-200 transition hover:-translate-y-[1px] dark:shadow-slate-900"
+                className="shadow-sm shadow-gray-400/40 transition hover:-translate-y-[1px] dark:shadow-black"
               >
                 <Home className="mr-2 h-4 w-4" />
                 Kembali ke Home
@@ -541,14 +541,14 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 rounded-2xl border border-amber-200/80 bg-white/80 p-4 shadow-sm shadow-amber-200/40 dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-none">
+          <div className="flex flex-col gap-3 rounded-2xl border border-gray-200/80 bg-white/80 p-4 shadow-sm shadow-gray-300/30 dark:border-gray-800 dark:bg-gray-900/80 dark:shadow-none">
             <div className="flex items-center justify-between text-sm font-medium text-muted-foreground">
               <span>Kontrol Cepat</span>
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <Button
                 variant="outline"
-                className="justify-start gap-2 border-amber-200/80 bg-white/60 text-primary shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-amber-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:hover:border-primary/50"
+                className="justify-start gap-2 border-gray-300/80 bg-white/60 text-gray-800 shadow-sm transition hover:-translate-y-[1px] hover:border-gray-500 hover:shadow-gray-200 dark:border-gray-700 dark:bg-gray-900/60 dark:text-gray-100 dark:hover:border-gray-500"
                 onClick={() => navigate("/logout")}
               >
                 <LogOut className="h-4 w-4" /> Keluar
@@ -556,14 +556,14 @@ export default function AdminDashboard() {
 
               <Button
                 variant="outline"
-                className="justify-start gap-2 border-amber-200/80 bg-white/60 text-primary shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-amber-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:hover:border-primary/50"
+                className="justify-start gap-2 border-gray-300/80 bg-white/60 text-gray-800 shadow-sm transition hover:-translate-y-[1px] hover:border-gray-500 hover:shadow-gray-200 dark:border-gray-700 dark:bg-gray-900/60 dark:text-gray-100 dark:hover:border-gray-500"
                 onClick={() => navigateToView("add-product")}
               >
                 <Package className="h-4 w-4" />Tambah Produk
               </Button>
               <Button
                 variant="outline"
-                className="justify-start gap-2 border-amber-200/80 bg-white/60 text-primary shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-amber-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:hover:border-primary/50"
+                className="justify-start gap-2 border-gray-300/80 bg-white/60 text-gray-800 shadow-sm transition hover:-translate-y-[1px] hover:border-gray-500 hover:shadow-gray-200 dark:border-gray-700 dark:bg-gray-900/60 dark:text-gray-100 dark:hover:border-gray-500"
                 onClick={() => navigateToView("product-table")}
               >
                 <TrendingUp className="h-4 w-4" />Daftar Produk
@@ -577,7 +577,7 @@ export default function AdminDashboard() {
         <Card className="border border-[#2a2a2a] bg-[#111111] shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Nilai Inventaris</CardTitle>
-            <TrendingUp className="h-4 w-4 text-primary" />
+            <TrendingUp className="h-4 w-4 text-gray-200" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(inventoryValue)}</div>
@@ -588,7 +588,7 @@ export default function AdminDashboard() {
         <Card className="border border-[#2a2a2a] bg-[#111111] shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Produk</CardTitle>
-            <Package className="h-4 w-4 text-primary" />
+            <Package className="h-4 w-4 text-gray-200" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{products.length}</div>
@@ -599,7 +599,7 @@ export default function AdminDashboard() {
        <Card className="border border-[#2a2a2a] bg-[#111111] shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Stok Rendah</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-amber-500" />
+            <AlertTriangle className="h-4 w-4 text-gray-200" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{lowStockProducts}</div>
@@ -610,7 +610,7 @@ export default function AdminDashboard() {
         <Card className="border border-[#2a2a2a] bg-[#111111] shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pesanan Aktif</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-primary" />
+            <CheckCircle2 className="h-4 w-4 text-gray-200" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{activeOrders}</div>
@@ -632,7 +632,7 @@ export default function AdminDashboard() {
             </CardDescription>
           </div>
           <div className="flex items-center gap-3">
-            <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700 shadow-sm shadow-emerald-100/60 dark:border-emerald-400/70 dark:bg-emerald-500/15 dark:text-emerald-50">
+            <Badge className="border-gray-300 bg-gray-100 text-gray-800 shadow-sm shadow-gray-200/60 dark:border-gray-600 dark:bg-gray-800/60 dark:text-gray-100">
               Realtime Aktif
             </Badge>
           </div>
@@ -650,9 +650,9 @@ export default function AdminDashboard() {
             Belum ada pesanan.
           </div>
         ) : (
-          <div className="overflow-hidden rounded-lg border border-amber-100/80 shadow-sm dark:border-slate-800">
+          <div className="overflow-hidden rounded-lg border border-gray-200/80 shadow-sm dark:border-gray-800">
             <Table className="text-sm">
-              <TableHeader className="bg-gradient-to-r from-white to-amber-50/70 text-slate-700 dark:from-slate-900 dark:to-slate-900/80 dark:text-slate-200">
+              <TableHeader className="bg-gradient-to-r from-white to-gray-100 text-gray-800 dark:from-gray-900 dark:to-gray-900/80 dark:text-gray-100">
                 <TableRow className="text-xs uppercase tracking-wide text-muted-foreground">
                   <TableHead>ID & Tanggal</TableHead>
                   <TableHead>Customer</TableHead>
@@ -669,7 +669,7 @@ export default function AdminDashboard() {
                   return (
                     <TableRow
                       key={order.id}
-                      className="align-middle transition hover:bg-primary/5 dark:hover:bg-slate-800"
+                      className="align-middle transition hover:bg-gray-50/60 dark:hover:bg-gray-800"
                     >
                       <TableCell className="align-middle">
                         <p className="font-semibold">{order.id}</p>
@@ -820,7 +820,7 @@ export default function AdminDashboard() {
               type="button"
               variant="outline"
               onClick={() => setForm(initialForm)}
-              className="border-amber-200/70"
+              className="border-gray-300"
             >
               Reset
             </Button>
@@ -845,9 +845,9 @@ export default function AdminDashboard() {
         {loading ? (
           <p>Memuat...</p>
         ) : (
-          <div className="overflow-hidden rounded-lg border border-amber-100/80 shadow-sm dark:border-slate-800">
+          <div className="overflow-hidden rounded-lg border border-gray-200/80 shadow-sm dark:border-gray-800">
             <Table className="text-sm">
-              <TableHeader className="bg-gradient-to-r from-white to-amber-50/70 text-slate-700 dark:from-slate-900 dark:to-slate-900/80 dark:text-slate-200">
+              <TableHeader className="bg-gradient-to-r from-white to-gray-100 text-gray-800 dark:from-gray-900 dark:to-gray-900/80 dark:text-gray-100">
                 <TableRow className="text-xs uppercase tracking-wide text-muted-foreground">
                   <TableHead>Nama</TableHead>
                   <TableHead>Harga</TableHead>
@@ -860,7 +860,7 @@ export default function AdminDashboard() {
                 {products.map((p) => (
                   <TableRow
                     key={p.id}
-                    className="align-middle transition hover:bg-primary/5 dark:hover:bg-slate-800"
+                    className="align-middle transition hover:bg-gray-50/60 dark:hover:bg-gray-800"
                   >
                     <TableCell className="align-middle">
                       <p className="font-semibold">{p.name}</p>
@@ -879,7 +879,7 @@ export default function AdminDashboard() {
                       <Button
                         size="sm"
                         variant="secondary"
-                        className="border-amber-200/70 bg-white/90 text-primary shadow-sm hover:border-primary/40 hover:text-primary/80 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-100"
+                        className="border-gray-300 bg-white/90 text-gray-800 shadow-sm hover:border-gray-500 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-900/80 dark:text-gray-100"
                         onClick={() => startEdit(p)}
                       >
                         <Pencil className="h-4 w-4" />
@@ -922,7 +922,7 @@ export default function AdminDashboard() {
       <div className="flex items-center gap-3 px-4 py-4 lg:hidden">
         <Button
           variant="outline"
-          className="flex items-center gap-2 border-slate-200 bg-white/80 text-slate-900 shadow-sm hover:bg-white dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+          className="flex items-center gap-2 border-gray-300 bg-white/80 text-gray-900 shadow-sm hover:bg-white dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
           onClick={toggleSidebar}
           aria-expanded={isSidebarOpen}
           aria-controls="admin-sidebar"
@@ -931,7 +931,7 @@ export default function AdminDashboard() {
           <span>{isSidebarOpen ? "Tutup Menu" : "Menu"}</span>
         </Button>
 
-        <div className="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300">
+        <div className="flex items-center gap-2 text-sm font-semibold text-gray-600 dark:text-gray-300">
           <LayoutDashboard className="h-4 w-4" />
           <span>Admin Panel</span>
         </div>
@@ -955,7 +955,7 @@ export default function AdminDashboard() {
         <aside
           id="admin-sidebar"
           className={cn(
-            "fixed inset-y-0 left-0 z-40 w-64 border-r border-slate-200/60 bg-slate-950 text-slate-100 shadow-xl transition-transform duration-200 ease-in-out dark:border-slate-800",
+            "fixed inset-y-0 left-0 z-40 w-64 border-r border-gray-800/70 bg-black text-gray-100 shadow-xl transition-transform duration-200 ease-in-out",
             isSidebarOpen ? "translate-x-0" : "-translate-x-full",
             "lg:static lg:w-full lg:border-r lg:shadow-none",
             isSidebarOpen ? "lg:translate-x-0" : "lg:-translate-x-full lg:hidden"
@@ -963,7 +963,7 @@ export default function AdminDashboard() {
         >
           <div className="flex h-full flex-col gap-6 px-4 py-6">
             <div className="space-y-1">
-              <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Application</p>
+              <p className="text-xs uppercase tracking-[0.2em] text-gray-400">Application</p>
               <div className="flex items-center gap-2 font-semibold text-white">
                 <LayoutDashboard className="h-4 w-4" /> Admin Panel
               </div>
@@ -975,9 +975,8 @@ export default function AdminDashboard() {
                   key={id}
                   variant="ghost"
                   className={cn(
-                    "w-full justify-start gap-3 rounded-xl bg-transparent px-3 py-3 text-left text-sm font-medium text-slate-200 transition hover:bg-slate-800/80",
-                    activeView === id &&
-                      "bg-slate-800/80 text-white shadow-inner shadow-primary/20"
+                    "w-full justify-start gap-3 rounded-xl bg-transparent px-3 py-3 text-left text-sm font-medium text-gray-200 transition hover:bg-gray-800",
+                    activeView === id && "bg-gray-800 text-white shadow-inner shadow-white/10"
                   )}
                   onClick={() => navigateToView(id)}
                   aria-current={activeView === id ? "page" : undefined}
@@ -985,7 +984,7 @@ export default function AdminDashboard() {
                   <Icon className="h-4 w-4" />
                   <div className="flex flex-col items-start leading-tight">
                     <span>{label}</span>
-                    <span className="text-xs text-slate-400">{description}</span>
+                    <span className="text-xs text-gray-400">{description}</span>
                   </div>
                 </Button>
               ))}
@@ -994,7 +993,7 @@ export default function AdminDashboard() {
             <div className="mt-auto">
               <Button
                 variant="outline"
-                className="w-full justify-start gap-2 border-slate-800 bg-slate-900 text-slate-100 hover:bg-slate-800"
+                className="w-full justify-start gap-2 border-gray-800 bg-gray-950 text-gray-100 hover:bg-gray-800"
                 onClick={() => {
                   closeSidebar();
                   navigate("/");
@@ -1017,7 +1016,7 @@ export default function AdminDashboard() {
             <Button
               variant="ghost"
               size="icon"
-              className="h-10 w-10 rounded-full border border-slate-200/60 bg-white/70 text-slate-700 shadow-sm hover:bg-white dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+              className="h-10 w-10 rounded-full border border-gray-700 bg-white/70 text-gray-800 shadow-sm hover:bg-white dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
               onClick={toggleSidebar}
               aria-expanded={isSidebarOpen}
               aria-controls="admin-sidebar"
@@ -1025,7 +1024,7 @@ export default function AdminDashboard() {
               <Menu className="h-5 w-5" />
             </Button>
 
-            <div className="text-sm font-semibold text-slate-600 dark:text-slate-300">
+            <div className="text-sm font-semibold text-gray-500 dark:text-gray-300">
             </div>
           </div>
           {renderContent()}
