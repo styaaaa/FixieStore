@@ -210,7 +210,7 @@ const Checkout = () => {
         .filter(Boolean)
         .join(", ");
 
-      // 1. Buat order pending
+      //Buat order pending
       const order = await createOrder({
         userId: user.id,
         paymentMethod,
@@ -225,7 +225,7 @@ const Checkout = () => {
         postalCode: profilePostalCode,
       });
 
-      // 2. Minta token Midtrans ke Edge Function
+      //Minta token Midtrans ke Edge Function supabase
       if (!window.snap) {
         toast.error("Layanan pembayaran belum siap. Coba beberapa saat lagi.");
         return;
@@ -243,7 +243,7 @@ const Checkout = () => {
           },
         });
 
-        // 3. Jalankan Midtrans Snap popup
+        //Midtrans Snap popup
         window.snap.pay(midtransData.token, {
           onSuccess: async () => {
             try {
@@ -280,7 +280,7 @@ const Checkout = () => {
             navigate(`/order-success?order_id=${order.id}`);
           },
 
-          onError: (err) => {
+          onError: (err: any) => {
             console.error("Midtrans error:", err);
             toast.error("Pembayaran gagal", {
               description: "Silakan coba metode pembayaran lain.",

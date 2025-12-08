@@ -1,7 +1,3 @@
-// ============================
-// Admin Dashboard (Final)
-// ============================
-
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -90,7 +86,7 @@ const initialForm: ProductFormState = {
   name: "",
   brand: "",
   price: "",
-  stock: "0",
+  stock: "",
   description: "",
   longDescription: "",
   categoryId: null,

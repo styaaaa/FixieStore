@@ -43,9 +43,7 @@ const Register = () => {
         return;
       }
 
-      toast.success("Pendaftaran berhasil", {
-        description: "Silakan cek email Anda untuk verifikasi jika diperlukan.",
-      });
+      toast.success("Pendaftaran berhasil", {});
       navigate("/login");
     } catch (error) {
       console.error("Register error:", error);
