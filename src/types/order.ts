@@ -29,4 +29,5 @@ export interface Order {
   shippedAt?: string | null;
   completedAt?: string | null;
   cancelledAt?: string | null;
+  name?: string | null;
 }

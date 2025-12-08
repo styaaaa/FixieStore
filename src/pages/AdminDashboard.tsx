@@ -238,27 +238,7 @@ export default function AdminDashboard() {
   // Load Data
   // ============================
 
-  const loadData = useCallback(async () => {
-    try {
-      setOrdersLoading(true);
-
-      const [cats, prods, adminOrders] = await Promise.all([
-        getCategories(),
-        getProducts(),
-        fetchAllOrders(),
-      ]);
-      setCategories(cats);
-      setProducts(prods);
-      setOrders(adminOrders);
-    } catch {
-      toast({ variant: "destructive", title: "Gagal memuat data" });
-    } finally {
-      setLoading(false);
-      setOrdersLoading(false);
-    }
-  }, []);
-
-  const fetchOrderItemNames = async (orderId: string) => {
+  const fetchOrderItemNames = useCallback(async (orderId: string) => {
     const { data, error } = await supabase
       .from("order_items")
       .select("name")
@@ -274,7 +254,37 @@ export default function AdminDashboard() {
       | undefined;
 
     return names && names.length > 0 ? names.join(", ") : null;
-  };
+  }, []);
+
+  const loadData = useCallback(async () => {
+    try {
+      setOrdersLoading(true);
+
+      const [cats, prods, adminOrders] = await Promise.all([
+        getCategories(),
+        getProducts(),
+        fetchAllOrders(),
+      ]);
+
+    const ordersWithNames = await Promise.all(
+        adminOrders.map(async (order) => {
+          if (order.productName) return order;
+
+          const productName = await fetchOrderItemNames(order.id);
+          return { ...order, productName: productName ?? order.productName };
+        })
+      );
+
+      setCategories(cats);
+      setProducts(prods);
+      setOrders(ordersWithNames);
+    } catch {
+      toast({ variant: "destructive", title: "Gagal memuat data" });
+    } finally {
+      setLoading(false);
+      setOrdersLoading(false);
+    }
+  }, [fetchOrderItemNames]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -333,7 +343,7 @@ export default function AdminDashboard() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [isAdmin, user]);
+   }, [fetchOrderItemNames, isAdmin, user]);
 
   const setField = (f: keyof ProductFormState, v: any) =>
     setForm((p) => ({ ...p, [f]: v }));
@@ -696,7 +706,7 @@ export default function AdminDashboard() {
                     >
                       <TableCell className="align-middle">
                         <p className="font-semibold">
-                          {order.productName || `ID: ${order.id}`}
+                          {order.productName || `: ${order.name}`}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {new Date(order.createdAt).toLocaleString("id-ID")}

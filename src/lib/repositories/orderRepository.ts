@@ -42,6 +42,7 @@ export interface CreateOrderPayload {
   address: string;
   city: string;
   postalCode: string;
+  name?: string;
 }
 
 const statusTimestampColumns: Partial<Record<OrderStatus, keyof OrderRow>> = {
