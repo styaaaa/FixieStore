@@ -12,6 +12,7 @@ export interface Order {
   id: string;
   userId: string | null;
   status: OrderStatus;
+  productName?: string | null;
   createdAt: string | null;
   paymentMethod: string | null;
   shippingMethod: string | null;

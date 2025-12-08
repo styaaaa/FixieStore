@@ -201,11 +201,21 @@ const Checkout = () => {
     setSubmitting(true);
 
     try {
+    const productSummary = purchaseItems
+        .filter((item) => item.product)
+        .map((item) => {
+          const name = item.product?.name ?? item.productId;
+          return item.quantity > 1 ? `${name} x${item.quantity}` : name;
+        })
+        .filter(Boolean)
+        .join(", ");
+
       // 1. Buat order pending
       const order = await createOrder({
         userId: user.id,
         paymentMethod,
         shippingMethod,
+        productName: productSummary || undefined,
         totalPrice,
         firstName: derivedFirstName,
         lastName: derivedLastName,

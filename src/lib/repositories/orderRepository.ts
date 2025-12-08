@@ -6,6 +6,7 @@ type OrderRow = {
   id: string;
   user_id: string;
   status: OrderStatus;
+  product_name?: string | null;
   total_price: number | null;
   payment_method: string | null;
   shipping_method: string | null;
@@ -28,6 +29,7 @@ export interface CreateOrderPayload {
   userId: string;
   paymentMethod: string;
   shippingMethod: string;
+  productName?: string;
   totalPrice: number;
   firstName: string;
   lastName: string;
@@ -50,6 +52,7 @@ export const mapOrderRowToOrder = (row: OrderRow): Order => ({
   id: row.id,
   userId: row.user_id,
   status: row.status,
+  productName: row.product_name,
   totalPrice: row.total_price ?? 0,
   paymentMethod: row.payment_method,
   shippingMethod: row.shipping_method,
@@ -66,6 +69,7 @@ export const mapOrderRowToOrder = (row: OrderRow): Order => ({
   shippedAt: row.shipped_at,
   completedAt: row.completed_at,
   cancelledAt: row.cancelled_at,
+  
 });
 
 export const createOrder = async (payload: CreateOrderPayload): Promise<Order> => {
@@ -74,6 +78,7 @@ export const createOrder = async (payload: CreateOrderPayload): Promise<Order> =
     .insert({
       user_id: payload.userId,
       status: "pending",
+      product_name: payload.productName,
       total_price: payload.totalPrice,
       payment_method: payload.paymentMethod,
       shipping_method: payload.shippingMethod,

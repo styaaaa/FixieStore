@@ -627,7 +627,6 @@ export default function AdminDashboard() {
           <div>
             <CardTitle className="flex items-center gap-2 text-lg">Status Pesanan</CardTitle>
             <CardDescription>
-              Pending → processed → packaged → shipped → completed.
             </CardDescription>
           </div>
           <div className="flex items-center gap-3">
@@ -653,7 +652,7 @@ export default function AdminDashboard() {
             <Table className="text-sm">
               <TableHeader className="bg-black text-white">
                 <TableRow className="text-xs uppercase tracking-wide text-muted-foreground">
-                  <TableHead>ID & Tanggal</TableHead>
+                  <TableHead>Nama Produk & Tanggal</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Total</TableHead>
@@ -671,7 +670,9 @@ export default function AdminDashboard() {
                       className="align-middle transition hover:bg-white/5"
                     >
                       <TableCell className="align-middle">
-                        <p className="font-semibold">{order.id}</p>
+                        <p className="font-semibold">
+                          {order.productName || `ID: ${order.id}`}
+                        </p>
                         <p className="text-xs text-muted-foreground">
                           {new Date(order.createdAt).toLocaleString("id-ID")}
                         </p>
