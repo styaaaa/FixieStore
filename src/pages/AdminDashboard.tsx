@@ -1,3 +1,7 @@
+// ============================
+// Admin Dashboard (Final)
+// ============================
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -86,7 +90,7 @@ const initialForm: ProductFormState = {
   name: "",
   brand: "",
   price: "",
-  stock: "",
+  stock: "0",
   description: "",
   longDescription: "",
   categoryId: null,
@@ -578,25 +582,28 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <Button
                 variant="outline"
-                className="justify-start gap-2 border border-white/20 bg-transparent text-white transition hover:bg-white/10"
+                className="group relative flex h-full w-full items-center gap-3 overflow-hidden rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-left text-sm font-medium text-white transition hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/10"
                 onClick={() => navigate("/logout")}
               >
-                <LogOut className="h-4 w-4" /> Keluar
+                <LogOut className="h-5 w-5 flex-shrink-0 transition group-hover:scale-105" />
+                <span className="truncate">Keluar</span>
               </Button>
 
               <Button
                 variant="outline"
-                className="justify-start gap-2 border border-white/20 bg-transparent text-white transition hover:bg-white/10"
+                className="group relative flex h-full w-full items-center gap-3 overflow-hidden rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-left text-sm font-medium text-white transition hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/10"
                 onClick={() => navigateToView("add-product")}
               >
-                <Package className="h-4 w-4" />Tambah Produk
+                <Package className="h-5 w-5 flex-shrink-0 transition group-hover:scale-105" />
+                <span className="truncate">Tambah Produk</span>
               </Button>
               <Button
                 variant="outline"
-                className="justify-start gap-2 border border-white/20 bg-transparent text-white transition hover:bg-white/10"
+                className="group relative flex h-full w-full items-center gap-3 overflow-hidden rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-left text-sm font-medium text-white transition hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/10"
                 onClick={() => navigateToView("product-table")}
               >
-                <TrendingUp className="h-4 w-4" />Daftar Produk
+                <TrendingUp className="h-5 w-5 flex-shrink-0 transition group-hover:scale-105" />
+                <span className="truncate">Daftar Produk</span>
               </Button>
             </div>
           </div>
