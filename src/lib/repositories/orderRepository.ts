@@ -11,6 +11,7 @@ type OrderRow = {
   user_id: string;
   status: OrderStatus;
   product_name?: string | null;
+  items?: OrderItemRow[] | null;
   order_items?: OrderItemRow[] | null;
   total_price: number | null;
   payment_method: string | null;
@@ -58,10 +59,12 @@ export const mapOrderRowToOrder = (row: OrderRow): Order => ({
   id: row.id,
   userId: row.user_id,
   status: row.status,
-   productName:
-    row.product_name ||
-    row.order_items?.map((item) => item.name).filter(Boolean).join(", ") ||
-    null,
+   
+  productName:
+  row.items?.length
+    ? row.items.map(i => i.name).join(", ")
+    : row.product_name || null,
+
   totalPrice: row.total_price ?? 0,
   paymentMethod: row.payment_method,
   shippingMethod: row.shipping_method,
@@ -139,8 +142,10 @@ export const fetchOrdersByUser = async (userId: string): Promise<Order[]> => {
 export const fetchAllOrders = async (): Promise<Order[]> => {
   const { data, error } = await supabase
     .from("orders")
-    .select("*, order_items(name)")
+    .select("*, items:order_items!order_items_order_id_fkey(name)")
     .order("created_at", { ascending: false });
+
+  console.log("RAW ORDERS FROM SUPABASE:", data);
 
   if (error) {
     console.error("fetchAllOrders error:", error);

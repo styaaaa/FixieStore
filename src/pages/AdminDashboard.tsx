@@ -702,7 +702,7 @@ export default function AdminDashboard() {
                     >
                       <TableCell className="align-middle">
                         <p className="font-semibold">
-                          {order.productName || `: ${order.name}`}
+                          {order.productName || "Nama produk tidak tersedia"}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {new Date(order.createdAt).toLocaleString("id-ID")}
