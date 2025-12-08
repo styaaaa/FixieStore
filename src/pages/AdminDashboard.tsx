@@ -258,6 +258,24 @@ export default function AdminDashboard() {
     }
   }, []);
 
+  const fetchOrderItemNames = async (orderId: string) => {
+    const { data, error } = await supabase
+      .from("order_items")
+      .select("name")
+      .eq("order_id", orderId);
+
+    if (error) {
+      console.error("fetchOrderItemNames error", error);
+      return null;
+    }
+
+    const names = data?.map((item) => item.name).filter(Boolean) as
+      | string[]
+      | undefined;
+
+    return names && names.length > 0 ? names.join(", ") : null;
+  };
+
   useEffect(() => {
     if (authLoading) return;
 
@@ -281,9 +299,16 @@ export default function AdminDashboard() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "orders" },
-        (payload) => {
+        async (payload) => {
+          const baseRow = (payload.new ?? payload.old) as any;
+          let mapped = mapOrderRowToOrder(baseRow);
+
+          if (!mapped.productName) {
+            const productName = await fetchOrderItemNames(mapped.id);
+            mapped = { ...mapped, productName };
+          }
+
           setOrders((current) => {
-            const mapped = mapOrderRowToOrder((payload.new ?? payload.old) as any);
 
             if (payload.eventType === "INSERT") {
               return [mapped, ...current];
@@ -701,7 +726,9 @@ export default function AdminDashboard() {
                               : `Ke ${statusLabels[nextStatus]}`}
                           </Button>
                         ) : (
-                          <Badge variant="outline">Completed</Badge>
+                          <Badge variant="outline">
+                            {statusLabels[order.status]}
+                          </Badge>
                         )}
                       </TableCell>
                     </TableRow>
