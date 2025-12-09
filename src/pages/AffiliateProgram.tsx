@@ -52,5 +52,5 @@ const AffiliateProgram = () => {
     </main>
   );
 };
-
+// Mama
 export default AffiliateProgram;
