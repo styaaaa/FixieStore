@@ -90,7 +90,6 @@ export const createOrder = async (payload: CreateOrderPayload): Promise<Order> =
     .insert({
       user_id: payload.userId,
       status: "pending",
-      product_name: payload.productName,
       total_price: payload.totalPrice,
       payment_method: payload.paymentMethod,
       shipping_method: payload.shippingMethod,
