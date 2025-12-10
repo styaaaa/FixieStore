@@ -17,16 +17,35 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useUserOrders } from "@/hooks/useUserOrders";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import type { Order, OrderStatus } from "@/types/order";
-import type { ProductReview } from "@/types/review";
-import { getReviewsByOrder } from "@/lib/repositories/reviewRepository";
-
+import type { ProductReview, PurchasedProduct } from "@/types/review";
+import { getReviewsByOrder, getPurchasedProductsByOrder } from "@/lib/repositories/reviewRepository";
+import { supabase } from "@/lib/supabaseClient";
 
 const UserDashboard = () => {
   const navigate = useNavigate();
   const { user, isAdmin, authLoading, signOut } = useAuth();
+
+  // orders & profile
   const { data: orders = [], isLoading: ordersLoading } = useUserOrders(user?.id);
   const { data: profile } = useUserProfile(user?.id);
+
+  // states
   const [orderReviews, setOrderReviews] = useState<Record<string, ProductReview[]>>({});
+  const [purchasedProducts, setPurchasedProducts] = useState<Record<string, PurchasedProduct[]>>({});
+  const [cartCount, setCartCount] = useState<number | null>(null);
+  const [cartLoading, setCartLoading] = useState(false);
+
+  // redirect / auth guard
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      navigate("/login", { replace: true });
+      return;
+    }
+    if (isAdmin) {
+      navigate("/admin/dashboard", { replace: true });
+    }
+  }, [authLoading, isAdmin, navigate, user]);
 
   const handleSignOut = useCallback(async () => {
     try {
@@ -37,46 +56,18 @@ const UserDashboard = () => {
     }
   }, [navigate, signOut]);
 
-  useEffect(() => {
-    if (authLoading) return;
+  const initial = (profile?.full_name ?? user?.email ?? "U").charAt(0).toUpperCase();
 
-    if (!user) {
-      navigate("/login", { replace: true });
-      return;
-    }
+  const displayName = useMemo(() => {
+    if (profile?.full_name) return profile.full_name;
+    return (user?.user_metadata as Record<string, string> | undefined)?.full_name
+      || user?.email
+      || "Akun Anda";
+  }, [profile?.full_name, user?.user_metadata, user?.email]);
 
-    if (isAdmin) {
-      navigate("/admin/dashboard", { replace: true });
-    }
-  }, [authLoading, isAdmin, navigate, user]);
-
-  const initial = (profile?.full_name ?? user?.email ?? "U")
-  .charAt(0)
-  .toUpperCase();
-
-const displayName = useMemo(() => {
-  if (profile?.full_name) return profile.full_name;
-
-  return (user?.user_metadata as Record<string, string> | undefined)?.full_name 
-    || user?.email 
-    || "Akun Anda";
-}, [profile?.full_name, user?.user_metadata, user?.email]);
-
-  const statusFlow: OrderStatus[] = [
-    "pending",
-    "processed",
-    "packaged",
-    "shipped",
-    "completed",
-  ];
-
-  const activeStatuses: OrderStatus[] = [
-    "pending",
-    "processed",
-    "packaged",
-    "shipped",
-  ];
-
+  // order status flow & labels
+  const statusFlow: OrderStatus[] = ["pending", "processed", "packaged", "shipped", "completed"];
+  const activeStatuses: OrderStatus[] = ["pending", "processed", "packaged", "shipped"];
   const statusLabels: Record<OrderStatus, string> = {
     pending: "Pending",
     processed: "Diproses",
@@ -88,51 +79,176 @@ const displayName = useMemo(() => {
     cancelled: "Dibatalkan",
   };
 
-  const activeOrders = useMemo(
-    () => orders.filter((order) => activeStatuses.includes(order.status)),
-    [orders]
+  // derived lists
+  const activeOrders = useMemo(() => orders.filter((o) => activeStatuses.includes(o.status)), [orders]);
+  const completedOrders = useMemo(() => orders.filter((o) => o.status === "completed"), [orders]);
+
+  // stable key for completed orders (only changes when ids change)
+  const completedOrdersKey = useMemo(
+    () => JSON.stringify(completedOrders.map((o) => o.id)),
+    [completedOrders]
   );
 
-  const completedOrders = useMemo(
-    () => orders.filter((order) => order.status === "completed"),
-    [orders]
-  );
+  /* =========================
+     Fetch order reviews (for completed orders)
+     - guarded against unmount
+     - runs only when completedOrdersKey changes
+     ========================= */
+  useEffect(() => {
+    let mounted = true;
 
-// stringify agar dependency tidak berubah tiap render
-const completedOrdersKey = useMemo(
-  () => JSON.stringify(completedOrders.map((o) => o.id)),
-  [completedOrders]
-);
+    const fetchOrderReviews = async () => {
+      if (completedOrders.length === 0) {
+        if (mounted) setOrderReviews({});
+        return;
+      }
 
-useEffect(() => {
-  const fetchOrderReviews = async () => {
-    if (completedOrders.length === 0) {
-      setOrderReviews({});
+      try {
+        const entries = await Promise.all(
+          completedOrders.map(async (order) => {
+            try {
+              const reviews = await getReviewsByOrder(order.id);
+              return [order.id, Array.isArray(reviews) ? reviews : []] as const;
+            } catch (err) {
+              console.error("Gagal memuat review untuk order", order.id, err);
+              return [order.id, []] as const;
+            }
+          })
+        );
+
+        if (!mounted) return;
+        setOrderReviews(Object.fromEntries(entries));
+      } catch (err) {
+        console.error("Gagal memproses fetch order reviews:", err);
+        if (mounted) setOrderReviews({});
+      }
+    };
+
+    fetchOrderReviews();
+
+    return () => {
+      mounted = false;
+    };
+  }, [completedOrdersKey, completedOrders]);
+
+  /* =========================
+     Fetch purchased products per order (so renderProductDetails shows actual purchased products)
+     - runs whenever orders change
+     ========================= */
+  useEffect(() => {
+    let mounted = true;
+
+    const fetchPurchased = async () => {
+      if (orders.length === 0) {
+        if (mounted) setPurchasedProducts({});
+        return;
+      }
+
+      try {
+        const entries = await Promise.all(
+          orders.map(async (order) => {
+            try {
+              const products = await getPurchasedProductsByOrder(order.id);
+              return [order.id, Array.isArray(products) ? products : []] as const;
+            } catch (err) {
+              console.error("Gagal memuat produk untuk order", order.id, err);
+              return [order.id, []] as const;
+            }
+          })
+        );
+
+        if (!mounted) return;
+        setPurchasedProducts(Object.fromEntries(entries));
+      } catch (err) {
+        console.error("Gagal memproses fetch purchased products:", err);
+        if (mounted) setPurchasedProducts({});
+      }
+    };
+
+    fetchPurchased();
+
+    return () => {
+      mounted = false;
+    };
+  }, [orders]);
+
+  /* =========================
+     Cart: fetch count + realtime subscription
+     - keeps existing cart_items integration intact
+     ========================= */
+  const fetchCartCount = useCallback(async () => {
+    if (!user?.id) {
+      setCartCount(null);
       return;
     }
 
-    const entries = await Promise.all(
-      completedOrders.map(async (order) => {
-        const reviews = await getReviewsByOrder(order.id);
-        return [order.id, reviews] as const;
-      })
-    );
+    setCartLoading(true);
+    try {
+      const { count, error } = await supabase
+        .from("cart_items")
+        .select("id", { count: "exact" })
+        .eq("user_id", user.id);
 
-    setOrderReviews(Object.fromEntries(entries));
-  };
+      if (error) {
+        console.error("Failed fetching cart count:", error);
+        setCartCount(0);
+      } else {
+        setCartCount(Number(count ?? 0));
+      }
+    } catch (err) {
+      console.error("Failed fetching cart count:", err);
+      setCartCount(0);
+    } finally {
+      setCartLoading(false);
+    }
+  }, [user?.id]);
 
-  fetchOrderReviews();
-}, [completedOrdersKey]);
+  // initial fetch
+  useEffect(() => {
+    if (user?.id) fetchCartCount();
+  }, [user?.id, fetchCartCount]);
 
+  // realtime listener (Supabase Realtime) — listens specifically for this user's cart_items
+  useEffect(() => {
+    if (!user?.id) return;
 
-  const formatCurrency = (value?: number | null) =>
+    const channel = supabase
+      .channel(`cart-items:${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "cart_items",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          // refresh count whenever cart changes
+          fetchCartCount();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      try {
+        supabase.removeChannel(channel);
+      } catch (err) {
+        // older client versions may require unsubscribing differently; ignore errors on cleanup
+      }
+    };
+  }, [user?.id, fetchCartCount]);
+
+  /* =========================
+     Helpers: formatting + render utilities
+     ========================= */
+  const formatCurrency = useCallback((value?: number | null) =>
     new Intl.NumberFormat("id-ID", {
       style: "currency",
       currency: "IDR",
       minimumFractionDigits: 0,
-    }).format(value ?? 0);
+    }).format(value ?? 0), []);
 
-  const formatDate = (order: Order) =>
+  const formatDate = useCallback((order: Order) =>
     order.createdAt
       ? new Intl.DateTimeFormat("id-ID", {
           day: "2-digit",
@@ -141,28 +257,57 @@ useEffect(() => {
           hour: "2-digit",
           minute: "2-digit",
         }).format(new Date(order.createdAt))
-      : "Tanggal tidak tersedia";
+      : "Tanggal tidak tersedia", []);
 
-        const renderProductDetails = (order: Order) => {
-    const productLabel = order.productName ?? "Detail produk tidak tersedia";
+  const renderProductDetails = (order: Order) => {
+    const items = purchasedProducts[order.id] ?? [];
 
-    return (
-      <div className="rounded-lg border bg-muted/40 p-3 text-xs sm:text-sm">
-        <div className="flex items-start justify-between gap-3">
-          <div className="space-y-1">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Detail Produk</p>
-            <div className="text-foreground">
-              <p className="font-medium leading-tight">{productLabel}</p>
-              <p className="text-xs text-muted-foreground">
-                {order.productName ? "Produk yang kamu checkout" : "Nama produk belum tercatat"}
-              </p>
+    if (items.length === 0) {
+      const productLabel = order.productName ?? "Produk tidak diketahui";
+      return (
+        <div className="rounded-lg border bg-muted/40 p-3 text-xs sm:text-sm">
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-1">
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Detail Produk</p>
+              <div className="text-foreground">
+                <p className="font-medium leading-tight">{productLabel}</p>
+                <p className="text-xs text-muted-foreground">
+                  {order.productName ? "Produk yang kamu checkout" : "Nama produk belum tercatat"}
+                </p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Total</p>
+              <p className="font-semibold text-foreground">{formatCurrency(order.totalPrice)}</p>
             </div>
           </div>
-          <div className="text-right">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Total</p>
-            <p className="font-semibold text-foreground">{formatCurrency(order.totalPrice)}</p>
-          </div>
         </div>
+      );
+    }
+
+    return (
+      <div className="rounded-lg border bg-muted/40 p-3 text-xs sm:text-sm space-y-2">
+        <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Produk Dipesan</p>
+
+        {items.map((item) => (
+          <div key={item.productId} className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3">
+              {item.imageUrl ? (
+                <img src={item.imageUrl} alt={item.name} className="h-10 w-10 rounded-md object-cover" />
+              ) : (
+                <div className="h-10 w-10 rounded-md bg-muted" />
+              )}
+              <div>
+                <p className="font-medium text-foreground">{item.name}</p>
+                {item.brand && <p className="text-xs text-muted-foreground">{item.brand}</p>}
+              </div>
+            </div>
+
+            <div className="text-right">
+              <p className="font-semibold text-foreground">{formatCurrency(item.price)}</p>
+            </div>
+          </div>
+        ))}
       </div>
     );
   };
@@ -193,12 +338,9 @@ useEffect(() => {
       <div className="flex flex-wrap items-center gap-2 text-xs">
         {statusFlow.map((step, index) => {
           const isReached = index <= currentIndex;
-
           return (
             <div key={step} className="flex items-center gap-1">
-              <span
-                className={`h-2 w-2 rounded-full ${isReached ? "bg-primary" : "bg-muted-foreground/30"}`}
-              />
+              <span className={`h-2 w-2 rounded-full ${isReached ? "bg-primary" : "bg-muted-foreground/30"}`} />
               <span className={isReached ? "text-foreground" : "text-muted-foreground"}>
                 {statusLabels[step]}
               </span>
@@ -210,6 +352,7 @@ useEffect(() => {
     );
   };
 
+  // guard while redirecting / loading auth
   if (!user || isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-muted/30">
@@ -226,184 +369,101 @@ useEffect(() => {
     );
   }
 
+  // --- render UI ---
   return (
-  <div className="min-h-screen bg-muted/30 py-10 px-4">
-    <div className="max-w-6xl mx-auto space-y-8">
-
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-muted-foreground">Selamat datang kembali</p>
-          <h1 className="text-3xl font-bold">Dashboard Pengguna</h1>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button onClick={() => navigate("/dashboard/profile")}>Edit profil</Button>
-          <Button variant="outline" onClick={() => navigate("/")}>Kembali ke toko</Button>
-        </div>
-      </div>
-
-      {/* User Card */}
-      <Card>
-        <CardHeader className="flex items-start gap-4">
-          <Avatar className="h-14 w-14">
-            <AvatarImage
-              src={(user.user_metadata as any)?.avatar_url}
-            />
-            <AvatarFallback>{initial}</AvatarFallback>
-          </Avatar>
+    <div className="min-h-screen bg-muted/30 py-10 px-4">
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="flex items-center justify-between">
           <div>
-            <CardTitle>{displayName}</CardTitle>
-            <CardDescription>{user.email}</CardDescription>
+            <p className="text-sm text-muted-foreground">Selamat datang kembali</p>
+            <h1 className="text-3xl font-bold">Dashboard Pengguna</h1>
           </div>
-        </CardHeader>
+        </div>
 
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Kelola pesanan dan profil kamu dari satu tempat.
-          </p>
-
-          <Separator />
-
-          <div className="flex flex-wrap gap-3">
-            <Button asChild><Link to="/">Lanjut belanja</Link></Button>
-            <Button variant="secondary" asChild><Link to="/cart">Keranjang</Link></Button>
-            <Button variant="outline" onClick={handleSignOut}>Keluar</Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Profil & Alamat */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Profil & Alamat</CardTitle>
-          <CardDescription>Kelola detail penerima untuk checkout cepat.</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-wrap items-center justify-between gap-4">
-          <div className="text-sm text-muted-foreground">
-            <p>Perbarui nama, telepon, kota, dan alamat lengkap.</p>
-            <p className="mt-1">Digunakan otomatis saat checkout.</p>
-          </div>
-          <Button onClick={() => navigate("/dashboard/profile")}>
-            Edit profil
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Ringkasan Pesanan */}
-      <Card className="bg-gradient-to-br from-primary/5 via-background to-background">
-        <CardHeader>
-          <CardTitle>Ringkasan Pesanan</CardTitle>
-          <CardDescription>Lihat status pesanan kamu.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 sm:grid-cols-3">
-
-            <div className="rounded-xl border bg-background p-4 shadow-sm">
-              <p className="text-sm text-muted-foreground">Pesanan aktif</p>
-              <div className="text-2xl font-semibold">
-                {ordersLoading ? <Skeleton className="h-8 w-16" /> : activeOrders.length}
-              </div>
-              <p className="text-xs text-muted-foreground">Menunggu konfirmasi & pembayaran</p>
-            </div>
-
-            <div className="rounded-xl border bg-background p-4 shadow-sm">
-              <p className="text-sm text-muted-foreground">Pesanan selesai</p>
-              <div className="text-2xl font-semibold">
-                {ordersLoading ? <Skeleton className="h-8 w-16" /> : completedOrders.length}
-              </div>
-              <p className="text-xs text-muted-foreground">Pesanan sukses</p>
-            </div>
-
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Aktif + Selesai */}
-      <div className="grid gap-6 lg:grid-cols-2">
-
-        {/* Pesanan Aktif */}
+        {/* User Card */}
         <Card>
-          <CardHeader>
-              <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Pesanan Aktif</CardTitle>
-                <CardDescription>
-                  Status pending → processed → packaged → shipped
-                </CardDescription>
-              </div>
-              <Badge variant="outline">{activeOrders.length} pesanan</Badge>
+          <CardHeader className="flex items-start gap-4">
+            <Avatar className="h-14 w-14">
+              <AvatarImage src={(user.user_metadata as any)?.avatar_url} />
+              <AvatarFallback>{initial}</AvatarFallback>
+            </Avatar>
+            <div>
+              <CardTitle>{displayName}</CardTitle>
+              <CardDescription>{user.email}</CardDescription>
             </div>
           </CardHeader>
 
           <CardContent className="space-y-4">
-            {ordersLoading ? (
-              <div className="space-y-3">
-                <Skeleton className="h-16 w-full" />
-                <Skeleton className="h-16 w-full" />
-              </div>
-            ) : activeOrders.length === 0 ? (
-              <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                Belum ada pesanan aktif.
-              </div>
-            ) : (
-              activeOrders.map(order => (
-                <div key={order.id} className="rounded-xl border bg-background p-4 hover:shadow-md transition space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium">ID Pesanan: {order.id}</p>
-                      <p className="text-xs text-muted-foreground">{formatDate(order)}</p>
-                    </div>
-                    {renderOrderBadge(order.status)}
-                  </div>
-
-                  {renderProductDetails(order)}
-
-                  <div className="rounded-lg bg-muted/50 p-3 text-xs">
-                    <p className="mb-2 font-medium text-foreground">Perjalanan pesanan</p>
-                    {renderStatusProgress(order.status)}
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    <Button variant="secondary" size="sm" asChild>
-                      <Link to="/checkout">Bayar sekarang</Link>
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => navigate("/cart")}>
-                      Lihat keranjang
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )}
+            <Separator />
+            <div className="flex flex-wrap gap-3">
+              <Button onClick={() => navigate("/dashboard/profile")}>Edit profil</Button>
+              <Button variant="secondary" asChild><Link to="/">Lanjut belanja</Link></Button>
+              <Button variant="outline" onClick={handleSignOut}>Keluar</Button>
+            </div>
           </CardContent>
         </Card>
 
-        {/* Pesanan Selesai */}
-        <Card>
+        {/* Ringkasan Pesanan + Keranjang */}
+        <Card className="bg-gradient-to-br from-primary/5 via-background to-background">
           <CardHeader>
-              <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Pesanan Selesai</CardTitle>
-                <CardDescription>Status completed</CardDescription>
-              </div>
-              <Badge variant="secondary">{completedOrders.length} pesanan</Badge>
-            </div>
+            <CardTitle>Ringkasan Pesanan</CardTitle>
+            <CardDescription>Lihat status pesanan kamu.</CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-4">
-            {ordersLoading ? (
-              <div className="space-y-3">
-                <Skeleton className="h-16 w-full" />
-                <Skeleton className="h-16 w-full" />
-              </div>
-            ) : completedOrders.length === 0 ? (
-              <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                Belum ada pesanan selesai.
-              </div>
-            ) : (
-              completedOrders.map(order => {
-                const hasReview = (orderReviews[order.id] ?? []).length > 0;
+<CardContent>
+  <div className="grid gap-4 sm:grid-cols-3">
+    <div className="rounded-xl border bg-background p-4 shadow-sm">
+      <p className="text-sm text-white/90">Pesanan Aktif</p>
+      <div className="text-2xl font-semibold text-white">
+        {ordersLoading ? <Skeleton className="h-8 w-16" /> : activeOrders.length}
+      </div>
+    </div>
 
-                return (
+    <div className="rounded-xl border bg-background p-4 shadow-sm">
+      <p className="text-sm text-white/90">Pesanan Selesai</p>
+      <div className="text-2xl font-semibold text-white">
+        {ordersLoading ? <Skeleton className="h-8 w-16" /> : completedOrders.length}
+      </div>
+    </div>
+
+    <div className="rounded-xl border bg-background p-4 shadow-sm">
+      <p className="text-sm text-white/90">Produk di Keranjang</p>
+      <div className="text-2xl font-semibold text-white">
+        {cartLoading ? <Skeleton className="h-8 w-16" /> : (cartCount ?? 0)}
+      </div>
+    </div>
+  </div>
+</CardContent>
+
+        </Card>
+
+        {/* Aktif + Selesai */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Pesanan Aktif */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Pesanan Aktif</CardTitle>
+                  <CardDescription>Status pending → processed → packaged → shipped</CardDescription>
+                </div>
+                <Badge variant="outline">{activeOrders.length} pesanan</Badge>
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              {ordersLoading ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-16 w-full" />
+                </div>
+              ) : activeOrders.length === 0 ? (
+                <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                  Belum ada pesanan aktif.
+                </div>
+              ) : (
+                activeOrders.map((order) => (
                   <div key={order.id} className="rounded-xl border bg-background p-4 hover:shadow-md transition space-y-3">
                     <div className="flex items-center justify-between">
                       <div>
@@ -415,40 +475,85 @@ useEffect(() => {
 
                     {renderProductDetails(order)}
 
-                    {/* <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                      <span>{order.shippingMethod || "Pengiriman selesai"}</span>
-                      <Separator orientation="vertical" className="hidden h-4 sm:inline" />
-                      <span>{order.paymentMethod || "Metode pembayaran"}</span>
-                      <Separator orientation="vertical" className="hidden h-4 sm:inline" />
-                      <span className="font-semibold text-foreground">
-                        {formatCurrency(order.totalPrice)}
-                      </span>
-                    </div> */}
+                    <div className="rounded-lg bg-muted/50 p-3 text-xs">
+                      <p className="mb-2 font-medium text-foreground">Perjalanan pesanan</p>
+                      {renderStatusProgress(order.status)}
+                    </div>
 
                     <div className="flex flex-wrap gap-2">
-                      {hasReview ? (
-                        <div className="rounded-md border border-dashed bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
-                          Ulasan sudah diberikan
-                        </div>
-                      ) : (
-                        <Button size="sm" asChild>
-                          <Link to={`/dashboard/reviews?orderId=${order.id}`}>Beri ulasan</Link>
-                        </Button>
-                      )}
-                      <Button variant="outline" size="sm" asChild>
-                        <Link to="/">Belanja lagi</Link>
+                      <Button variant="secondary" size="sm" asChild>
+                        <Link to="/checkout">Bayar sekarang</Link>
                       </Button>
+                      <Button variant="ghost" size="sm" onClick={() => navigate("/cart")}>Lihat keranjang</Button>
                     </div>
                   </div>
-                );
-              })
-            )}
-          </CardContent>
-        </Card>
+                ))
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Pesanan Selesai */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Pesanan Selesai</CardTitle>
+                  <CardDescription>Status completed</CardDescription>
+                </div>
+                <Badge variant="secondary">{completedOrders.length} pesanan</Badge>
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              {ordersLoading ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-16 w-full" />
+                </div>
+              ) : completedOrders.length === 0 ? (
+                <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                  Belum ada pesanan selesai.
+                </div>
+              ) : (
+                completedOrders.map((order) => {
+                  const hasReview = (orderReviews[order.id] ?? []).length > 0;
+
+                  return (
+                    <div key={order.id} className="rounded-xl border bg-background p-4 hover:shadow-md transition space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium">ID Pesanan: {order.id}</p>
+                          <p className="text-xs text-muted-foreground">{formatDate(order)}</p>
+                        </div>
+                        {renderOrderBadge(order.status)}
+                      </div>
+
+                      {renderProductDetails(order)}
+
+                      <div className="flex flex-wrap gap-2">
+                        {hasReview ? (
+                          <div className="rounded-md border border-dashed bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+                            Ulasan sudah diberikan
+                          </div>
+                        ) : (
+                          <Button size="sm" asChild>
+                            <Link to={`/dashboard/reviews?orderId=${order.id}`}>Beri ulasan</Link>
+                          </Button>
+                        )}
+                        <Button variant="outline" size="sm" asChild>
+                          <Link to="/">Belanja lagi</Link>
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
 };
 
 export default UserDashboard;
