@@ -11,11 +11,18 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { getCategories, getProducts } from "@/lib/repositories/catalogRepository";
 import type { Product } from "@/types/catalog";
 import { useCart } from "@/context/cart-context";
 import { toast } from "sonner";
-import { Search as SearchIcon, Shuffle, Sparkles } from "lucide-react";
+import { Filter, Menu, Search as SearchIcon, Sparkles, X } from "lucide-react";
 
 const ITEMS_PER_ROW = 4;
 const ROWS_PER_BATCH = 4;
@@ -38,6 +45,10 @@ const SearchPage = () => {
   const [minPrice, setMinPrice] = useState<string>("");
   const [maxPrice, setMaxPrice] = useState<string>("");
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_BATCH);
+  const [filtersVisible, setFiltersVisible] = useState(true);
+  const [sortOption, setSortOption] = useState<"recommended" | "price-asc" | "price-desc">(
+    "recommended",
+  );
 
   const { data: categories = [], isLoading: loadingCategories } = useQuery({
     queryKey: ["search-categories"],
@@ -73,9 +84,9 @@ const SearchPage = () => {
     }
   }, [productsError]);
 
-   useEffect(() => {
+  useEffect(() => {
     setVisibleCount(ITEMS_PER_BATCH);
-  }, [searchQuery, selectedCategories, minPrice, maxPrice]);
+  }, [searchQuery, selectedCategories, minPrice, maxPrice, sortOption]);
 
   const handleToggleCategory = useCallback((categoryId: string) => {
     setSelectedCategories((previous) => {
@@ -150,10 +161,24 @@ const SearchPage = () => {
       (product) => matchesCategory(product) && matchesQuery(product) && matchesPrice(product),
     );
 
-    if (!shuffleKey) return base;
+    const sorted = (() => {
+      if (sortOption === "price-asc") {
+        return [...base].sort((first, second) => first.price - second.price);
+      }
 
-    return [...base].sort(() => 0.5 - Math.random());
-  }, [products, searchQuery, selectedCategories, shuffleKey, minPrice, maxPrice]);
+      if (sortOption === "price-desc") {
+        return [...base].sort((first, second) => second.price - first.price);
+      }
+
+      if (shuffleKey) {
+        return [...base].sort(() => 0.5 - Math.random());
+      }
+
+      return base;
+    })();
+
+    return sorted;
+  }, [products, searchQuery, selectedCategories, shuffleKey, minPrice, maxPrice, sortOption]);
 
   const randomSpotlight = useMemo(() => {
     if (products.length === 0) return null;
@@ -171,7 +196,7 @@ const SearchPage = () => {
   }, []);
 
   return (
-     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 text-foreground">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 text-foreground">
       <Header
         cartItemCount={cartCount}
         onSearchChange={setSearchQuery}
@@ -186,25 +211,46 @@ const SearchPage = () => {
       <main className="container mx-auto px-4 pb-16">
         <div className="py-10 md:py-12">
           <div className="rounded-3xl border bg-card/80 shadow-xl">
-              <div className="grid gap-6 p-6 md:grid-cols-[300px,1fr] md:p-10">
+            <div
+              className={`grid gap-6 p-6 md:p-10 ${filtersVisible ? "md:grid-cols-[320px,1fr]" : "md:grid-cols-1"}`}
+            >
+              {filtersVisible && (
                 <div className="space-y-4">
                   <div className="space-y-2">
-                  <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                    <Sparkles className="h-4 w-4" />
-                    Mode pencarian terbaru
-                  </div>
-                  <h1 className="text-3xl font-bold">Temukan produk favoritmu</h1>
-                  <p className="text-sm text-muted-foreground">
-                    Cari dengan kata kunci, padukan filter, atau coba rekomendasi acak yang kami pilihkan.
-                  </p>
-                </div>
-
-                 <div className="rounded-2xl border bg-background/80 p-4 shadow-sm">
-                  <div className="flex items-center justify-between gap-2">
-                    <div>
-                      <p className="text-sm font-semibold">Filter kategori</p>
-                      <p className="text-xs text-muted-foreground">Gabungkan beberapa kategori untuk hasil lebih presisi.</p>
+                    <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                      <Sparkles className="h-4 w-4" />
+                      Mode pencarian terbaru
                     </div>
+                    <h1 className="text-3xl font-bold">Temukan produk favoritmu</h1>
+                    <p className="text-sm text-muted-foreground">
+                      Cari dengan kata kunci, padukan filter, atau coba rekomendasi acak yang kami pilihkan.
+                    </p>
+                  </div>
+
+                  <nav className="hidden flex-col gap-2 rounded-2xl border bg-background/80 p-3 shadow-sm md:flex">
+                    <p className="px-2 text-xs font-semibold text-muted-foreground">Navigasi filter</p>
+                    <a
+                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-foreground transition hover:bg-muted"
+                      href="#category-filter"
+                    >
+                      <Menu className="h-4 w-4" />
+                      Kategori
+                    </a>
+                    <a
+                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-foreground transition hover:bg-muted"
+                      href="#price-filter"
+                    >
+                      <Filter className="h-4 w-4" />
+                      Harga
+                    </a>
+                  </nav>
+
+                  <div id="category-filter" className="rounded-2xl border bg-background/80 p-4 shadow-sm">
+                    <div className="flex items-center justify-between gap-2">
+                      <div>
+                        <p className="text-sm font-semibold">Filter kategori</p>
+                        <p className="text-xs text-muted-foreground">Gabungkan beberapa kategori untuk hasil lebih presisi.</p>
+                      </div>
                    </div>
 
                   <div className="mt-4 space-y-3 max-h-72 overflow-y-auto pr-1">
@@ -239,20 +285,20 @@ const SearchPage = () => {
                             onClick={() => handleToggleCategory(categoryId)}
                           >
                             {categoryName}
-                           <span className="text-xs text-muted-foreground">×</span>
+                            <span className="text-xs text-muted-foreground">×</span>
                           </Badge>
                         );
                       })}
                     </div>
                   )}
-              </div>
+                </div>
 
-              <div className="rounded-2xl border bg-background/80 p-4 shadow-sm">
-                <div className="flex items-center justify-between gap-2">
-                  <div>
-                    <p className="text-sm font-semibold">Filter harga</p>
-                    <p className="text-xs text-muted-foreground">Tentukan rentang harga yang diinginkan.</p>
-                  </div>
+                <div id="price-filter" className="rounded-2xl border bg-background/80 p-4 shadow-sm">
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <p className="text-sm font-semibold">Filter harga</p>
+                      <p className="text-xs text-muted-foreground">Tentukan rentang harga yang diinginkan.</p>
+                    </div>
                 </div>
 
                 <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -295,6 +341,7 @@ const SearchPage = () => {
                 )}
               </div>
             </div>
+            )}
 
               <div className="space-y-4">
                 <form onSubmit={handleSearchSubmit} className="space-y-3">
@@ -318,14 +365,34 @@ const SearchPage = () => {
                         Cari
                       </Button>
                     </div>
-                    <Button
-                      variant="outline"
-                      onClick={handleClearFilters}
-                      className="h-12 rounded-xl sm:w-auto"
-                      type="button"
-                    >
-                      Bersihkan filter
-                    </Button>
+                    <div className="flex flex-1 flex-wrap items-center gap-2 sm:flex-none">
+                      <Button
+                        variant="outline"
+                        onClick={handleClearFilters}
+                        className="h-12 rounded-xl sm:w-auto"
+                        type="button"
+                      >
+                        Bersihkan filter
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        className="h-12 rounded-xl sm:w-auto"
+                        type="button"
+                        onClick={() => setFiltersVisible((previous) => !previous)}
+                      >
+                        {filtersVisible ? (
+                          <>
+                            <X className="mr-2 h-4 w-4" />
+                            Sembunyikan filter
+                          </>
+                        ) : (
+                          <>
+                            <Filter className="mr-2 h-4 w-4" />
+                            Tampilkan filter
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 </form>
 
@@ -341,14 +408,35 @@ const SearchPage = () => {
                       )}
                     </div>
                   </div>
-                  <Button variant="secondary" onClick={handleSearchSubmit} className="gap-2">
-                    <SearchIcon className="h-4 w-4" />
-                    Perbarui hasil
-                  </Button>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="sort-products" className="text-xs font-semibold text-muted-foreground">
+                        Urutkan
+                      </Label>
+                      <Select
+                        value={sortOption}
+                        onValueChange={(value: "recommended" | "price-asc" | "price-desc") => setSortOption(value)}
+                      >
+                        <SelectTrigger id="sort-products" className="w-48">
+                          <SelectValue placeholder="Pilih urutan" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="recommended">Rekomendasi</SelectItem>
+                          <SelectItem value="price-asc">Harga: terendah</SelectItem>
+                          <SelectItem value="price-desc">Harga: tertinggi</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button variant="secondary" onClick={handleSearchSubmit} className="gap-2">
+                      <SearchIcon className="h-4 w-4" />
+                      Perbarui hasil
+                    </Button>
+                  </div>
                 </div>
 
                 {loadingProducts ? (
-                <FixieLoading message="Memuat produk" size="md" fullscreen />
+                  <FixieLoading message="Memuat produk" size="md" fullscreen />
                 ) : filteredProducts.length === 0 ? (
                   <div className="rounded-2xl border bg-background p-8 text-center shadow-sm">
                     <p className="text-lg font-semibold">Produk tidak ditemukan</p>
@@ -357,7 +445,7 @@ const SearchPage = () => {
                     </p>
                   </div>
                 ) : (
-                   <div className="space-y-6">
+                  <div className="space-y-6">
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                       {visibleProducts.map((product) => (
                         <ProductCard
