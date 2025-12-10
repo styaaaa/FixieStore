@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useCart } from "@/context/cart-context";
 import { getProductById } from "@/lib/repositories/catalogRepository";
 import { getReviewsByProduct } from "@/lib/repositories/reviewRepository";
@@ -21,6 +22,17 @@ const formatCurrency = (value?: number | null) =>
     currency: "IDR",
     minimumFractionDigits: 0,
   }).format(value ?? 0);
+
+const getReviewerInitials = (name?: string, email?: string) => {
+  const source = name || email || "?";
+  return source
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+};
 
 const ProductDetail = () => {
   const navigate = useNavigate();
@@ -227,28 +239,53 @@ const ProductDetail = () => {
                   key={review.id}
                   className="space-y-2 rounded-lg border bg-background p-4 shadow-sm"
                 >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 text-sm text-amber-500">
-                      {Array.from({ length: 5 }).map((_, index) => (
-                        <Star
-                          key={index}
-                          className={`h-4 w-4 ${index < review.rating ? "fill-amber-400" : "text-muted-foreground"}`}
-                        />
-                      ))}
+                  <div className="flex items-start gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={review.userAvatarUrl} alt={review.userName} />
+                      <AvatarFallback>
+                        {getReviewerInitials(review.userName, review.userEmail)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 space-y-2">
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold text-foreground">
+                            {review.userName || "Pengguna"}
+                          </p>
+                          {review.userEmail && (
+                            <p className="text-xs text-muted-foreground">{review.userEmail}</p>
+                          )}
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(review.createdAt).toLocaleDateString("id-ID", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-amber-500">
+                        {Array.from({ length: 5 }).map((_, index) => (
+                          <Star
+                            key={index}
+                            className={`h-4 w-4 ${
+                              index < review.rating
+                                ? "fill-amber-400 text-amber-500"
+                                : "text-muted-foreground"
+                            }`}
+                          />
+                        ))}
+                        <span className="text-xs text-muted-foreground">{review.rating}/5</span>
+                      </div>
+
+                      <p className="text-sm text-foreground">{review.message}</p>
+                      <Separator />
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+                        <span>Order ID: {review.orderId}</span>
+                        {review.userName && <span>Profil terverifikasi</span>}
+                      </div>
                     </div>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(review.createdAt).toLocaleDateString("id-ID", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })}
-                    </span>
-                  </div>
-                  <p className="text-sm text-foreground">{review.message}</p>
-                  <Separator />
-                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-                    <span>Order ID: {review.orderId}</span>
-                    {review.userName && <span>Oleh {review.userName}</span>}
                   </div>
                 </div>
               ))
