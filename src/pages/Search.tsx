@@ -227,24 +227,6 @@ const SearchPage = () => {
                     </p>
                   </div>
 
-                  <nav className="hidden flex-col gap-2 rounded-2xl border bg-background/80 p-3 shadow-sm md:flex">
-                    <p className="px-2 text-xs font-semibold text-muted-foreground">Navigasi filter</p>
-                    <a
-                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-foreground transition hover:bg-muted"
-                      href="#category-filter"
-                    >
-                      <Menu className="h-4 w-4" />
-                      Kategori
-                    </a>
-                    <a
-                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-foreground transition hover:bg-muted"
-                      href="#price-filter"
-                    >
-                      <Filter className="h-4 w-4" />
-                      Harga
-                    </a>
-                  </nav>
-
                   <div id="category-filter" className="rounded-2xl border bg-background/80 p-4 shadow-sm">
                     <div className="flex items-center justify-between gap-2">
                       <div>
@@ -348,7 +330,7 @@ const SearchPage = () => {
                   <Label htmlFor="search-query" className="text-sm font-semibold text-muted-foreground">
                     Cari produk
                   </Label>
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <div className="h-12 rounded-xl sm:w-auto flex items-center gap-3">
                     <div className="relative flex-1">
                       <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                       <Input
@@ -365,75 +347,47 @@ const SearchPage = () => {
                         Cari
                       </Button>
                     </div>
-                    <div className="flex flex-1 flex-wrap items-center gap-2 sm:flex-none">
-                      <Button
-                        variant="outline"
-                        onClick={handleClearFilters}
-                        className="h-12 rounded-xl sm:w-auto"
-                        type="button"
-                      >
-                        Bersihkan filter
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        className="h-12 rounded-xl sm:w-auto"
-                        type="button"
-                        onClick={() => setFiltersVisible((previous) => !previous)}
-                      >
-                        {filtersVisible ? (
-                          <>
-                            <X className="mr-2 h-4 w-4" />
-                            Sembunyikan filter
-                          </>
-                        ) : (
-                          <>
-                            <Filter className="mr-2 h-4 w-4" />
-                            Tampilkan filter
-                          </>
-                        )}
-                      </Button>
-                    </div>
+                   <div className="h-12 rounded-xl sm:w-auto flex items-center gap-3">
+    {/* Tombol Tampilkan/Sembunyikan Filter */}
+  <Button
+    variant="outline"
+    className="h-12 rounded-xl sm:w-auto border border-gray-300 dark:border-blackbg-white dark:bg-black text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+    type="button"
+    onClick={() => setFiltersVisible((previous) => !previous)}
+  >
+    {filtersVisible ? (
+      <>
+        <X className="mr-2 h-4 w-4" />
+        Sembunyikan filter
+      </>
+    ) : (
+      <>
+        <Filter className="mr-2 h-4 w-4" />
+        Tampilkan filter
+      </>
+    )}
+  </Button>
+
+  {/* Dropdown Rekomendasi */}
+  <Label htmlFor="sort-products" className="sr-only"></Label>
+  <Select
+    value={sortOption}
+    onValueChange={(value: "recommended" | "price-asc" | "price-desc") => setSortOption(value)}
+  >
+    <SelectTrigger id="sort-products" className="w-48 h-12 rounded-xl border border-gray-300 dark:border-black bg-white dark:bg-black text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">
+      <SelectValue placeholder="Sort By" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="recommended">Rekomendasi</SelectItem>
+      <SelectItem value="price-asc">Harga: terendah</SelectItem>
+      <SelectItem value="price-desc">Harga: tertinggi</SelectItem>
+    </SelectContent>
+  </Select>
+</div>
+
                   </div>
                 </form>
 
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-background/70 px-4 py-3 text-sm shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="h-2 w-2 rounded-full bg-primary" />
-                    <div>
-                      <p className="font-semibold">{filteredProducts.length} produk cocok</p>
-                      {selectedCategories.length > 0 ? (
-                        <p className="text-muted-foreground">Filter kategori sedang aktif</p>
-                      ) : (
-                        <p className="text-muted-foreground">Menampilkan semua kategori</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="sort-products" className="text-xs font-semibold text-muted-foreground">
-                        Urutkan
-                      </Label>
-                      <Select
-                        value={sortOption}
-                        onValueChange={(value: "recommended" | "price-asc" | "price-desc") => setSortOption(value)}
-                      >
-                        <SelectTrigger id="sort-products" className="w-48">
-                          <SelectValue placeholder="Pilih urutan" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="recommended">Rekomendasi</SelectItem>
-                          <SelectItem value="price-asc">Harga: terendah</SelectItem>
-                          <SelectItem value="price-desc">Harga: tertinggi</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <Button variant="secondary" onClick={handleSearchSubmit} className="gap-2">
-                      <SearchIcon className="h-4 w-4" />
-                      Perbarui hasil
-                    </Button>
-                  </div>
-                </div>
 
                 {loadingProducts ? (
                   <FixieLoading message="Memuat produk" size="md" fullscreen />
