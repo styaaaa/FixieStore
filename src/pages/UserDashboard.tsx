@@ -143,6 +143,30 @@ useEffect(() => {
         }).format(new Date(order.createdAt))
       : "Tanggal tidak tersedia";
 
+        const renderProductDetails = (order: Order) => {
+    const productLabel = order.productName ?? "Detail produk tidak tersedia";
+
+    return (
+      <div className="rounded-lg border bg-muted/40 p-3 text-xs sm:text-sm">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1">
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Detail Produk</p>
+            <div className="text-foreground">
+              <p className="font-medium leading-tight">{productLabel}</p>
+              <p className="text-xs text-muted-foreground">
+                {order.productName ? "Produk yang kamu checkout" : "Nama produk belum tercatat"}
+              </p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Total</p>
+            <p className="font-semibold text-foreground">{formatCurrency(order.totalPrice)}</p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderOrderBadge = (status: OrderStatus) => {
     const COLORS: Record<OrderStatus, string> = {
       pending: "bg-amber-100 text-amber-800",
@@ -332,6 +356,8 @@ useEffect(() => {
                     {renderOrderBadge(order.status)}
                   </div>
 
+                  {renderProductDetails(order)}
+
                   <div className="rounded-lg bg-muted/50 p-3 text-xs">
                     <p className="mb-2 font-medium text-foreground">Perjalanan pesanan</p>
                     {renderStatusProgress(order.status)}
@@ -386,6 +412,8 @@ useEffect(() => {
                       </div>
                       {renderOrderBadge(order.status)}
                     </div>
+
+                    {renderProductDetails(order)}
 
                     {/* <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                       <span>{order.shippingMethod || "Pengiriman selesai"}</span>
