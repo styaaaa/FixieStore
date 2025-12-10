@@ -60,10 +60,18 @@ export const mapOrderRowToOrder = (row: OrderRow): Order => ({
   userId: row.user_id,
   status: row.status,
    
-  productName:
-  row.items?.length
-    ? row.items.map(i => i.name).join(", ")
-    : row.product_name || null,
+   productName: (() => {
+    const orderItems = row.items ?? row.order_items;
+
+    if (orderItems?.length) {
+      return orderItems
+        .map((item) => item.name)
+        .filter(Boolean)
+        .join(", ");
+    }
+
+    return row.product_name || null;
+  })(),
 
   totalPrice: row.total_price ?? 0,
   paymentMethod: row.payment_method,
