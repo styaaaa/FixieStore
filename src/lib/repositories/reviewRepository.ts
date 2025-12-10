@@ -8,7 +8,7 @@ import { supabase } from "@/lib/supabaseClient";
 const ORDER_PRODUCTS_STORAGE_KEY = "order_products";
 
 const REVIEW_SELECT =
-  "id, product_id, order_id, rating, comment, created_at, user_id, profiles:user_id(email, full_name, avatar_url)";
+  "id, product_id, order_id, rating, comment, created_at, user_id, profiles:user_id(email, full_name)";
 
 const isBrowser = typeof window !== "undefined";
 
@@ -46,8 +46,6 @@ const mapReview = (row: any): ProductReview => {
     createdAt: row?.created_at ?? new Date().toISOString(),
     userId: row?.user_id ?? "",
     userName: profile.full_name || profile.email || undefined,
-    userEmail: profile.email,
-    userAvatarUrl: profile.avatar_url || undefined,
   };
 };
 

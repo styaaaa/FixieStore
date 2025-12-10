@@ -15,7 +15,5 @@ export interface ProductReview {
   message: string;
   createdAt: string;
   userName?: string;
-  userEmail?: string;
-  userAvatarUrl?: string;
   userId?: string;
 }
