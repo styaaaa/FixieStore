@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 
@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/context/auth-context";
@@ -28,23 +29,55 @@ const Cart = () => {
   const { cartItems, cartLoading, updateQuantity, removeFromCart, clearCart, refreshCart, cartCount } =
     useCart();
 
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
+
   useEffect(() => {
     void refreshCart();
   }, [refreshCart]);
 
+  useEffect(() => {
+    setSelectedItemIds((previous) => {
+      const currentIds = cartItems.map((item) => item.id);
+      const preservedSelection = previous.filter((id) => currentIds.includes(id));
+      const newItems = currentIds.filter((id) => !previous.includes(id));
+
+      return [...preservedSelection, ...newItems];
+    });
+  }, [cartItems]);
+
+  const selectedItems = useMemo(
+    () => cartItems.filter((item) => selectedItemIds.includes(item.id)),
+    [cartItems, selectedItemIds]
+  );
+
   const totalPrice = useMemo(
     () =>
-      cartItems.reduce(
+      selectedItems.reduce(
         (total, item) => total + (item.product?.price ?? 0) * item.quantity,
         0
       ),
-    [cartItems]
+    [selectedItems]
   );
 
   const hasInsufficientStock = useMemo(
-    () => cartItems.some((item) => (item.product?.stock ?? 0) < item.quantity),
-    [cartItems]
+    () => selectedItems.some((item) => (item.product?.stock ?? 0) < item.quantity),
+    [selectedItems]
   );
+
+  const toggleItemSelection = (itemId: string) => {
+    setSelectedItemIds((prev) =>
+      prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId]
+    );
+  };
+
+  const toggleSelectAll = (checked: boolean | string) => {
+    if (checked) {
+      setSelectedItemIds(cartItems.map((item) => item.id));
+      return;
+    }
+
+    setSelectedItemIds([]);
+  };
 
   if (!user) {
     return (
@@ -111,13 +144,26 @@ const Cart = () => {
         <div className="grid gap-6 lg:grid-cols-[1.6fr_0.9fr]">
           <Card className="border-border/70 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between gap-4">
-              <div>
+              <div className="space-y-1">
                 <CardTitle>Ringkasan Keranjang</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  {selectedItems.length} dipilih untuk checkout
+                </p>
               </div>
               {cartItems.length > 0 && (
-                <Button variant="ghost" size="sm" onClick={() => void clearCart()} disabled={cartLoading}>
-                  <Trash2 className="mr-2 h-4 w-4" /> Bersihkan
-                </Button>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Checkbox
+                      checked={selectedItemIds.length === cartItems.length && cartItems.length > 0}
+                      onCheckedChange={toggleSelectAll}
+                      aria-label="Pilih semua item"
+                    />
+                    <span>Pilih semua</span>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => void clearCart()} disabled={cartLoading}>
+                    <Trash2 className="mr-2 h-4 w-4" /> Bersihkan
+                  </Button>
+                </div>
               )}
             </CardHeader>
             <CardContent className="space-y-5">
@@ -159,19 +205,27 @@ const Cart = () => {
                     return (
                       <div key={item.id} className="rounded-2xl border border-border/60 bg-card/60 p-4 shadow-sm">
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-                          <div className="h-24 w-full overflow-hidden rounded-xl bg-muted sm:h-28 sm:w-28">
-                            {item.product?.imageUrl ? (
-                              <img
-                                src={item.product.imageUrl}
-                                alt={item.product.name}
-                                className="h-full w-full object-cover"
-                                loading="lazy"
-                              />
-                            ) : (
-                              <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-                                <ShoppingBag className="h-6 w-6" />
-                              </div>
-                            )}
+                          <div className="flex items-start gap-3">
+                            <Checkbox
+                              checked={selectedItemIds.includes(item.id)}
+                              onCheckedChange={() => toggleItemSelection(item.id)}
+                              aria-label={`Pilih ${item.product?.name ?? "produk"}`}
+                              className="mt-1"
+                            />
+                            <div className="h-24 w-28 overflow-hidden rounded-xl bg-muted sm:h-28">
+                              {item.product?.imageUrl ? (
+                                <img
+                                  src={item.product.imageUrl}
+                                  alt={item.product.name}
+                                  className="h-full w-full object-cover"
+                                  loading="lazy"
+                                />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                                  <ShoppingBag className="h-6 w-6" />
+                                </div>
+                              )}
+                            </div>
                           </div>
 
                           <div className="flex-1 space-y-3">
@@ -274,8 +328,12 @@ const Cart = () => {
                 <Button
                   className="w-full"
                   size="lg"
-                  disabled={cartItems.length === 0 || cartLoading || hasInsufficientStock}
-                  onClick={() => navigate("/checkout")}
+                  disabled={selectedItems.length === 0 || cartLoading || hasInsufficientStock}
+                  onClick={() =>
+                    navigate("/checkout", {
+                      state: { selectedCartItemIds: selectedItemIds },
+                    })
+                  }
                 >
                   Lanjut ke checkout
                 </Button>
@@ -285,6 +343,11 @@ const Cart = () => {
                 {hasInsufficientStock && (
                   <p className="text-center text-sm font-medium text-destructive">
                     Checkout tidak tersedia karena ada item yang stoknya habis atau kurang.
+                  </p>
+                )}
+                {selectedItems.length === 0 && cartItems.length > 0 && (
+                  <p className="text-center text-sm text-muted-foreground">
+                    Pilih minimal satu produk untuk melanjutkan checkout.
                   </p>
                 )}
               </div>

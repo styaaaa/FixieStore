@@ -53,11 +53,19 @@ const Checkout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, authLoading } = useAuth();
-  const { cartItems, cartLoading, refreshCart, clearCart } = useCart();
+  const { cartItems, cartLoading, refreshCart, removeFromCart } = useCart();
   const { data: profile, isLoading: profileLoading } = useUserProfile(user?.id);
 
-  const directPurchase = (location.state as { directPurchase?: { product: Product; quantity: number } } | null)
-    ?.directPurchase;
+  const locationState =
+    (location.state as
+      | { directPurchase?: { product: Product; quantity: number }; selectedCartItemIds?: string[] }
+      | null) ?? null;
+
+  const directPurchase = locationState?.directPurchase;
+  const selectedCartItemIds = useMemo(
+    () => locationState?.selectedCartItemIds ?? [],
+    [locationState]
+  );
 
   const purchaseItems: CartItem[] = useMemo(() => {
     if (directPurchase) {
@@ -73,8 +81,13 @@ const Checkout = () => {
       ];
     }
 
+    if (selectedCartItemIds.length > 0) {
+      const filtered = cartItems.filter((item) => selectedCartItemIds.includes(item.id));
+      return filtered.length > 0 ? filtered : cartItems;
+    }
+
     return cartItems;
-  }, [cartItems, directPurchase]);
+  }, [cartItems, directPurchase, selectedCartItemIds]);
 
   const [submitting, setSubmitting] = useState(false);
   const [paymentMethod] = useState("Transfer Bank");
@@ -260,7 +273,7 @@ const Checkout = () => {
                 )
               );
               if (!directPurchase) {
-                await clearCart();
+                await Promise.all(purchaseItems.map((item) => removeFromCart(item.id)));
               }
 
               toast.success("Pembayaran berhasil", {
