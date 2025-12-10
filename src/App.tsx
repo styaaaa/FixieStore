@@ -23,8 +23,8 @@ import Contact from "./pages/Contact";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import AllProducts from "./pages/AllProducts";
-// import NewArrivals from "./pages/NewArrivals";
-// import BestSellers from "./pages/BestSellers";
+import ForgotPassword from "@/pages/ForgotPassword";
+import ResetPassword from "@/pages/ResetPassword";
 import Sale from "./pages/Sale";
 import Blog from "./pages/Blog";
 import AffiliateProgram from "./pages/AffiliateProgram";
@@ -51,6 +51,8 @@ const App = () => (
               {/* Public Routes */}
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/logout" element={<Logout />} />
               <Route path="/register" element={<Register />} />
               <Route path="/cart" element={<Cart />} />
@@ -62,8 +64,6 @@ const App = () => (
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/products" element={<AllProducts />} />
-              {/* <Route path="/products/new" element={<NewArrivals />} /> */}
-              {/* <Route path="/products/best-sellers" element={<BestSellers />} /> */}
               <Route path="/products/sale" element={<Sale />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/affiliate" element={<AffiliateProgram />} />
