@@ -4,15 +4,25 @@ import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
 import { ProductCard } from "@/components/ProductCard";
 import { Footer } from "@/components/Footer";
-import { FixieLoading } from "@/components/FixieLoading";
 import { useCart } from "../context/cart-context";
 // import { Button } from "@/components/ui/button";
 // import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { MobileHome } from "@/components/MobileHome";
+import { Spinner } from "@/components/ui/spinner";
 import { getCategories, getProducts } from "@/lib/repositories/catalogRepository";
 import type { Category, Product } from "@/types/catalog";
 import { BrandPartners } from "@/components/BrandPartners";
+
+const FullscreenSpinner = ({ message }: { message: string }) => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+    <div className="flex flex-col items-center gap-3 rounded-2xl border bg-card px-6 py-8 text-center shadow-lg">
+      <Spinner className="h-10 w-10 text-primary" />
+      <p className="text-base font-semibold text-foreground">{message}</p>
+      <p className="text-sm text-muted-foreground">Harap tunggu sebentar</p>
+    </div>
+  </div>
+);
 
 const Index = () => {
   const { addToCart, cartCount } = useCart();
@@ -197,11 +207,7 @@ const bestSellerProducts = useMemo(
       {/* PRODUK */}
         <section className="container mx-auto px-4 py-8">
           {loadingProducts ? (
-            <FixieLoading
-              message="Memuat produk..."
-              size="md"
-              fullscreen
-            />
+            <FullscreenSpinner message="Memuat produk..." />
           ) : products.length === 0 ? (
             <div className="text-center py-16">
               <h3 className="text-lg font-semibold">Tidak ada produk ditemukan</h3>
