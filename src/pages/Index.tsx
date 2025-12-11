@@ -125,7 +125,7 @@ const bestSellerProducts = useMemo(
   );
 
   return (
-      <div className="min-h-screen bg-background text-foreground pb-16 md:pb-0">
+      <div className="min-h-screen bg-[radial-gradient(circle_at_10%_15%,rgba(99,102,241,0.08),transparent_35%),radial-gradient(circle_at_85%_10%,rgba(16,185,129,0.08),transparent_30%),linear-gradient(to_bottom,rgba(0,0,0,0.04),transparent_22%),hsl(var(--background))] text-foreground pb-16 md:pb-0">
         <Header
           cartItemCount={cartCount}
           onSearchChange={setSearchQuery}
@@ -225,7 +225,7 @@ const bestSellerProducts = useMemo(
                 <h2 className="text-3xl font-semibold mb-6">Pilihan Produk Terbaru</h2>
 
 
-              <div className="grid grid-cols-2 gap-0 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                   {bestSellerProducts.map((product) => (
                     <ProductCard
                       key={`best-${product.id}`}
@@ -243,7 +243,7 @@ const bestSellerProducts = useMemo(
                 </p>
                 <h2 className="text-3xl font-bold mb-6">Koleksi Terbaru</h2>
 
-               <div className="grid grid-cols-2 gap-0 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+               <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                   {newArrivalProducts.map((product) => (
                     <ProductCard
                       key={`new-${product.id}`}

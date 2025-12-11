@@ -355,7 +355,7 @@ const UserDashboard = () => {
   // guard while redirecting / loading auth
   if (!user || isAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-muted/30">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Memuat dashboard</CardTitle>
@@ -371,7 +371,7 @@ const UserDashboard = () => {
 
   // --- render UI ---
   return (
-    <div className="min-h-screen bg-background py-10 px-4">
+    <div className="min-h-screen bg-muted/30 py-10 px-4">
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
