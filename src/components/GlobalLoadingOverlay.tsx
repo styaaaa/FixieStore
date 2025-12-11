@@ -11,9 +11,9 @@ export const GlobalLoadingOverlay = () => {
 
   useEffect(() => {
     setRouteLoading(true);
-    const timeout = setTimeout(() => setRouteLoading(false), 500);
-    return () => clearTimeout(timeout);
-  }, [location.pathname]);
+    const timeout = window.setTimeout(() => setRouteLoading(false), 500);
+    return () => window.clearTimeout(timeout);
+  }, [location.key]);
 
   const showOverlay = routeLoading || activeFetches > 0;
   if (!showOverlay) return null;
@@ -21,7 +21,11 @@ export const GlobalLoadingOverlay = () => {
   const message = routeLoading ? "Memuat halaman..." : "Memuat data...";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+      role="status"
+      aria-live="polite"
+    >
       <div className="flex flex-col items-center gap-3 rounded-2xl border bg-card px-6 py-8 text-center shadow-lg">
         <Spinner className="h-10 w-10 text-primary" />
         <p className="text-base font-semibold text-foreground">{message}</p>
