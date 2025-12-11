@@ -4,7 +4,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { FixieLoading } from "@/components/FixieLoading";
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -23,10 +22,21 @@ import type { Product } from "@/types/catalog";
 import { useCart } from "@/context/cart-context";
 import { toast } from "sonner";
 import { Filter, Menu, Search as SearchIcon, Sparkles, X } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 const ITEMS_PER_ROW = 4;
 const ROWS_PER_BATCH = 4;
 const ITEMS_PER_BATCH = ITEMS_PER_ROW * ROWS_PER_BATCH;
+
+const FullscreenSpinner = ({ message }: { message: string }) => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+    <div className="flex flex-col items-center gap-3 rounded-2xl border bg-card px-6 py-8 text-center shadow-lg">
+      <Spinner className="h-10 w-10 text-primary" />
+      <p className="text-base font-semibold text-foreground">{message}</p>
+      <p className="text-sm text-muted-foreground">Harap tunggu sebentar</p>
+    </div>
+  </div>
+);
 
 const SearchPage = () => {
   const navigate = useNavigate();
@@ -383,7 +393,7 @@ const SearchPage = () => {
 
 
                 {loadingProducts ? (
-                  <FixieLoading message="Memuat produk" size="md" fullscreen />
+                  <FullscreenSpinner message="Memuat produk" />
                 ) : filteredProducts.length === 0 ? (
                   <div className="rounded-2xl border bg-background p-8 text-center shadow-sm">
                     <p className="text-lg font-semibold">Produk tidak ditemukan</p>
