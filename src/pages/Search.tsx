@@ -206,7 +206,7 @@ const SearchPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
       <Header
         cartItemCount={cartCount}
         onSearchChange={setSearchQuery}
@@ -403,7 +403,7 @@ const SearchPage = () => {
                   </div>
                 ) : (
                   <div className="space-y-6">
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    <div className="grid grid-cols-1 gap-0 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                       {visibleProducts.map((product) => (
                         <ProductCard
                           key={product.id}
