@@ -320,7 +320,7 @@ const Checkout = () => {
   // ====== State auth loading / belum login ======
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/40">
+      <div className="min-h-screen bg-background">
         <div className="border-b bg-background/80 backdrop-blur">
           <div className="container mx-auto flex items-center gap-3 px-4 py-5">
             <Button variant="ghost" size="icon" disabled>
@@ -354,7 +354,7 @@ const Checkout = () => {
 
   if (!user && !authLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/40">
+      <div className="min-h-screen bg-background">
         <div className="border-b bg-background/80 backdrop-blur">
           <div className="container mx-auto flex items-center gap-3 px-4 py-5">
             <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
@@ -397,7 +397,7 @@ const Checkout = () => {
 
   // ====== UI utama ======
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/40 text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
       <div className="border-b bg-background/80 backdrop-blur">
         <div className="container mx-auto flex flex-wrap items-center justify-between gap-4 px-4 py-5">
           <div className="flex items-center gap-3">
