@@ -234,7 +234,6 @@ const SearchPage = () => {
                     <div className="flex items-center justify-between gap-2">
                       <div>
                         <p className="text-sm font-semibold">Filter kategori</p>
-                        <p className="text-xs text-muted-foreground">Gabungkan beberapa kategori untuk hasil lebih presisi.</p>
                       </div>
                    </div>
 
@@ -281,33 +280,32 @@ const SearchPage = () => {
                 <div id="price-filter" className="rounded-2xl border bg-background/80 p-4 shadow-sm">
                   <div className="flex items-center justify-between gap-2">
                     <div>
-                      <p className="text-sm font-semibold">Filter harga</p>
-                      <p className="text-xs text-muted-foreground">Tentukan rentang harga yang diinginkan.</p>
+                      <p className="text-xl font-semibold">Filter harga</p>
                     </div>
                 </div>
 
                 <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div className="space-y-1">
-                    <Label htmlFor="min-price" className="text-xs text-muted-foreground">
+                    <Label htmlFor="min-price" className="text-l text-muted-foreground">
                       Harga minimum
                     </Label>
                     <Input
                       id="min-price"
                       type="number"
-                      placeholder="0"
+                      placeholder="-"
                       value={minPrice}
                       onChange={(event) => setMinPrice(event.target.value)}
                       min={0}
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="max-price" className="text-xs text-muted-foreground">
+                    <Label htmlFor="max-price" className="text-l text-muted-foreground">
                       Harga maksimum
                     </Label>
                     <Input
                       id="max-price"
                       type="number"
-                      placeholder="Tidak dibatasi"
+                      placeholder="-"
                       value={maxPrice}
                       onChange={(event) => setMaxPrice(event.target.value)}
                       min={0}
@@ -331,7 +329,6 @@ const SearchPage = () => {
               <div className="space-y-4">
                 <form onSubmit={handleSearchSubmit} className="space-y-3">
                   <Label htmlFor="search-query" className="text-sm font-semibold text-muted-foreground">
-                    Cari produk
                   </Label>
                   <div className="h-12 rounded-xl sm:w-auto flex items-center gap-3">
                     <div className="relative flex-1">

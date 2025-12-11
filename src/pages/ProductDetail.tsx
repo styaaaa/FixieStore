@@ -204,9 +204,6 @@ const ProductDetail = () => {
             <div className="flex items-center justify-between gap-2">
               <div>
                 <CardTitle>Ulasan Pembeli</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Ditampilkan hanya dari pesanan yang statusnya sukses.
-                </p>
               </div>
               <Badge variant="secondary">{reviews.length} ulasan</Badge>
             </div>

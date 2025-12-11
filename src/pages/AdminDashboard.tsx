@@ -564,13 +564,10 @@ export default function AdminDashboard() {
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <ShieldCheck className="h-4 w-4" />
-              Mode Admin Aktif
+              Admin Dashboard
             </div>
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold leading-tight tracking-tight">Dashboard Admin</h1>
-              <Badge variant="secondary" className="border border-primary/20 bg-primary/10 text-primary dark:text-primary-foreground">
-                Terproteksi
-              </Badge>
             </div>
 
             <div className="flex flex-wrap gap-3">
@@ -587,7 +584,7 @@ export default function AdminDashboard() {
 
           <div className="flex flex-col gap-3 rounded-2xl border border-border bg-muted/50 p-4 shadow-none transition-colors dark:bg-black/60">
             <div className="flex items-center justify-between text-sm font-medium text-muted-foreground">
-              <span>Kontrol Cepat</span>
+              
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <Button
