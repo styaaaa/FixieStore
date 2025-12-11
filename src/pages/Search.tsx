@@ -217,14 +217,7 @@ const SearchPage = () => {
               {filtersVisible && (
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                      <Sparkles className="h-4 w-4" />
-                      Mode pencarian terbaru
-                    </div>
-                    <h1 className="text-3xl font-bold">Temukan produk favoritmu</h1>
-                    <p className="text-sm text-muted-foreground">
-                      Cari dengan kata kunci, padukan filter, atau coba rekomendasi acak yang kami pilihkan.
-                    </p>
+                    <h1 className="text-3xl font-bold">Temukan produk favoritmu</h1>  
                   </div>
 
                   <div id="category-filter" className="rounded-2xl border bg-background/80 p-4 shadow-sm">

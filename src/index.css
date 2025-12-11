@@ -111,6 +111,7 @@ All colors MUST be HSL.
       radial-gradient(circle at 82% 0%, hsl(var(--stone-400) / 0.12), transparent 36%),
       linear-gradient(180deg, hsl(var(--background)), hsl(var(--stone-400) / 0.18));
     color: hsl(var(--foreground));
+    font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
   }
 
   .dark body {
@@ -125,3 +126,4 @@ All colors MUST be HSL.
     filter: invert(1);
   }
 }
+

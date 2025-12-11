@@ -20,9 +20,6 @@ export const BrandPartners = () => {
             Brand Partner
           </p>
          <h2 className="text-3xl font-semibold md:text-4xl">Brand Kece</h2>
-          <p className="text-base text-muted-foreground">
-            Brand yang bikin makin kece pas Riding.
-          </p>
         </div>
 
         <div className="relative mt-10 overflow-hidden">

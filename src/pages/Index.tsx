@@ -216,7 +216,7 @@ const bestSellerProducts = useMemo(
                 <p className="text-sm font-semibold uppercase tracking-wide text-primary">
                   New Arrival
                 </p>
-                <h2 className="text-3xl font-bold mb-6">Pilihan Produk Terbaru</h2>
+                <h2 className="text-3xl font-semibold mb-6">Pilihan Produk Terbaru</h2>
 
 
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
