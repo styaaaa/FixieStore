@@ -18,56 +18,91 @@ import { useUserOrders } from "@/hooks/useUserOrders";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import type { Order, OrderStatus } from "@/types/order";
 import type { ProductReview, PurchasedProduct } from "@/types/review";
-import { getReviewsByOrder, getPurchasedProductsByOrder } from "@/lib/repositories/reviewRepository";
+import {
+  getReviewsByOrder,
+  getPurchasedProductsByOrder,
+} from "@/lib/repositories/reviewRepository";
 import { supabase } from "@/lib/supabaseClient";
 
 const UserDashboard = () => {
   const navigate = useNavigate();
   const { user, isAdmin, authLoading, signOut } = useAuth();
 
-  // orders & profile
+  /* =========================
+     DATA
+     ========================= */
   const { data: orders = [], isLoading: ordersLoading } = useUserOrders(user?.id);
   const { data: profile } = useUserProfile(user?.id);
 
-  // states
+  /* =========================
+     STATE
+     ========================= */
   const [orderReviews, setOrderReviews] = useState<Record<string, ProductReview[]>>({});
   const [purchasedProducts, setPurchasedProducts] = useState<Record<string, PurchasedProduct[]>>({});
   const [cartCount, setCartCount] = useState<number | null>(null);
   const [cartLoading, setCartLoading] = useState(false);
 
-  // redirect / auth guard
+  /* =========================
+     AUTH GUARD
+     ========================= */
   useEffect(() => {
     if (authLoading) return;
+
     if (!user) {
       navigate("/login", { replace: true });
       return;
     }
+
     if (isAdmin) {
       navigate("/admin/dashboard", { replace: true });
     }
-  }, [authLoading, isAdmin, navigate, user]);
+  }, [authLoading, user, isAdmin, navigate]);
 
   const handleSignOut = useCallback(async () => {
     try {
       await signOut();
       navigate("/");
-    } catch (error) {
-      console.error("Gagal keluar:", error);
+    } catch (err) {
+      console.error("Gagal keluar:", err);
     }
-  }, [navigate, signOut]);
+  }, [signOut, navigate]);
 
-  const initial = (profile?.full_name ?? user?.email ?? "U").charAt(0).toUpperCase();
+  /* =========================
+     USER INFO
+     ========================= */
+  const initial = useMemo(
+    () => (profile?.full_name ?? user?.email ?? "U").charAt(0).toUpperCase(),
+    [profile?.full_name, user?.email]
+  );
 
   const displayName = useMemo(() => {
     if (profile?.full_name) return profile.full_name;
-    return (user?.user_metadata as Record<string, string> | undefined)?.full_name
-      || user?.email
-      || "Akun Anda";
+
+    return (
+      (user?.user_metadata as Record<string, string> | undefined)?.full_name ||
+      user?.email ||
+      "Akun Anda"
+    );
   }, [profile?.full_name, user?.user_metadata, user?.email]);
 
-  // order status flow & labels
-  const statusFlow: OrderStatus[] = ["pending", "processed", "packaged", "shipped", "completed"];
-  const activeStatuses: OrderStatus[] = ["pending", "processed", "packaged", "shipped"];
+  /* =========================
+     ORDER CONSTANTS
+     ========================= */
+  const statusFlow: OrderStatus[] = [
+    "pending",
+    "processed",
+    "packaged",
+    "shipped",
+    "completed",
+  ];
+
+  const activeStatuses: OrderStatus[] = [
+    "pending",
+    "processed",
+    "packaged",
+    "shipped",
+  ];
+
   const statusLabels: Record<OrderStatus, string> = {
     pending: "Pending",
     processed: "Diproses",
@@ -79,102 +114,101 @@ const UserDashboard = () => {
     cancelled: "Dibatalkan",
   };
 
-  // derived lists
-  const activeOrders = useMemo(() => orders.filter((o) => activeStatuses.includes(o.status)), [orders]);
-  const completedOrders = useMemo(() => orders.filter((o) => o.status === "completed"), [orders]);
+  /* =========================
+     DERIVED ORDERS
+     ========================= */
+  const activeOrders = useMemo(
+    () => orders.filter((o) => activeStatuses.includes(o.status)),
+    [orders]
+  );
 
-  // stable key for completed orders (only changes when ids change)
+  const completedOrders = useMemo(
+    () => orders.filter((o) => o.status === "completed"),
+    [orders]
+  );
+
+  const ordersKey = useMemo(
+    () => orders.map((o) => o.id).join("|"),
+    [orders]
+  );
+
   const completedOrdersKey = useMemo(
-    () => JSON.stringify(completedOrders.map((o) => o.id)),
+    () => completedOrders.map((o) => o.id).join("|"),
     [completedOrders]
   );
 
   /* =========================
-     Fetch order reviews (for completed orders)
-     - guarded against unmount
-     - runs only when completedOrdersKey changes
+     FETCH REVIEWS
      ========================= */
   useEffect(() => {
     let mounted = true;
 
-    const fetchOrderReviews = async () => {
+    const run = async () => {
       if (completedOrders.length === 0) {
         if (mounted) setOrderReviews({});
         return;
       }
 
-      try {
-        const entries = await Promise.all(
-          completedOrders.map(async (order) => {
-            try {
-              const reviews = await getReviewsByOrder(order.id);
-              return [order.id, Array.isArray(reviews) ? reviews : []] as const;
-            } catch (err) {
-              console.error("Gagal memuat review untuk order", order.id, err);
-              return [order.id, []] as const;
-            }
-          })
-        );
+      const entries = await Promise.all(
+        completedOrders.map(async (order) => {
+          try {
+            const reviews = await getReviewsByOrder(order.id);
+            return [order.id, Array.isArray(reviews) ? reviews : []] as const;
+          } catch {
+            return [order.id, []] as const;
+          }
+        })
+      );
 
-        if (!mounted) return;
+      if (mounted) {
         setOrderReviews(Object.fromEntries(entries));
-      } catch (err) {
-        console.error("Gagal memproses fetch order reviews:", err);
-        if (mounted) setOrderReviews({});
       }
     };
 
-    fetchOrderReviews();
+    run();
 
     return () => {
       mounted = false;
     };
-  }, [completedOrdersKey, completedOrders]);
+  }, [completedOrdersKey]);
 
   /* =========================
-     Fetch purchased products per order (so renderProductDetails shows actual purchased products)
-     - runs whenever orders change
+     FETCH PURCHASED PRODUCTS
      ========================= */
   useEffect(() => {
     let mounted = true;
 
-    const fetchPurchased = async () => {
+    const run = async () => {
       if (orders.length === 0) {
         if (mounted) setPurchasedProducts({});
         return;
       }
 
-      try {
-        const entries = await Promise.all(
-          orders.map(async (order) => {
-            try {
-              const products = await getPurchasedProductsByOrder(order.id);
-              return [order.id, Array.isArray(products) ? products : []] as const;
-            } catch (err) {
-              console.error("Gagal memuat produk untuk order", order.id, err);
-              return [order.id, []] as const;
-            }
-          })
-        );
+      const entries = await Promise.all(
+        orders.map(async (order) => {
+          try {
+            const products = await getPurchasedProductsByOrder(order.id);
+            return [order.id, Array.isArray(products) ? products : []] as const;
+          } catch {
+            return [order.id, []] as const;
+          }
+        })
+      );
 
-        if (!mounted) return;
+      if (mounted) {
         setPurchasedProducts(Object.fromEntries(entries));
-      } catch (err) {
-        console.error("Gagal memproses fetch purchased products:", err);
-        if (mounted) setPurchasedProducts({});
       }
     };
 
-    fetchPurchased();
+    run();
 
     return () => {
       mounted = false;
     };
-  }, [orders]);
+  }, [ordersKey]);
 
   /* =========================
-     Cart: fetch count + realtime subscription
-     - keeps existing cart_items integration intact
+     CART COUNT + REALTIME
      ========================= */
   const fetchCartCount = useCallback(async () => {
     if (!user?.id) {
@@ -183,32 +217,25 @@ const UserDashboard = () => {
     }
 
     setCartLoading(true);
+
     try {
-      const { count, error } = await supabase
+      const { count } = await supabase
         .from("cart_items")
         .select("id", { count: "exact" })
         .eq("user_id", user.id);
 
-      if (error) {
-        console.error("Failed fetching cart count:", error);
-        setCartCount(0);
-      } else {
-        setCartCount(Number(count ?? 0));
-      }
-    } catch (err) {
-      console.error("Failed fetching cart count:", err);
+      setCartCount(Number(count ?? 0));
+    } catch {
       setCartCount(0);
     } finally {
       setCartLoading(false);
     }
   }, [user?.id]);
 
-  // initial fetch
   useEffect(() => {
     if (user?.id) fetchCartCount();
   }, [user?.id, fetchCartCount]);
 
-  // realtime listener (Supabase Realtime) — listens specifically for this user's cart_items
   useEffect(() => {
     if (!user?.id) return;
 
@@ -222,42 +249,41 @@ const UserDashboard = () => {
           table: "cart_items",
           filter: `user_id=eq.${user.id}`,
         },
-        () => {
-          // refresh count whenever cart changes
-          fetchCartCount();
-        }
+        fetchCartCount
       )
       .subscribe();
 
     return () => {
-      try {
-        supabase.removeChannel(channel);
-      } catch (err) {
-        // older client versions may require unsubscribing differently; ignore errors on cleanup
-      }
+      supabase.removeChannel(channel);
     };
   }, [user?.id, fetchCartCount]);
 
   /* =========================
-     Helpers: formatting + render utilities
+     HELPERS
      ========================= */
-  const formatCurrency = useCallback((value?: number | null) =>
-    new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(value ?? 0), []);
+  const formatCurrency = useCallback(
+    (value?: number | null) =>
+      new Intl.NumberFormat("id-ID", {
+        style: "currency",
+        currency: "IDR",
+        minimumFractionDigits: 0,
+      }).format(value ?? 0),
+    []
+  );
 
-  const formatDate = useCallback((order: Order) =>
-    order.createdAt
-      ? new Intl.DateTimeFormat("id-ID", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        }).format(new Date(order.createdAt))
-      : "Tanggal tidak tersedia", []);
+  const formatDate = useCallback(
+    (order: Order) =>
+      order.createdAt
+        ? new Intl.DateTimeFormat("id-ID", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          }).format(new Date(order.createdAt))
+        : "Tanggal tidak tersedia",
+    []
+  );
 
   const renderProductDetails = (order: Order) => {
     const items = purchasedProducts[order.id] ?? [];
