@@ -378,25 +378,27 @@ export default function AdminDashboard() {
    }, [fetchOrderItemNames, isAdmin, user]);
 
   const setField = <K extends keyof ProductFormState>(
-  field: K,
-  value: ProductFormState[K]
-) => {
-  setForm((prev) => ({ ...prev, [field]: value }));
-};
+    field: K,
+    value: ProductFormState[K]
+  ) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
 
-const setEditField = <K extends keyof ProductFormState>(
-  field: K,
-  value: ProductFormState[K]
-) => {
-  setEditForm((prev) => (prev ? { ...prev, [field]: value } : prev));
-};
+  const setEditField = <K extends keyof ProductFormState>(
+    field: K,
+    value: ProductFormState[K]
+  ) => {
+    setEditForm((prev) => (prev ? { ...prev, [field]: value } : prev));
+  };
 
 
   const getBrandNameById = (id: string | null | undefined) =>
     brands.find((brand) => brand.id === id)?.name ?? "";
 
-  const getBrandIdByName = (name: string): string | null => {
-  const normalizedName = name.trim().toLowerCase();
+  const getBrandIdByName = (name: string | null | undefined): string | null => {
+    const normalizedName = name?.trim().toLowerCase();
+    if (!normalizedName) return null;
+
     return (
       brands.find((brand) => brand.name.trim().toLowerCase() === normalizedName)?.id ?? null
     );
@@ -441,19 +443,16 @@ const setEditField = <K extends keyof ProductFormState>(
 
     try {
       const imageUrl = await uploadProductImage(form.file);
-      const brandName = getBrandNameById(form.brandId);
-
-
       const newProduct = await createProduct({
-  name: form.name,
-  brand_id: form.brandId,
-  price: Number(form.price),
-  stock: Number(form.stock),
-  imageUrl,
-  description: form.description,
-  long_description: form.longDescription,
-  category_id: form.categoryId,
-});
+        name: form.name,
+        brandId: form.brandId,
+        price: Number(form.price),
+        stock: Number(form.stock),
+        imageUrl,
+        description: form.description,
+        longDescription: form.longDescription,
+        categoryId: form.categoryId,
+      });
 
       setProducts((p) => [newProduct, ...p]);
       setForm(initialForm);
@@ -475,7 +474,7 @@ const setEditField = <K extends keyof ProductFormState>(
     setEditing(product);
     setEditForm({
       name: product.name,
-      brandId: getBrandIdByName(product.brand),
+      brandId: product.brandId ?? getBrandIdByName(product.brand),
       price: String(product.price),
       stock: String(product.stock),
       description: product.description,
@@ -499,13 +498,9 @@ const setEditField = <K extends keyof ProductFormState>(
         imageUrl = await uploadProductImage(editForm.file);
       }
 
-      const brandName = editForm.brandId
-        ? getBrandNameById(editForm.brandId)
-        : editing.brand;
-
       const updated = await updateProduct(editing.id, {
         name: editForm.name,
-        brand: brandName,
+        brandId: editForm.brandId ?? null,
         price: Number(editForm.price),
         stock: Number(editForm.stock),
         imageUrl,
@@ -531,6 +526,13 @@ const setEditField = <K extends keyof ProductFormState>(
   // ============================
 
   const handleDelete = async (id: string) => {
+    const target = products.find((product) => product.id === id);
+    const confirmed = window.confirm(
+      `Apakah Anda yakin ingin menghapus produk${target ? ` "${target.name}"` : ""}?`
+    );
+
+    if (!confirmed) return;
+
     setDeleteLoading((s) => ({ ...s, [id]: true }));
 
     try {
@@ -973,7 +975,7 @@ const setEditField = <K extends keyof ProductFormState>(
                   >
                     <TableCell className="align-middle">
                       <p className="font-semibold">{p.name}</p>
-                      <p className="text-sm text-muted-foreground">{p.brand}</p>
+                      <p className="text-sm text-muted-foreground">{p.brand ?? "-"}</p>
                     </TableCell>
 
                     <TableCell className="align-middle">Rp {p.price.toLocaleString("id-ID")}</TableCell>
@@ -1154,46 +1156,118 @@ const setEditField = <K extends keyof ProductFormState>(
                 detail produk.
               </p>
               <form onSubmit={handleUpdate} className="space-y-4">
-                <Input value={editForm.name} onChange={(e) => setEditField("name", e.target.value)} />
-                <Select
-                  value={editForm.brandId ?? "none"}
-                  onValueChange={(value: string) => setEditField("brandId", value === "none" ? null : value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih brand" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Pilih brand</SelectItem>
-                    {brands.map((brand) => (
-                      <SelectItem key={brand.id} value={brand.id}>
-                        {brand.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Input type="number" value={editForm.price} onChange={(e) => setEditField("price", e.target.value)} />
-                <Input type="number" value={editForm.stock} onChange={(e) => setEditField("stock", e.target.value)} />
-
-                <Select value={editForm.categoryId ?? "none"} onValueChange={(v) => setEditField("categoryId", v === "none" ? null : v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Kategori" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Tanpa kategori</SelectItem>
-                    {categories.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <div>
-                  <Label>Gambar baru (opsional)</Label>
-                  <Input type="file" accept="image/*" onChange={(e) => setEditField("file", e.target.files?.[0] ?? null)} />
+                <div className="space-y-1">
+                  <Label>Nama Produk</Label>
+                  <Input
+                    value={editForm.name}
+                    onChange={(e) => setEditField("name", e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">Nama saat ini: {editing.name}</p>
                 </div>
 
-                <Textarea rows={4} value={editForm.longDescription} onChange={(e) => setEditField("longDescription", e.target.value)} />
+                <div className="space-y-1">
+                  <Label>Brand</Label>
+                  <Select
+                    value={editForm.brandId ?? "none"}
+                    onValueChange={(value: string) => setEditField("brandId", value === "none" ? null : value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih brand" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Tanpa brand</SelectItem>
+                      {brands.map((brand) => (
+                        <SelectItem key={brand.id} value={brand.id}>
+                          {brand.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Hubungan brand diambil langsung dari tabel Supabase Anda.
+                  </p>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-1">
+                    <Label>Harga</Label>
+                    <Input
+                      type="number"
+                      value={editForm.price}
+                      onChange={(e) => setEditField("price", e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Harga sebelumnya: Rp {Number(editing.price).toLocaleString("id-ID")}
+                    </p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label>Stok</Label>
+                    <Input
+                      type="number"
+                      value={editForm.stock}
+                      onChange={(e) => setEditField("stock", e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">Stok tersedia: {editing.stock} unit</p>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <Label>Kategori</Label>
+                  <Select
+                    value={editForm.categoryId ?? "none"}
+                    onValueChange={(v) => setEditField("categoryId", v === "none" ? null : v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Kategori" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Tanpa kategori</SelectItem>
+                      {categories.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Kategori saat ini: {categories.find((c) => c.id === editing.categoryId)?.name ?? editing.categoryId ?? "-"}
+                  </p>
+                </div>
+
+                <div className="space-y-1">
+                  <Label>Gambar baru (opsional)</Label>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setEditField("file", e.target.files?.[0] ?? null)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Biarkan kosong jika ingin mempertahankan gambar lama.
+                  </p>
+                </div>
+
+                <div className="space-y-1">
+                  <Label>Deskripsi Singkat</Label>
+                  <Textarea
+                    rows={3}
+                    value={editForm.description}
+                    onChange={(e) => setEditField("description", e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">Deskripsi saat ini: {editing.description || "-"}</p>
+                </div>
+
+                <div className="space-y-1">
+                  <Label>Deskripsi Panjang</Label>
+                  <Textarea
+                    rows={4}
+                    value={editForm.longDescription}
+                    onChange={(e) => setEditField("longDescription", e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Jelaskan detail lengkap produk untuk membantu admin lain melakukan review.
+                  </p>
+                </div>
 
                 <div className="flex items-center justify-between">
                   <Button type="button" variant="outline" onClick={() => setEditing(null)}>
