@@ -6,7 +6,7 @@ export interface NewProductPayload {
   name: string;
   price: number;
   stock: number;
-  brand?: string;
+  brandId?: string | null;
   description?: string;
   longDescription?: string;
   imageUrl?: string;
@@ -33,8 +33,9 @@ const mapProduct = (row: any): Product => ({
   description: row.description,
   longDescription: row.long_description,
   categoryId: row.category_id,
-  brandId: row.brand_id,
-  brand: row.brands ?? null,
+  brandId: row.brand_id ?? null,
+  brand: typeof row.brands === "object" ? row.brands?.name ?? null : row.brand ?? null,
+  createdAt: row.created_at ?? null,
 });
 
 export const getCategories = async (): Promise<Category[]> => {
@@ -126,7 +127,7 @@ export const createProduct = async (payload: NewProductPayload): Promise<Product
     .from("products")
     .insert({
       name: payload.name,
-      brand: payload.brand?.trim() || null,
+      brand_id: payload.brandId ?? null,
       price: payload.price,
       stock: payload.stock,
       description: payload.description?.trim() || null,
@@ -134,7 +135,7 @@ export const createProduct = async (payload: NewProductPayload): Promise<Product
       image_url: payload.imageUrl?.trim() || null,
       category_id: payload.categoryId || null,
     })
-    .select("*")
+    .select(`*, brands (id, name)`) 
     .single();
 
   if (error) {
@@ -152,7 +153,7 @@ export const updateProduct = async (
   const updates: Record<string, unknown> = {};
 
   if (payload.name !== undefined) updates.name = payload.name;
-  if (payload.brand !== undefined) updates.brand = payload.brand?.trim();
+  if (payload.brandId !== undefined) updates.brand_id = payload.brandId ?? null;
   if (payload.price !== undefined) updates.price = payload.price;
   if (payload.stock !== undefined) updates.stock = payload.stock;
   if (payload.description !== undefined)
@@ -166,7 +167,7 @@ export const updateProduct = async (
     .from("products")
     .update(updates)
     .eq("id", productId)
-    .select("*")
+    .select(`*, brands (id, name)`) 
     .single();
 
   if (error) {
