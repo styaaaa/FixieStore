@@ -1144,144 +1144,152 @@ export default function AdminDashboard() {
       </div>
 
       {editing && editForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <Card className="w-full max-w-xl border border-border bg-card text-foreground">
-            <CardHeader>
-              <CardTitle>Edit Produk</CardTitle>
-            </CardHeader>
+  <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm overflow-y-auto">
+    <div className="flex min-h-screen items-start justify-center p-4">
+      <Card className="w-full max-w-xl max-h-[90vh] overflow-y-auto border border-border bg-card text-foreground">
+        <CardHeader className="sticky top-0 z-10 bg-card border-b border-border">
+          <CardTitle>Edit Produk</CardTitle>
+        </CardHeader>
 
-            <CardContent>
-              <p className="mb-3 text-xs text-muted-foreground">
-                Brand kini dipilih dari data database. Gunakan formulir di bawah untuk menyimpan perubahan
-                detail produk.
+        <CardContent className="space-y-4 pt-4">
+          <p className="text-xs text-muted-foreground">
+            Brand kini dipilih langsung dari tabel Supabase.
+          </p>
+
+          <form onSubmit={handleUpdate} className="space-y-4">
+            {/* Nama */}
+            <div className="space-y-1">
+              <Label>Nama Produk</Label>
+              <Input
+                value={editForm.name}
+                onChange={(e) => setEditField("name", e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Nama saat ini: {editing.name}
               </p>
-              <form onSubmit={handleUpdate} className="space-y-4">
-                <div className="space-y-1">
-                  <Label>Nama Produk</Label>
-                  <Input
-                    value={editForm.name}
-                    onChange={(e) => setEditField("name", e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">Nama saat ini: {editing.name}</p>
-                </div>
+            </div>
 
-                <div className="space-y-1">
-                  <Label>Brand</Label>
-                  <Select
-                    value={editForm.brandId ?? "none"}
-                    onValueChange={(value: string) => setEditField("brandId", value === "none" ? null : value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih brand" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Tanpa brand</SelectItem>
-                      {brands.map((brand) => (
-                        <SelectItem key={brand.id} value={brand.id}>
-                          {brand.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    Hubungan brand diambil langsung dari tabel Supabase Anda.
-                  </p>
-                </div>
+            {/* Brand */}
+            <div className="space-y-1">
+              <Label>Brand</Label>
+              <Select
+                value={editForm.brandId ?? "none"}
+                onValueChange={(v: string) =>
+                  setEditField("brandId", v === "none" ? null : v)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih brand" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Tanpa brand</SelectItem>
+                  {brands.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>
+                      {b.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-1">
-                    <Label>Harga</Label>
-                    <Input
-                      type="number"
-                      value={editForm.price}
-                      onChange={(e) => setEditField("price", e.target.value)}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Harga sebelumnya: Rp {Number(editing.price).toLocaleString("id-ID")}
-                    </p>
-                  </div>
+            {/* Harga & Stok */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1">
+                <Label>Harga</Label>
+                <Input
+                  type="number"
+                  value={editForm.price}
+                  onChange={(e) => setEditField("price", e.target.value)}
+                />
+              </div>
 
-                  <div className="space-y-1">
-                    <Label>Stok</Label>
-                    <Input
-                      type="number"
-                      value={editForm.stock}
-                      onChange={(e) => setEditField("stock", e.target.value)}
-                    />
-                    <p className="text-xs text-muted-foreground">Stok tersedia: {editing.stock} unit</p>
-                  </div>
-                </div>
+              <div className="space-y-1">
+                <Label>Stok</Label>
+                <Input
+                  type="number"
+                  value={editForm.stock}
+                  onChange={(e) => setEditField("stock", e.target.value)}
+                />
+              </div>
+            </div>
 
-                <div className="space-y-1">
-                  <Label>Kategori</Label>
-                  <Select
-                    value={editForm.categoryId ?? "none"}
-                    onValueChange={(v) => setEditField("categoryId", v === "none" ? null : v)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Kategori" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Tanpa kategori</SelectItem>
-                      {categories.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>
-                          {c.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    Kategori saat ini: {categories.find((c) => c.id === editing.categoryId)?.name ?? editing.categoryId ?? "-"}
-                  </p>
-                </div>
+            {/* Kategori */}
+            <div className="space-y-1">
+              <Label>Kategori</Label>
+              <Select
+                value={editForm.categoryId ?? "none"}
+                onValueChange={(v) =>
+                  setEditField("categoryId", v === "none" ? null : v)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih kategori" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Tanpa kategori</SelectItem>
+                  {categories.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-                <div className="space-y-1">
-                  <Label>Gambar baru (opsional)</Label>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setEditField("file", e.target.files?.[0] ?? null)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Biarkan kosong jika ingin mempertahankan gambar lama.
-                  </p>
-                </div>
+            {/* Gambar */}
+            <div className="space-y-1">
+              <Label>Gambar baru (opsional)</Label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  setEditField("file", e.target.files?.[0] ?? null)
+                }
+              />
+            </div>
 
-                <div className="space-y-1">
-                  <Label>Deskripsi Singkat</Label>
-                  <Textarea
-                    rows={3}
-                    value={editForm.description}
-                    onChange={(e) => setEditField("description", e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">Deskripsi saat ini: {editing.description || "-"}</p>
-                </div>
+            {/* Deskripsi */}
+            <div className="space-y-1">
+              <Label>Deskripsi Singkat</Label>
+              <Textarea
+                rows={3}
+                value={editForm.description}
+                onChange={(e) =>
+                  setEditField("description", e.target.value)
+                }
+              />
+            </div>
 
-                <div className="space-y-1">
-                  <Label>Deskripsi Panjang</Label>
-                  <Textarea
-                    rows={4}
-                    value={editForm.longDescription}
-                    onChange={(e) => setEditField("longDescription", e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Jelaskan detail lengkap produk untuk membantu admin lain melakukan review.
-                  </p>
-                </div>
+            <div className="space-y-1">
+              <Label>Deskripsi Panjang</Label>
+              <Textarea
+                rows={4}
+                value={editForm.longDescription}
+                onChange={(e) =>
+                  setEditField("longDescription", e.target.value)
+                }
+              />
+            </div>
 
-                <div className="flex items-center justify-between">
-                  <Button type="button" variant="outline" onClick={() => setEditing(null)}>
-                    Batal
-                  </Button>
-                  <Button type="submit" disabled={savingEdit}>
-                    {savingEdit ? ".." : "Simpan"}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+            {/* Action */}
+            <div className="flex justify-between pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setEditing(null)}
+              >
+                Batal
+              </Button>
+              <Button type="submit" disabled={savingEdit}>
+                {savingEdit ? "Menyimpan..." : "Simpan"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
-      );
+  </div>
+)}
+    </div>
+  );
 }
