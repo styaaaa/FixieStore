@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { Category, Product } from "@/types/catalog";
+import type { Brand, Category, Product } from "@/types/catalog";
 import type { Tables } from "@/integrations/supabase/types";
 
 export interface NewProductPayload {
@@ -19,17 +19,22 @@ const mapCategory = (row: Tables<"categories">): Category => ({
   slug: row.slug?.trim() || "",
 });
 
-const mapProduct = (row: Tables<"products">): Product => ({
+const mapBrand = (row: { id: string; name: string | null }): Brand => ({
+  id: row.id,
+  name: row.name?.trim() || "",
+});
+
+const mapProduct = (row: any): Product => ({
   id: row.id,
   name: row.name,
-  brand: row.brand?.trim() || "",
-  price: typeof row.price === "number" ? row.price : Number(row.price ?? 0),
-  stock: row.stock ?? 0,
-  imageUrl: row.image_url?.trim() || "",
-  description: row.description?.trim() || "",
-  longDescription: row.long_description?.trim() || "",
+  price: row.price,
+  stock: row.stock,
+  imageUrl: row.image_url,
+  description: row.description,
+  longDescription: row.long_description,
   categoryId: row.category_id,
-  createdAt: row.created_at,
+  brandId: row.brand_id,
+  brand: row.brands ?? null,
 });
 
 export const getCategories = async (): Promise<Category[]> => {
@@ -51,10 +56,40 @@ export const getCategories = async (): Promise<Category[]> => {
   });
 };
 
+export const getBrands = async (): Promise<Brand[]> => {
+  const { data, error } = await supabase
+    .from("brands")
+    .select("id, name")
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching brands", error);
+    throw error;
+  }
+
+  return (data ?? []).map(mapBrand);
+};
+
 export const getProducts = async (categoryId?: string | null): Promise<Product[]> => {
   let query = supabase
     .from("products")
-    .select("*")
+.select(`
+  id,
+  name,
+  description,
+  long_description,
+  price,
+  stock,
+  image_url,
+  category_id,
+  brand_id,
+  created_at,
+  brands (
+    id,
+    name
+  )
+`)
+
     .order("created_at", { ascending: false });
 
   if (categoryId) {

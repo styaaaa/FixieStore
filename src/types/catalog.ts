@@ -4,6 +4,11 @@ export interface Category {
   slug: string;
 }
 
+export interface Brand {
+  id: string;
+  name: string;
+}
+
 export interface Product {
   id: string;
   name: string;

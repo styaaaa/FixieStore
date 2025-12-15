@@ -12,6 +12,24 @@ export type Database = {
   };
   public: {
     Tables: {
+      brands: {
+  Row: {
+    id: string;
+    name: string | null;
+    created_at: string | null;
+  };
+  Insert: {
+    id?: string;
+    name?: string | null;
+    created_at?: string | null;
+  };
+  Update: {
+    id?: string;
+    name?: string | null;
+    created_at?: string | null;
+  };
+  Relationships: [];
+};
       categories: {
         Row: {
           id: string;

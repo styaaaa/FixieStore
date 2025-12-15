@@ -58,6 +58,7 @@ import { supabase } from "@/lib/supabaseClient";
 import {
   createProduct,
   deleteProduct,
+  getBrands,
   getCategories,
   getProducts,
   updateProduct,
@@ -68,7 +69,7 @@ import {
   updateOrderStatus,
 } from "@/lib/repositories/orderRepository";
 
-import type { Product, Category } from "@/types/catalog";
+import type { Brand, Product, Category } from "@/types/catalog";
 import type { Order, OrderStatus } from "@/types/order";
 
 // ============================
@@ -77,7 +78,11 @@ import type { Order, OrderStatus } from "@/types/order";
 
 interface ProductFormState {
   name: string;
-  brand: string;
+  brandId: string | null;
+brand?: {
+  id: string;
+  name: string;
+} | null;
   price: string;
   stock: string;
   description: string;
@@ -88,7 +93,7 @@ interface ProductFormState {
 
 const initialForm: ProductFormState = {
   name: "",
-  brand: "",
+  brandId: null,
   price: "",
   stock: "0",
   description: "",
@@ -96,6 +101,7 @@ const initialForm: ProductFormState = {
   categoryId: null,
   file: null,
 };
+
 
 type DashboardView = "monitoring" | "order-status" | "add-product" | "product-table";
 
@@ -115,6 +121,7 @@ export default function AdminDashboard() {
   const { user, isAdmin, authLoading } = useAuth();
 
   const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
 
@@ -240,7 +247,22 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     setIsSidebarOpen(isDesktopView());
-  }, []);  
+  }, []);
+
+  useEffect(() => {
+    if (!editing || !editForm) return;
+
+    if (!editForm.brandId) {
+      const derivedId = getBrandIdByName(editing.brand);
+      if (derivedId) {
+        setEditForm((prev) =>
+        prev
+            ? { ...prev, brandId: derivedId ?? null }
+            : prev
+        );
+      }
+    }
+  }, [brands, editForm, editing]);  
 
   // ============================
   // Load Data
@@ -268,13 +290,14 @@ export default function AdminDashboard() {
     try {
       setOrdersLoading(true);
 
-      const [cats, prods, adminOrders] = await Promise.all([
+      const [cats, prods, adminOrders, brandOptions] = await Promise.all([
         getCategories(),
         getProducts(),
         fetchAllOrders(),
+        getBrands(),
       ]);
 
-    const ordersWithNames = await Promise.all(
+      const ordersWithNames = await Promise.all(
         adminOrders.map(async (order) => {
           if (order.productName) return order;
 
@@ -284,6 +307,7 @@ export default function AdminDashboard() {
       );
 
       setCategories(cats);
+      setBrands(brandOptions);
       setProducts(prods);
       setOrders(ordersWithNames);
     } catch {
@@ -353,11 +377,30 @@ export default function AdminDashboard() {
     };
    }, [fetchOrderItemNames, isAdmin, user]);
 
-  const setField = (f: keyof ProductFormState, v: any) =>
-    setForm((p) => ({ ...p, [f]: v }));
+  const setField = <K extends keyof ProductFormState>(
+  field: K,
+  value: ProductFormState[K]
+) => {
+  setForm((prev) => ({ ...prev, [field]: value }));
+};
 
-  const setEditField = (f: keyof ProductFormState, v: any) =>
-    setEditForm((p) => (p ? { ...p, [f]: v } : p));
+const setEditField = <K extends keyof ProductFormState>(
+  field: K,
+  value: ProductFormState[K]
+) => {
+  setEditForm((prev) => (prev ? { ...prev, [field]: value } : prev));
+};
+
+
+  const getBrandNameById = (id: string | null | undefined) =>
+    brands.find((brand) => brand.id === id)?.name ?? "";
+
+  const getBrandIdByName = (name: string): string | null => {
+  const normalizedName = name.trim().toLowerCase();
+    return (
+      brands.find((brand) => brand.name.trim().toLowerCase() === normalizedName)?.id ?? null
+    );
+  };
 
   // ============================
   // Supabase Upload
@@ -398,17 +441,19 @@ export default function AdminDashboard() {
 
     try {
       const imageUrl = await uploadProductImage(form.file);
+      const brandName = getBrandNameById(form.brandId);
+
 
       const newProduct = await createProduct({
-        name: form.name,
-        brand: form.brand,
-        price: Number(form.price),
-        stock: Number(form.stock),
-        imageUrl,
-        description: form.description,
-        longDescription: form.longDescription,
-        categoryId: form.categoryId,
-      });
+  name: form.name,
+  brand_id: form.brandId,
+  price: Number(form.price),
+  stock: Number(form.stock),
+  imageUrl,
+  description: form.description,
+  long_description: form.longDescription,
+  category_id: form.categoryId,
+});
 
       setProducts((p) => [newProduct, ...p]);
       setForm(initialForm);
@@ -430,7 +475,7 @@ export default function AdminDashboard() {
     setEditing(product);
     setEditForm({
       name: product.name,
-      brand: product.brand,
+      brandId: getBrandIdByName(product.brand),
       price: String(product.price),
       stock: String(product.stock),
       description: product.description,
@@ -454,9 +499,13 @@ export default function AdminDashboard() {
         imageUrl = await uploadProductImage(editForm.file);
       }
 
+      const brandName = editForm.brandId
+        ? getBrandNameById(editForm.brandId)
+        : editing.brand;
+
       const updated = await updateProduct(editing.id, {
         name: editForm.name,
-        brand: editForm.brand,
+        brand: brandName,
         price: Number(editForm.price),
         stock: Number(editForm.stock),
         imageUrl,
@@ -775,24 +824,36 @@ export default function AdminDashboard() {
       <CardContent>
         <form onSubmit={handleCreate} className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Nama Produk</Label>
-              <Input
-                placeholder=""
-                value={form.name}
-                onChange={(e) => setField("name", e.target.value)}
-              />
-            </div>
+  <div className="space-y-2">
+    <Label>Nama Produk</Label>
+    <Input
+      value={form.name}
+      onChange={(e) => setField("name", e.target.value)}
+    />
+  </div>
 
-            <div className="space-y-2">
-              <Label>Brand</Label>
-              <Input
-                placeholder=""
-                value={form.brand}
-                onChange={(e) => setField("brand", e.target.value)}
-              />
-            </div>
-          </div>
+  <div className="space-y-2">
+    <Select
+      value={form.brandId ?? "none"}
+      onValueChange={(value) =>
+        setField("brandId", value === "none" ? null : value)
+      }
+    >
+      <SelectTrigger>
+        <SelectValue placeholder="Pilih brand" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="none">Pilih brand</SelectItem>
+        {brands.map((brand) => (
+          <SelectItem key={brand.id} value={brand.id}>
+            {brand.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  </div>
+</div>
+
 
           <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
@@ -818,7 +879,7 @@ export default function AdminDashboard() {
               <Label>Kategori</Label>
               <Select
                 value={form.categoryId ?? "none"}
-                onValueChange={(v) => setField("categoryId", v === "none" ? null : v)}
+                onValueChange={(v: string) => setField("categoryId", v === "none" ? null : v)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Pilih kategori" />
@@ -1088,9 +1149,28 @@ export default function AdminDashboard() {
             </CardHeader>
 
             <CardContent>
+              <p className="mb-3 text-xs text-muted-foreground">
+                Brand kini dipilih dari data database. Gunakan formulir di bawah untuk menyimpan perubahan
+                detail produk.
+              </p>
               <form onSubmit={handleUpdate} className="space-y-4">
                 <Input value={editForm.name} onChange={(e) => setEditField("name", e.target.value)} />
-                <Input value={editForm.brand} onChange={(e) => setEditField("brand", e.target.value)} />
+                <Select
+                  value={editForm.brandId ?? "none"}
+                  onValueChange={(value: string) => setEditField("brandId", value === "none" ? null : value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih brand" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Pilih brand</SelectItem>
+                    {brands.map((brand) => (
+                      <SelectItem key={brand.id} value={brand.id}>
+                        {brand.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Input type="number" value={editForm.price} onChange={(e) => setEditField("price", e.target.value)} />
                 <Input type="number" value={editForm.stock} onChange={(e) => setEditField("stock", e.target.value)} />
 
@@ -1129,5 +1209,5 @@ export default function AdminDashboard() {
         </div>
       )}
     </div>
-  );
+      );
 }
