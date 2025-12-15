@@ -9,11 +9,11 @@ export interface Brand {
   name: string;
 }
 
-export interface Product {
+export type Product = {
   id: string;
   name: string;
-  brand: string | null;
-  brandId: string | null;
+  brandId: string | null;   // ✅ WAJIB
+  brand?: string;           // opsional (hasil join / display)
   price: number;
   stock: number;
   imageUrl: string;
@@ -21,4 +21,4 @@ export interface Product {
   longDescription: string;
   categoryId: string | null;
   createdAt: string | null;
-}
+};
