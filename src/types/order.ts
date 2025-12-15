@@ -31,3 +31,14 @@ export interface Order {
   cancelledAt?: string | null;
   name?: string | null;
 }
+
+export interface OrderItemRecap {
+  id: string;
+  orderId: string;
+  productId: string | null;
+  name: string;
+  price: number;
+  quantity: number;
+  status?: OrderStatus | null;
+  createdAt: string | null;
+}
