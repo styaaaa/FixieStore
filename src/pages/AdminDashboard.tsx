@@ -390,7 +390,7 @@ export default function AdminDashboard() {
     e.preventDefault();
 
     if (!form.name.trim() || !form.file) {
-      toast({ variant: "destructive", title: "Nama dan file wajib" });
+      toast({ variant: "destructive", title: "Nama dan file wajib diisi" });
       return;
     }
 
@@ -416,7 +416,7 @@ export default function AdminDashboard() {
       toast({ title: "Produk ditambahkan" });
 
     } catch {
-      toast({ variant: "destructive", title: "Gagal menyimpan produk" });
+      toast({ variant: "destructive", title: "Gagal menyimpan produk: Pastikan semua field diisi sesuai format" });
     }
 
     setSaving(false);
