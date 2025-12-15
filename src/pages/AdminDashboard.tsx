@@ -50,6 +50,16 @@ import {
 } from "@/components/ui/select";
 
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -134,7 +144,10 @@ export default function AdminDashboard() {
   const [editForm, setEditForm] = useState<ProductFormState | null>(null);
   const [savingEdit, setSavingEdit] = useState(false);
 
+  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
   const [deleteLoading, setDeleteLoading] = useState<Record<string, boolean>>({});
+
+  const [pendingStatusOrder, setPendingStatusOrder] = useState<Order | null>(null);
   const [orderSaving, setOrderSaving] = useState<Record<string, boolean>>({});
 
   const navItems = useMemo<NavLink[]>(
@@ -525,13 +538,8 @@ export default function AdminDashboard() {
   // Delete Product
   // ============================
 
-  const handleDelete = async (id: string) => {
-    const target = products.find((product) => product.id === id);
-    const confirmed = window.confirm(
-      `Apakah Anda yakin ingin menghapus produk${target ? ` "${target.name}"` : ""}?`
-    );
-
-    if (!confirmed) return;
+  const handleDelete = async (product: Product) => {
+    const id = product.id;
 
     setDeleteLoading((s) => ({ ...s, [id]: true }));
 
@@ -544,6 +552,7 @@ export default function AdminDashboard() {
     }
 
     setDeleteLoading((s) => ({ ...s, [id]: false }));
+    setDeleteTarget(null);
   };
 
   // ============================
@@ -781,7 +790,19 @@ export default function AdminDashboard() {
                         <p className="text-xs text-muted-foreground">{order.city || "Kota belum diisi"}</p>
                       </TableCell>
 
-                      <TableCell className="align-middle">{renderStatusBadge(order.status)}</TableCell>
+                      <TableCell className="align-middle">
+                        <div className="space-y-1">
+                          {renderStatusBadge(order.status)}
+                          {order.status === "completed" && order.completedAt ? (
+                            <p className="text-[11px] text-muted-foreground">
+                              {new Date(order.completedAt).toLocaleString("id-ID", {
+                                dateStyle: "medium",
+                                timeStyle: "short",
+                              })}
+                            </p>
+                          ) : null}
+                        </div>
+                      </TableCell>
 
                       <TableCell className="align-middle font-medium">{formatCurrency(order.totalPrice)}</TableCell>
 
@@ -789,7 +810,7 @@ export default function AdminDashboard() {
                         {nextStatus ? (
                           <Button
                             size="sm"
-                            onClick={() => handleAdvanceStatus(order)}
+                            onClick={() => setPendingStatusOrder(order)}
                             disabled={orderSaving[order.id]}
                           >
                             {orderSaving[order.id]
@@ -817,52 +838,56 @@ export default function AdminDashboard() {
     <Card className="border border-border bg-card shadow-none transition-colors">
       <CardHeader>
         <div className="flex items-start justify-between gap-2">
-          <div>
+          <div className="space-y-1">
             <CardTitle className="text-lg">Tambah Produk</CardTitle>
+            <CardDescription>
+              Lengkapi informasi produk dengan lebih rapi untuk pengalaman input yang nyaman.
+            </CardDescription>
           </div>
         </div>
       </CardHeader>
 
       <CardContent>
-        <form onSubmit={handleCreate} className="space-y-4">
+        <form onSubmit={handleCreate} className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2">
-  <div className="space-y-2">
-    <Label>Nama Produk</Label>
-    <Input
-      value={form.name}
-      onChange={(e) => setField("name", e.target.value)}
-    />
-  </div>
+            <div className="space-y-2">
+              <Label>Nama Produk</Label>
+              <Input
+                placeholder="Masukkan nama produk"
+                value={form.name}
+                onChange={(e) => setField("name", e.target.value)}
+              />
+            </div>
 
-  <div className="space-y-2">
-    <Select
-      value={form.brandId ?? "none"}
-      onValueChange={(value) =>
-        setField("brandId", value === "none" ? null : value)
-      }
-    >
-      <SelectTrigger>
-        <SelectValue placeholder="Pilih brand" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="none">Pilih brand</SelectItem>
-        {brands.map((brand) => (
-          <SelectItem key={brand.id} value={brand.id}>
-            {brand.name}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  </div>
-</div>
-
+            <div className="space-y-2">
+              <Label>Brand</Label>
+              <Select
+                value={form.brandId ?? "none"}
+                onValueChange={(value) =>
+                  setField("brandId", value === "none" ? null : value)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih brand" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Pilih brand</SelectItem>
+                  {brands.map((brand) => (
+                    <SelectItem key={brand.id} value={brand.id}>
+                      {brand.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
           <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
               <Label>Harga</Label>
               <Input
                 type="number"
-                placeholder=""
+                placeholder="Contoh: 250000"
                 value={form.price}
                 onChange={(e) => setField("price", e.target.value)}
               />
@@ -872,6 +897,7 @@ export default function AdminDashboard() {
               <Label>Stok</Label>
               <Input
                 type="number"
+                placeholder="Jumlah stok"
                 value={form.stock}
                 onChange={(e) => setField("stock", e.target.value)}
               />
@@ -894,39 +920,47 @@ export default function AdminDashboard() {
                     </SelectItem>
                   ))}
                 </SelectContent>
-                
+
               </Select>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>Deskripsi Singkat</Label>
-            <Textarea
-              rows={2}
-              value={form.description}
-              onChange={(e) => setField("description", e.target.value)}
-            />
-          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Deskripsi Singkat</Label>
+              <Textarea
+                rows={3}
+                placeholder="Highlight utama produk"
+                value={form.description}
+                onChange={(e) => setField("description", e.target.value)}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label>Deskripsi Panjang</Label>
-            <Textarea
-              rows={4}
-              value={form.longDescription}
-              onChange={(e) => setField("longDescription", e.target.value)}
-            />
+            <div className="space-y-2">
+              <Label>Deskripsi Panjang</Label>
+              <Textarea
+                rows={5}
+                placeholder="Detail lengkap, bahan, ukuran, atau fitur tambahan"
+                value={form.longDescription}
+                onChange={(e) => setField("longDescription", e.target.value)}
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
             <Label>Gambar Produk</Label>
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setField("file", e.target.files?.[0] ?? null)}
-            />
+            <div className="flex flex-col gap-2 rounded-xl border border-dashed border-border bg-muted/30 p-3 text-sm text-muted-foreground">
+              <Input
+                type="file"
+                accept="image/*"
+                className="border-none bg-transparent p-0 file:rounded-md file:border file:border-border file:bg-card file:px-3 file:py-2"
+                onChange={(e) => setField("file", e.target.files?.[0] ?? null)}
+              />
+              <p className="text-xs">Format JPG, PNG, atau WebP. Maksimal 5MB.</p>
+            </div>
           </div>
 
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
             <Button
               type="button"
               variant="outline"
@@ -935,7 +969,7 @@ export default function AdminDashboard() {
             >
               Reset
             </Button>
-            <Button type="submit" disabled={saving}>
+            <Button type="submit" disabled={saving} className="w-full sm:w-auto">
               {saving ? "Menyimpan..." : "Tambah Produk"}
             </Button>
           </div>
@@ -999,7 +1033,7 @@ export default function AdminDashboard() {
                       <Button
                         size="sm"
                         variant="destructive"
-                        onClick={() => handleDelete(p.id)}
+                        onClick={() => setDeleteTarget(p)}
                         disabled={deleteLoading[p.id]}
                       >
                         {deleteLoading[p.id] ? "..." : <Trash2 className="h-4 w-4" />}
@@ -1026,6 +1060,21 @@ export default function AdminDashboard() {
       default:
         return renderMonitoring();
     }
+  };
+
+  const pendingNextStatus = pendingStatusOrder ? getNextStatus(pendingStatusOrder.status) : null;
+
+  const handleConfirmAdvanceStatus = async () => {
+    if (!pendingStatusOrder) return;
+
+    await handleAdvanceStatus(pendingStatusOrder);
+    setPendingStatusOrder(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+
+    await handleDelete(deleteTarget);
   };
 
   return (
@@ -1142,6 +1191,78 @@ export default function AdminDashboard() {
           {renderContent()}
         </main>
       </div>
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus produk?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteTarget
+                ? `Produk "${deleteTarget.name}" akan dihapus dari katalog. Tindakan ini tidak dapat dibatalkan.`
+                : "Produk akan dihapus dari katalog."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={!!(deleteTarget && deleteLoading[deleteTarget.id])}>
+              Batal
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleConfirmDelete}
+              disabled={!!(deleteTarget && deleteLoading[deleteTarget.id])}
+            >
+              {deleteTarget && deleteLoading[deleteTarget.id] ? "Menghapus..." : "Hapus"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={!!pendingStatusOrder}
+        onOpenChange={(open) => !open && setPendingStatusOrder(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Perbarui status pesanan</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingStatusOrder && pendingNextStatus
+                ? `${pendingStatusOrder.productName ?? "Pesanan"} akan diubah dari ${
+                    statusLabels[pendingStatusOrder.status]
+                  } ke ${statusLabels[pendingNextStatus]}.`
+                : "Pesanan sudah mencapai status akhir."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          {pendingStatusOrder && pendingNextStatus ? (
+            <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm">
+              <div className="flex items-center gap-3">
+                {renderStatusBadge(pendingStatusOrder.status)}
+                <span className="text-muted-foreground">→</span>
+                {renderStatusBadge(pendingNextStatus)}
+              </div>
+              <p className="mt-3 text-xs text-muted-foreground">
+                Perubahan status akan disesuaikan dengan tema aktif tanpa pop-up standar.
+              </p>
+            </div>
+          ) : null}
+
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              disabled={!!(pendingStatusOrder && orderSaving[pendingStatusOrder.id])}
+            >
+              Batal
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmAdvanceStatus}
+              disabled={!pendingNextStatus || !!(pendingStatusOrder && orderSaving[pendingStatusOrder.id])}
+            >
+              {pendingStatusOrder && orderSaving[pendingStatusOrder.id]
+                ? "Memperbarui..."
+                : "Lanjutkan"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {editing && editForm && (
   <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm overflow-y-auto">
