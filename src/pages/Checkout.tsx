@@ -28,8 +28,8 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { decreaseProductStock } from "@/lib/repositories/catalogRepository";
 import { createOrder, updateOrderStatus } from "@/lib/repositories/orderRepository";
 import { createMidtransTransaction } from "@/lib/repositories/paymentRepository";
-import { supabase } from "@/lib/supabaseClient";
 import { savePurchasedProducts } from "@/lib/repositories/reviewRepository";
+import { saveOrderItemsForOrder } from "@/lib/repositories/orderItemRepository";
 import type { Product } from "@/types/catalog";
 import type { CartItem } from "@/types/cart";
 
@@ -262,6 +262,9 @@ const Checkout = () => {
             try {
               // update status ke processed (fallback jika webhook sudah handle)
               await updateOrderStatus(order.id, "processed");
+
+              // simpan detail produk yang terjual beserta harga saat checkout
+              await saveOrderItemsForOrder(order.id, purchaseItems);
 
               // simpan produk yang berhasil dibeli untuk referensi ulasan
               savePurchasedProducts(order.id, purchaseItems);
@@ -559,9 +562,12 @@ const Checkout = () => {
                             <p className="text-sm font-semibold">
                               {item.product?.name ?? "Produk tanpa nama"}
                             </p>
-                            <p className="text-xs text-muted-foreground">
-                              Jumlah {item.quantity}
-                            </p>
+                            <div className="text-xs text-muted-foreground">
+                              <span className="font-semibold text-foreground">
+                                {formatCurrency(item.product?.price ?? 0)}
+                              </span>{" "}
+                              per item · Jumlah {item.quantity}
+                            </div>
                           </div>
                           <p className="text-sm font-semibold text-primary">
                             {formatCurrency(

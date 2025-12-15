@@ -13,6 +13,7 @@ import {
   LogOut,
   Menu,
   Package,
+  PackageCheck,
   Pencil,
   PlusCircle,
   RefreshCcw,
@@ -78,9 +79,10 @@ import {
   mapOrderRowToOrder,
   updateOrderStatus,
 } from "@/lib/repositories/orderRepository";
+import { fetchOrderItemsRecap } from "@/lib/repositories/orderItemRepository";
 
 import type { Brand, Product, Category } from "@/types/catalog";
-import type { Order, OrderStatus } from "@/types/order";
+import type { Order, OrderItemRecap, OrderStatus } from "@/types/order";
 
 // ============================
 // Form State
@@ -113,7 +115,12 @@ const initialForm: ProductFormState = {
 };
 
 
-type DashboardView = "monitoring" | "order-status" | "add-product" | "product-table";
+type DashboardView =
+  | "monitoring"
+  | "order-status"
+  | "add-product"
+  | "product-table"
+  | "product-recap";
 
 type NavLink = {
   id: DashboardView;
@@ -134,9 +141,11 @@ export default function AdminDashboard() {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [orderItemsRecap, setOrderItemsRecap] = useState<OrderItemRecap[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [ordersLoading, setOrdersLoading] = useState(true);
+  const [orderItemsLoading, setOrderItemsLoading] = useState(true);
   const [form, setForm] = useState(initialForm);
   const [saving, setSaving] = useState(false);
 
@@ -163,6 +172,12 @@ export default function AdminDashboard() {
         label: "Status Pesanan",
         description: "",
         icon: RefreshCcw,
+      },
+      {
+        id: "product-recap",
+        label: "Rekap Produk",
+        description: "",
+        icon: PackageCheck,
       },
       {
         id: "add-product",
@@ -299,15 +314,30 @@ export default function AdminDashboard() {
     return names && names.length > 0 ? names.join(", ") : null;
   }, []);
 
+  const loadOrderItemsRecap = useCallback(async () => {
+    try {
+      setOrderItemsLoading(true);
+      const recapItems = await fetchOrderItemsRecap();
+      setOrderItemsRecap(recapItems);
+    } catch (error) {
+      console.error("loadOrderItemsRecap error", error);
+      toast({ variant: "destructive", title: "Gagal memuat rekap produk" });
+    } finally {
+      setOrderItemsLoading(false);
+    }
+  }, []);
+
   const loadData = useCallback(async () => {
     try {
       setOrdersLoading(true);
+      setOrderItemsLoading(true);
 
-      const [cats, prods, adminOrders, brandOptions] = await Promise.all([
+      const [cats, prods, adminOrders, brandOptions, recapItems] = await Promise.all([
         getCategories(),
         getProducts(),
         fetchAllOrders(),
         getBrands(),
+        fetchOrderItemsRecap(),
       ]);
 
       const ordersWithNames = await Promise.all(
@@ -323,11 +353,13 @@ export default function AdminDashboard() {
       setBrands(brandOptions);
       setProducts(prods);
       setOrders(ordersWithNames);
+      setOrderItemsRecap(recapItems);
     } catch {
       toast({ variant: "destructive", title: "Gagal memuat data" });
     } finally {
       setLoading(false);
       setOrdersLoading(false);
+      setOrderItemsLoading(false);
     }
   }, [fetchOrderItemNames]);
 
@@ -388,7 +420,26 @@ export default function AdminDashboard() {
     return () => {
       supabase.removeChannel(channel);
     };
-   }, [fetchOrderItemNames, isAdmin, user]);
+  }, [fetchOrderItemNames, isAdmin, user]);
+
+  useEffect(() => {
+    if (!user || !isAdmin) return undefined;
+
+    const channel = supabase
+      .channel("order-items-admin-dashboard")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "order_items" },
+        () => {
+          void loadOrderItemsRecap();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isAdmin, loadOrderItemsRecap, user]);
 
   const setField = <K extends keyof ProductFormState>(
     field: K,
@@ -834,6 +885,144 @@ export default function AdminDashboard() {
     </Card>
   );
 
+  const renderProductRecap = () => {
+    const totalRevenue = orderItemsRecap.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+    const totalUnits = orderItemsRecap.reduce(
+      (sum, item) => sum + item.quantity,
+      0
+    );
+    const uniqueOrders = new Set(orderItemsRecap.map((item) => item.orderId)).size;
+
+    return (
+      <div className="space-y-4">
+        <div className="grid gap-4 lg:grid-cols-3">
+          <Card className="border border-border bg-card shadow-none">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pendapatan Terjual</CardTitle>
+              <PackageCheck className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
+              <p className="text-xs text-muted-foreground">Subtotal dari harga jual produk</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border border-border bg-card shadow-none">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Unit Terjual</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalUnits}</div>
+              <p className="text-xs text-muted-foreground">Mengacu pada kuantitas di setiap order</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border border-border bg-card shadow-none">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Order Aktif</CardTitle>
+              <Badge variant="secondary" className="border border-border bg-background">
+                {uniqueOrders} order
+              </Badge>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{orderItemsRecap.length}</div>
+              <p className="text-xs text-muted-foreground">Baris produk siap dikirim & selesai</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card className="border border-border bg-card shadow-none transition-colors">
+          <CardHeader>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  Rekap Produk Terjual
+                </CardTitle>
+                <CardDescription>
+                  Lihat detail harga jual per produk yang sudah berhasil checkout.
+                </CardDescription>
+              </div>
+              <Badge className="border border-primary/20 bg-primary/10 text-primary">
+                Sinkron dengan checkout
+              </Badge>
+            </div>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            {orderItemsLoading ? (
+              <div className="space-y-3">
+                <div className="h-12 w-full animate-pulse rounded-md bg-muted/60" />
+                <div className="h-12 w-full animate-pulse rounded-md bg-muted/60" />
+              </div>
+            ) : orderItemsRecap.length === 0 ? (
+              <div className="rounded-lg border border-dashed bg-muted/30 p-6 text-sm text-muted-foreground">
+                Belum ada produk yang berhasil dibeli.
+              </div>
+            ) : (
+              <div className="overflow-hidden rounded-lg border border-border shadow-sm">
+                <Table className="text-sm">
+                  <TableHeader className="bg-muted/50 text-foreground">
+                    <TableRow className="text-xs uppercase tracking-wide text-muted-foreground">
+                      <TableHead>Produk</TableHead>
+                      <TableHead>Order</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Harga Jual</TableHead>
+                      <TableHead>Qty</TableHead>
+                      <TableHead className="text-right">Subtotal</TableHead>
+                    </TableRow>
+                  </TableHeader>
+
+                  <TableBody>
+                    {orderItemsRecap.map((item) => (
+                      <TableRow key={item.id} className="align-middle transition hover:bg-muted/50">
+                        <TableCell className="align-middle">
+                          <p className="font-semibold">{item.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {item.createdAt
+                              ? new Date(item.createdAt).toLocaleString("id-ID")
+                              : "Tanggal tidak tersedia"}
+                          </p>
+                        </TableCell>
+
+                        <TableCell className="align-middle text-sm text-muted-foreground">
+                          <span className="font-semibold text-foreground">#{item.orderId}</span>
+                        </TableCell>
+
+                        <TableCell className="align-middle">
+                          {item.status ? (
+                            renderStatusBadge(item.status)
+                          ) : (
+                            <Badge variant="outline" className="text-xs">
+                              Menunggu
+                            </Badge>
+                          )}
+                        </TableCell>
+
+                        <TableCell className="align-middle font-medium">
+                          {formatCurrency(item.price)}
+                        </TableCell>
+
+                        <TableCell className="align-middle">{item.quantity}</TableCell>
+
+                        <TableCell className="align-middle text-right font-semibold text-primary">
+                          {formatCurrency(item.price * item.quantity)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
   const renderAddProduct = () => (
     <Card className="border border-border bg-card shadow-none transition-colors">
       <CardHeader>
@@ -1053,6 +1242,8 @@ export default function AdminDashboard() {
     switch (activeView) {
       case "order-status":
         return renderOrders();
+      case "product-recap":
+        return renderProductRecap();
       case "add-product":
         return renderAddProduct();
       case "product-table":
