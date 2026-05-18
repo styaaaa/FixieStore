@@ -62,4 +62,4 @@ JWT_SECRET=
 
 ## Author
 
-FixieStore by YOUR_NAME
+FixieStore
